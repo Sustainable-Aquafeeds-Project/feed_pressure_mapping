@@ -1,0 +1,2993 @@
+ID_0,continent,country,stressor,prop
+4,Europe,Albania,ocean_broiler_ghg,0.12135882583358339
+5,Africa,Algeria,ocean_broiler_ghg,0.03732937874828411
+6,Oceania,American Samoa,ocean_broiler_ghg,1.0340517052686097e-9
+8,Africa,Angola,ocean_broiler_ghg,0.016372519846983135
+9,Americas,Anguilla,ocean_broiler_ghg,3.079174061487354e-10
+11,Americas,Antigua and Barbuda,ocean_broiler_ghg,3.8792374565149577e-4
+12,Americas,Argentina,ocean_broiler_ghg,0.018691503041680796
+14,Americas,Aruba,ocean_broiler_ghg,1.5881825763039336e-7
+15,Oceania,Australia,ocean_broiler_ghg,0.0031192814014652324
+18,Americas,Bahamas,ocean_broiler_ghg,0.002752671516984833
+19,Asia,Bahrain,ocean_broiler_ghg,0.04673129023598381
+20,Asia,Bangladesh,ocean_broiler_ghg,0.121109602432607
+21,Americas,Barbados,ocean_broiler_ghg,0.0027014879247752497
+23,Europe,Belgium,ocean_broiler_ghg,0.6044800592238426
+24,Americas,Belize,ocean_broiler_ghg,0.04974425134425018
+25,Africa,Benin,ocean_broiler_ghg,0.01326601845239071
+26,Americas,Bermuda,ocean_broiler_ghg,5.077789055783319e-10
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_broiler_ghg,4.600138064034841e-8
+30,Europe,Bosnia and Herzegovina,ocean_broiler_ghg,0.6277242018999148
+33,Americas,Brazil,ocean_broiler_ghg,0.06327667746382086
+34,Africa,British Indian Ocean Territory,ocean_broiler_ghg,1.0412440802883386e-10
+35,Americas,British Virgin Islands,ocean_broiler_ghg,6.608458356892505e-10
+36,Asia,Brunei Darussalam,ocean_broiler_ghg,0.09299155079990352
+37,Europe,Bulgaria,ocean_broiler_ghg,0.15278360532094898
+40,Asia,Cambodia,ocean_broiler_ghg,0.016453953167071964
+41,Africa,Cameroon,ocean_broiler_ghg,0.037294308456330395
+42,Americas,Canada,ocean_broiler_ghg,0.0031479883265703628
+43,Africa,Cabo Verde,ocean_broiler_ghg,6.609261136590274e-11
+45,Americas,Cayman Islands,ocean_broiler_ghg,5.251509385886598e-11
+48,Americas,Chile,ocean_broiler_ghg,0.009365019752688015
+49,Asia,China,ocean_broiler_ghg,0.243202486466404
+50,Oceania,Christmas Island,ocean_broiler_ghg,6.155701963699062e-9
+52,Oceania,Cocos (Keeling) Islands,ocean_broiler_ghg,2.5010950070144453e-9
+53,Americas,Colombia,ocean_broiler_ghg,0.0803426933185638
+54,Africa,Comoros,ocean_broiler_ghg,0.0012241954344620416
+55,Oceania,Cook Islands,ocean_broiler_ghg,4.039573934969712e-12
+56,Americas,Costa Rica,ocean_broiler_ghg,0.016614608057390724
+57,Africa,Côte d’Ivoire,ocean_broiler_ghg,0.051123301775772984
+58,Europe,Croatia,ocean_broiler_ghg,0.10211517765304924
+59,Americas,Cuba,ocean_broiler_ghg,2.8185892874021753e-8
+60,Americas,Curaçao,ocean_broiler_ghg,1.0814409407127994e-7
+61,Asia,Cyprus,ocean_broiler_ghg,0.02099635165628089
+64,Europe,Denmark,ocean_broiler_ghg,0.07160974635624398
+65,Africa,Djibouti,ocean_broiler_ghg,3.969970753615575e-6
+66,Americas,Dominica,ocean_broiler_ghg,0.014486660211947819
+67,Americas,Dominican Republic,ocean_broiler_ghg,0.12752658805117773
+68,Americas,Ecuador,ocean_broiler_ghg,0.04156778126193194
+69,Africa,Egypt,ocean_broiler_ghg,2.1399356974885025e-4
+70,Americas,El Salvador,ocean_broiler_ghg,0.06210282845621001
+71,Africa,Equatorial Guinea,ocean_broiler_ghg,0.0012072696983107202
+72,Africa,Eritrea,ocean_broiler_ghg,5.175284866550815e-4
+73,Europe,Estonia,ocean_broiler_ghg,0.02254801667575392
+75,Americas,Falkland Islands (Malvinas),ocean_broiler_ghg,2.5522532311574356e-8
+76,Europe,Faroe Islands,ocean_broiler_ghg,1.2377193490239264e-6
+77,Oceania,Fiji,ocean_broiler_ghg,0.0022067253789254415
+78,Europe,Finland,ocean_broiler_ghg,0.010405726409643847
+79,Europe,France,ocean_broiler_ghg,0.14535551541511993
+80,Americas,French Guiana,ocean_broiler_ghg,0.0017347619294822091
+81,Oceania,French Polynesia,ocean_broiler_ghg,3.253728286607279e-11
+83,Africa,Gabon,ocean_broiler_ghg,0.012444633451220056
+84,Africa,Gambia,ocean_broiler_ghg,0.00975756647934228
+85,Asia,Georgia,ocean_broiler_ghg,0.13834833755345746
+86,Europe,Germany,ocean_broiler_ghg,0.32217080171102325
+87,Africa,Ghana,ocean_broiler_ghg,0.05760246088259557
+88,Europe,Gibraltar,ocean_broiler_ghg,8.267680868812022e-7
+89,Europe,Greece,ocean_broiler_ghg,0.058685721824549654
+90,Americas,Greenland,ocean_broiler_ghg,1.542022162936607e-8
+91,Americas,Grenada,ocean_broiler_ghg,0.00997210965400984
+94,Americas,Guatemala,ocean_broiler_ghg,0.06004370539500654
+95,Europe,Guernsey,ocean_broiler_ghg,6.317235321632559e-7
+96,Africa,Guinea,ocean_broiler_ghg,0.012363678389193201
+97,Africa,Guinea-Bissau,ocean_broiler_ghg,0.004711218045251856
+98,Americas,Guyana,ocean_broiler_ghg,0.031527775182175616
+99,Americas,Haiti,ocean_broiler_ghg,0.008172562409698176
+101,Americas,Honduras,ocean_broiler_ghg,0.2086040856337273
+104,Europe,Iceland,ocean_broiler_ghg,3.978224951715946e-4
+105,Asia,India,ocean_broiler_ghg,0.13826419430540735
+106,Asia,Indonesia,ocean_broiler_ghg,0.05269823889722171
+107,Asia,Iran (Islamic Republic of),ocean_broiler_ghg,0.5024907284423547
+108,Asia,Iraq,ocean_broiler_ghg,0.20402639199862313
+109,Europe,Ireland,ocean_broiler_ghg,0.020991104199480824
+111,Asia,Israel,ocean_broiler_ghg,0.28967799593585536
+112,Europe,Italy,ocean_broiler_ghg,0.08026712289482014
+113,Americas,Jamaica,ocean_broiler_ghg,0.03827554240030742
+114,Asia,Japan,ocean_broiler_ghg,0.051413465679248864
+115,Europe,Jersey,ocean_broiler_ghg,6.002259936061754e-7
+116,Asia,Jordan,ocean_broiler_ghg,0.180914733752659
+118,Africa,Kenya,ocean_broiler_ghg,0.008944294468740895
+119,Oceania,Kiribati,ocean_broiler_ghg,5.558321156461956e-10
+121,Asia,Kuwait,ocean_broiler_ghg,0.5598736707529608
+124,Europe,Latvia,ocean_broiler_ghg,0.04551739192112411
+125,Asia,Lebanon,ocean_broiler_ghg,0.3126501734156157
+127,Africa,Liberia,ocean_broiler_ghg,0.0025769091756393933
+128,Africa,Libya,ocean_broiler_ghg,0.012991368594057594
+130,Europe,Lithuania,ocean_broiler_ghg,0.1474881930723967
+134,Africa,Madagascar,ocean_broiler_ghg,0.009631130071696074
+136,Asia,Malaysia,ocean_broiler_ghg,0.18668310996617254
+137,Asia,Maldives,ocean_broiler_ghg,7.613067077609779e-11
+139,Europe,Malta,ocean_broiler_ghg,0.006273770388876589
+140,Oceania,Marshall Islands,ocean_broiler_ghg,3.582430160493493e-11
+142,Africa,Mauritania,ocean_broiler_ghg,0.001620029266123259
+143,Africa,Mauritius,ocean_broiler_ghg,1.8006926238312768e-9
+144,Africa,Mayotte,ocean_broiler_ghg,4.398353376283569e-9
+145,Americas,Mexico,ocean_broiler_ghg,0.03774204848275802
+146,Oceania,Micronesia (Federated States of),ocean_broiler_ghg,8.811098552827139e-11
+148,Europe,Monaco,ocean_broiler_ghg,3.9242457319232924e-7
+150,Europe,Montenegro,ocean_broiler_ghg,2.5033165397958084e-4
+151,Americas,Montserrat,ocean_broiler_ghg,4.500987709186715e-9
+152,Africa,Morocco,ocean_broiler_ghg,0.23155348859643357
+153,Africa,Mozambique,ocean_broiler_ghg,0.00451359618789564
+154,Asia,Myanmar,ocean_broiler_ghg,0.02938225411058808
+155,Africa,Namibia,ocean_broiler_ghg,0.004461068417222675
+156,Oceania,Nauru,ocean_broiler_ghg,7.782939015693448e-11
+158,Europe,Netherlands,ocean_broiler_ghg,0.2920857580163569
+159,Oceania,New Caledonia,ocean_broiler_ghg,1.0886423406184745e-11
+160,Oceania,New Zealand,ocean_broiler_ghg,0.005285504847506624
+161,Americas,Nicaragua,ocean_broiler_ghg,0.038372391821268115
+163,Africa,Nigeria,ocean_broiler_ghg,0.06084345408774049
+164,Oceania,Niue,ocean_broiler_ghg,1.7801730547438188e-12
+165,Oceania,Norfolk Island,ocean_broiler_ghg,4.755581914527891e-9
+166,Asia,Democratic People's Republic of Korea,ocean_broiler_ghg,0.03014990448012152
+169,Europe,Norway,ocean_broiler_ghg,0.0013927434219774086
+170,Asia,Oman,ocean_broiler_ghg,1.5591915237131383e-4
+171,Asia,Pakistan,ocean_broiler_ghg,0.27941758201038797
+172,Oceania,Palau,ocean_broiler_ghg,1.961638021963636e-11
+174,Americas,Panama,ocean_broiler_ghg,0.039735782438112724
+175,Oceania,Papua New Guinea,ocean_broiler_ghg,8.250874194927064e-4
+178,Americas,Peru,ocean_broiler_ghg,0.03212267577006671
+179,Asia,Philippines,ocean_broiler_ghg,0.05273828934225834
+180,Oceania,Pitcairn,ocean_broiler_ghg,5.556912815685406e-11
+181,Europe,Poland,ocean_broiler_ghg,0.4419398340742264
+182,Europe,Portugal,ocean_broiler_ghg,0.015067452905882987
+184,Asia,Qatar,ocean_broiler_ghg,0.09364717142890036
+185,Africa,Congo,ocean_broiler_ghg,0.010717671664220987
+186,Africa,Réunion,ocean_broiler_ghg,8.255902999469207e-11
+187,Europe,Romania,ocean_broiler_ghg,0.4857647876506062
+188,Europe,Russian Federation,ocean_broiler_ghg,0.02425042317766625
+191,Americas,Saint Martin (French Part),ocean_broiler_ghg,7.50693234118237e-9
+192,Africa,Saint Helena,ocean_broiler_ghg,1.2020435671005503e-10
+193,Americas,Saint Kitts and Nevis,ocean_broiler_ghg,0.00787402723123031
+194,Americas,Saint Lucia,ocean_broiler_ghg,0.021530555647840195
+195,Americas,Saint Pierre and Miquelon,ocean_broiler_ghg,1.277092119862451e-7
+196,Americas,Saint Vincent and the Grenadines,ocean_broiler_ghg,0.0050281907022467626
+197,Oceania,Samoa,ocean_broiler_ghg,8.873189263163789e-10
+199,Africa,Sao Tome and Principe,ocean_broiler_ghg,9.95781237986116e-4
+200,Asia,Saudi Arabia,ocean_broiler_ghg,0.07037487621601125
+201,Africa,Senegal,ocean_broiler_ghg,0.009151429402140318
+203,Africa,Seychelles,ocean_broiler_ghg,1.5961647438279257e-10
+204,Africa,Sierra Leone,ocean_broiler_ghg,0.013698207608282673
+205,Asia,Singapore,ocean_broiler_ghg,0.3125033467398879
+206,Americas,Sint Maarten (Dutch part),ocean_broiler_ghg,0
+208,Europe,Slovenia,ocean_broiler_ghg,0.20900668719112148
+209,Oceania,Solomon Islands,ocean_broiler_ghg,6.208772397346434e-5
+210,Africa,Somalia,ocean_broiler_ghg,0.0033903806286303705
+211,Africa,South Africa,ocean_broiler_ghg,0.04721936666416965
+213,Asia,Republic of Korea,ocean_broiler_ghg,0.19102383090318015
+215,Europe,Spain,ocean_broiler_ghg,0.09124714447897354
+217,Asia,Sri Lanka,ocean_broiler_ghg,0.037652264275830634
+218,Africa,Sudan,ocean_broiler_ghg,0.007420486181700581
+219,Americas,Suriname,ocean_broiler_ghg,0.01833067206844477
+222,Europe,Sweden,ocean_broiler_ghg,0.011695111333007274
+224,Asia,Syrian Arab Republic,ocean_broiler_ghg,0.13045246462920845
+225,Asia,Taiwan,ocean_broiler_ghg,6.196717975122393e-7
+227,Africa,United Republic of Tanzania,ocean_broiler_ghg,0.006087024580161208
+228,Asia,Thailand,ocean_broiler_ghg,0.2961354324546516
+229,Asia,Timor-Leste,ocean_broiler_ghg,0.0031474636919010565
+230,Africa,Togo,ocean_broiler_ghg,0.16716410177317942
+231,Oceania,Tokelau,ocean_broiler_ghg,1.0396367083195546e-11
+232,Oceania,Tonga,ocean_broiler_ghg,6.468491165664e-11
+233,Americas,Trinidad and Tobago,ocean_broiler_ghg,0.061379158376050603
+234,Africa,Tunisia,ocean_broiler_ghg,0.26710098806237126
+235,Asia,Turkey,ocean_broiler_ghg,0.17877468630367357
+237,Americas,Turks and Caicos Islands,ocean_broiler_ghg,9.454223712916696e-11
+238,Oceania,Tuvalu,ocean_broiler_ghg,2.653053720939086e-11
+240,Europe,Ukraine,ocean_broiler_ghg,0.3346887331758605
+241,Asia,United Arab Emirates,ocean_broiler_ghg,0.2954564671003011
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_broiler_ghg,0.12328863151524601
+243,Americas,United States of America,ocean_broiler_ghg,0.028244054239157015
+245,Americas,Uruguay,ocean_broiler_ghg,0.018444907414266503
+247,Oceania,Vanuatu,ocean_broiler_ghg,0.0012284561560349952
+249,Americas,Venezuela (Bolivarian Republic of),ocean_broiler_ghg,0.03195565907777199
+250,Asia,Viet Nam,ocean_broiler_ghg,2.0539746300754437e-4
+252,Oceania,Wallis and Futuna Islands,ocean_broiler_ghg,1.1012784633268743e-12
+253,Africa,Western Sahara,ocean_broiler_ghg,8.722718341149223e-7
+254,Asia,Yemen,ocean_broiler_ghg,1.0521181806771847e-4
+300,Africa,Madeira Island,ocean_broiler_ghg,9.036454552161576e-8
+301,Africa,Democratic Republic of the Congo,ocean_broiler_ghg,0.0012618484807601388
+4,Europe,Albania,ocean_salmon_ghg,7.977418707989883e-7
+5,Africa,Algeria,ocean_salmon_ghg,2.6388057553904105e-7
+6,Oceania,American Samoa,ocean_salmon_ghg,4.343035394083665e-9
+8,Africa,Angola,ocean_salmon_ghg,4.105533811943795e-7
+9,Americas,Anguilla,ocean_salmon_ghg,1.293258525821312e-9
+11,Americas,Antigua and Barbuda,ocean_salmon_ghg,1.0382939321135854e-8
+12,Americas,Argentina,ocean_salmon_ghg,3.4096800010979486e-7
+14,Americas,Aruba,ocean_salmon_ghg,6.670394815310213e-7
+15,Oceania,Australia,ocean_salmon_ghg,1.941808361880549e-6
+18,Americas,Bahamas,ocean_salmon_ghg,7.807211785397947e-9
+19,Asia,Bahrain,ocean_salmon_ghg,1.1228184675758789e-5
+20,Asia,Bangladesh,ocean_salmon_ghg,1.6699146308564758e-5
+21,Americas,Barbados,ocean_salmon_ghg,8.851855355359781e-9
+23,Europe,Belgium,ocean_salmon_ghg,2.217064598584885e-6
+24,Americas,Belize,ocean_salmon_ghg,0
+25,Africa,Benin,ocean_salmon_ghg,1.931030087396347e-7
+26,Americas,Bermuda,ocean_salmon_ghg,2.132680397095599e-9
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_salmon_ghg,1.9320661629641963e-7
+30,Europe,Bosnia and Herzegovina,ocean_salmon_ghg,1.1159282534872897e-6
+33,Americas,Brazil,ocean_salmon_ghg,1.4373127608121492e-7
+34,Africa,British Indian Ocean Territory,ocean_salmon_ghg,4.37324341950857e-10
+35,Americas,British Virgin Islands,ocean_salmon_ghg,2.7755641654497593e-9
+36,Asia,Brunei Darussalam,ocean_salmon_ghg,3.2424938873505143e-6
+37,Europe,Bulgaria,ocean_salmon_ghg,2.0715406062719477e-6
+40,Asia,Cambodia,ocean_salmon_ghg,2.4840449468693856e-7
+41,Africa,Cameroon,ocean_salmon_ghg,1.9505982970098328e-7
+42,Americas,Canada,ocean_salmon_ghg,1.0794647334374192e-7
+43,Africa,Cabo Verde,ocean_salmon_ghg,2.775901372423537e-10
+45,Americas,Cayman Islands,ocean_salmon_ghg,2.2056431375123767e-10
+48,Americas,Chile,ocean_salmon_ghg,7.052477437113314e-6
+49,Asia,China,ocean_salmon_ghg,2.428118635482882e-6
+50,Oceania,Christmas Island,ocean_salmon_ghg,2.5854056421652676e-8
+52,Oceania,Cocos (Keeling) Islands,ocean_salmon_ghg,1.0504643026392522e-8
+53,Americas,Colombia,ocean_salmon_ghg,1.7558289397439655e-8
+54,Africa,Comoros,ocean_salmon_ghg,5.647742134325865e-8
+55,Oceania,Cook Islands,ocean_salmon_ghg,1.6966281643370672e-11
+56,Americas,Costa Rica,ocean_salmon_ghg,9.673122476922674e-9
+57,Africa,Côte d’Ivoire,ocean_salmon_ghg,4.461209044717566e-7
+58,Europe,Croatia,ocean_salmon_ghg,5.122038837242983e-6
+59,Americas,Cuba,ocean_salmon_ghg,1.183812459566707e-7
+60,Americas,Curaçao,ocean_salmon_ghg,4.5420710682041105e-7
+61,Asia,Cyprus,ocean_salmon_ghg,9.547388093693934e-8
+64,Europe,Denmark,ocean_salmon_ghg,1.1617059090855992e-5
+65,Africa,Djibouti,ocean_salmon_ghg,2.92315679815195e-7
+66,Americas,Dominica,ocean_salmon_ghg,5.911729147410507e-8
+67,Americas,Dominican Republic,ocean_salmon_ghg,2.676469535830014e-10
+68,Americas,Ecuador,ocean_salmon_ghg,1.9132551829916107e-6
+69,Africa,Egypt,ocean_salmon_ghg,7.94976309450922e-7
+70,Americas,El Salvador,ocean_salmon_ghg,4.670672725092637e-8
+71,Africa,Equatorial Guinea,ocean_salmon_ghg,2.3223718545989379e-7
+72,Africa,Eritrea,ocean_salmon_ghg,4.289535606269111e-7
+73,Europe,Estonia,ocean_salmon_ghg,6.273388680887285e-6
+75,Americas,Falkland Islands (Malvinas),ocean_salmon_ghg,1.0719508683446264e-7
+76,Europe,Faroe Islands,ocean_salmon_ghg,5.198443067153245e-6
+77,Oceania,Fiji,ocean_salmon_ghg,7.71417508562623e-9
+78,Europe,Finland,ocean_salmon_ghg,1.7892451218828369e-6
+79,Europe,France,ocean_salmon_ghg,5.534417000018986e-6
+80,Americas,French Guiana,ocean_salmon_ghg,1.3865161815270905e-8
+81,Oceania,French Polynesia,ocean_salmon_ghg,1.366571632652412e-10
+83,Africa,Gabon,ocean_salmon_ghg,8.905030848895771e-7
+84,Africa,Gambia,ocean_salmon_ghg,1.2461672793556164e-5
+85,Asia,Georgia,ocean_salmon_ghg,6.722112888995011e-7
+86,Europe,Germany,ocean_salmon_ghg,2.8749376826813244e-6
+87,Africa,Ghana,ocean_salmon_ghg,2.0288931019274765e-6
+88,Europe,Gibraltar,ocean_salmon_ghg,3.4724404637624198e-6
+89,Europe,Greece,ocean_salmon_ghg,8.292761871760254e-7
+90,Americas,Greenland,ocean_salmon_ghg,6.476520265923857e-8
+91,Americas,Grenada,ocean_salmon_ghg,7.915003434300107e-7
+94,Americas,Guatemala,ocean_salmon_ghg,1.5322820983760658e-8
+95,Europe,Guernsey,ocean_salmon_ghg,2.6532499334514855e-6
+96,Africa,Guinea,ocean_salmon_ghg,7.877708934717898e-7
+97,Africa,Guinea-Bissau,ocean_salmon_ghg,2.454323930120847e-6
+98,Americas,Guyana,ocean_salmon_ghg,7.476039900198449e-8
+99,Americas,Haiti,ocean_salmon_ghg,4.6029848565672637e-10
+101,Americas,Honduras,ocean_salmon_ghg,1.3436970829674917e-9
+104,Europe,Iceland,ocean_salmon_ghg,3.2445736512470313e-6
+105,Asia,India,ocean_salmon_ghg,1.941874384083448e-6
+106,Asia,Indonesia,ocean_salmon_ghg,1.3500754103156804e-6
+107,Asia,Iran (Islamic Republic of),ocean_salmon_ghg,1.7596381989858327e-7
+108,Asia,Iraq,ocean_salmon_ghg,7.959195363378426e-9
+109,Europe,Ireland,ocean_salmon_ghg,2.83433839650012e-6
+111,Asia,Israel,ocean_salmon_ghg,2.750249722002132e-7
+112,Europe,Italy,ocean_salmon_ghg,1.0071282036712378e-6
+113,Americas,Jamaica,ocean_salmon_ghg,5.568250803476317e-10
+114,Asia,Japan,ocean_salmon_ghg,1.5627967109291035e-6
+115,Europe,Jersey,ocean_salmon_ghg,2.520959776169158e-6
+116,Asia,Jordan,ocean_salmon_ghg,5.612111358375176e-8
+118,Africa,Kenya,ocean_salmon_ghg,1.0756906717390738e-8
+119,Oceania,Kiribati,ocean_salmon_ghg,2.334504671227399e-9
+121,Asia,Kuwait,ocean_salmon_ghg,2.6405812742963885e-6
+124,Europe,Latvia,ocean_salmon_ghg,4.974085560115982e-6
+125,Asia,Lebanon,ocean_salmon_ghg,4.03888577664758e-7
+127,Africa,Liberia,ocean_salmon_ghg,3.295129762264795e-7
+128,Africa,Libya,ocean_salmon_ghg,5.8881364488650826e-8
+130,Europe,Lithuania,ocean_salmon_ghg,1.3354642739609706e-6
+134,Africa,Madagascar,ocean_salmon_ghg,6.146618186504513e-10
+136,Asia,Malaysia,ocean_salmon_ghg,6.601870058402963e-6
+137,Asia,Maldives,ocean_salmon_ghg,3.197501548295143e-10
+139,Europe,Malta,ocean_salmon_ghg,1.0549208936521662e-6
+140,Oceania,Marshall Islands,ocean_salmon_ghg,1.5046269861986367e-10
+142,Africa,Mauritania,ocean_salmon_ghg,2.4291558200053683e-6
+143,Africa,Mauritius,ocean_salmon_ghg,7.562245069271265e-9
+144,Africa,Mayotte,ocean_salmon_ghg,1.847316196386746e-8
+145,Americas,Mexico,ocean_salmon_ghg,2.168953955597701e-7
+146,Oceania,Micronesia (Federated States of),ocean_salmon_ghg,3.7006769768224446e-10
+148,Europe,Monaco,ocean_salmon_ghg,1.6481900956932805e-6
+150,Europe,Montenegro,ocean_salmon_ghg,1.8187693785571742e-6
+151,Americas,Montserrat,ocean_salmon_ghg,1.8904227363909056e-8
+152,Africa,Morocco,ocean_salmon_ghg,1.4018100153371069e-5
+153,Africa,Mozambique,ocean_salmon_ghg,2.2966246067594115e-9
+154,Asia,Myanmar,ocean_salmon_ghg,9.372152256978619e-7
+155,Africa,Namibia,ocean_salmon_ghg,2.3919344702102183e-8
+156,Oceania,Nauru,ocean_salmon_ghg,3.268848114298085e-10
+158,Europe,Netherlands,ocean_salmon_ghg,1.0157072586968938e-5
+159,Oceania,New Caledonia,ocean_salmon_ghg,4.5723171440203905e-11
+160,Oceania,New Zealand,ocean_salmon_ghg,2.030701272599011e-7
+161,Americas,Nicaragua,ocean_salmon_ghg,1.2298315095396822e-8
+163,Africa,Nigeria,ocean_salmon_ghg,1.0246128555848382e-6
+164,Oceania,Niue,ocean_salmon_ghg,7.476758246394248e-12
+165,Oceania,Norfolk Island,ocean_salmon_ghg,1.9973528116472254e-8
+166,Asia,Democratic People's Republic of Korea,ocean_salmon_ghg,9.87591605075301e-7
+169,Europe,Norway,ocean_salmon_ghg,4.020285107465913e-6
+170,Asia,Oman,ocean_salmon_ghg,1.400992278130116e-6
+171,Asia,Pakistan,ocean_salmon_ghg,7.893130780506876e-7
+172,Oceania,Palau,ocean_salmon_ghg,8.238914321451187e-11
+174,Americas,Panama,ocean_salmon_ghg,7.328876705658154e-10
+175,Oceania,Papua New Guinea,ocean_salmon_ghg,4.075313015540004e-9
+178,Americas,Peru,ocean_salmon_ghg,2.3803446938694955e-5
+179,Asia,Philippines,ocean_salmon_ghg,5.04774383630642e-6
+180,Oceania,Pitcairn,ocean_salmon_ghg,2.333913204874613e-10
+181,Europe,Poland,ocean_salmon_ghg,2.508828401328414e-6
+182,Europe,Portugal,ocean_salmon_ghg,5.240668657675814e-7
+184,Asia,Qatar,ocean_salmon_ghg,2.343751650492453e-6
+185,Africa,Congo,ocean_salmon_ghg,5.998144888559574e-7
+186,Africa,Réunion,ocean_salmon_ghg,3.467493795808821e-10
+187,Europe,Romania,ocean_salmon_ghg,2.144086119747317e-7
+188,Europe,Russian Federation,ocean_salmon_ghg,3.097419549736676e-7
+191,Americas,Saint Martin (French Part),ocean_salmon_ghg,3.1529248541801055e-8
+192,Africa,Saint Helena,ocean_salmon_ghg,5.048604164458623e-10
+193,Americas,Saint Kitts and Nevis,ocean_salmon_ghg,4.845242896664328e-8
+194,Americas,Saint Lucia,ocean_salmon_ghg,1.7046587721395673e-7
+195,Americas,Saint Pierre and Miquelon,ocean_salmon_ghg,5.363809403628837e-7
+196,Americas,Saint Vincent and the Grenadines,ocean_salmon_ghg,3.6320509855121547e-8
+197,Oceania,Samoa,ocean_salmon_ghg,3.726755148801631e-9
+199,Africa,Sao Tome and Principe,ocean_salmon_ghg,3.8704488330629535e-7
+200,Asia,Saudi Arabia,ocean_salmon_ghg,1.0871871339327637e-6
+201,Africa,Senegal,ocean_salmon_ghg,5.30203212851733e-6
+203,Africa,Seychelles,ocean_salmon_ghg,6.703920074721929e-10
+204,Africa,Sierra Leone,ocean_salmon_ghg,8.273186991872617e-6
+205,Asia,Singapore,ocean_salmon_ghg,1.5608369103858877e-5
+206,Americas,Sint Maarten (Dutch part),ocean_salmon_ghg,0
+208,Europe,Slovenia,ocean_salmon_ghg,2.3320759930735113e-7
+209,Oceania,Solomon Islands,ocean_salmon_ghg,4.2259802846198233e-10
+210,Africa,Somalia,ocean_salmon_ghg,1.1348772153303846e-8
+211,Africa,South Africa,ocean_salmon_ghg,5.904982345920118e-7
+213,Asia,Republic of Korea,ocean_salmon_ghg,3.1294337524432135e-6
+215,Europe,Spain,ocean_salmon_ghg,4.881337804000939e-6
+217,Asia,Sri Lanka,ocean_salmon_ghg,7.149612485358843e-7
+218,Africa,Sudan,ocean_salmon_ghg,2.794313550178534e-7
+219,Americas,Suriname,ocean_salmon_ghg,4.564141905729265e-10
+222,Europe,Sweden,ocean_salmon_ghg,3.2591059652115806e-6
+224,Asia,Syrian Arab Republic,ocean_salmon_ghg,5.186791444824387e-8
+225,Asia,Taiwan,ocean_salmon_ghg,2.6026324858590763e-6
+227,Africa,United Republic of Tanzania,ocean_salmon_ghg,2.068619979068238e-7
+228,Asia,Thailand,ocean_salmon_ghg,1.5364766455138664e-6
+229,Asia,Timor-Leste,ocean_salmon_ghg,5.837442038030321e-7
+230,Africa,Togo,ocean_salmon_ghg,2.084912422459537e-6
+231,Oceania,Tokelau,ocean_salmon_ghg,4.3664925190422206e-11
+232,Oceania,Tonga,ocean_salmon_ghg,2.7167777137122286e-10
+233,Americas,Trinidad and Tobago,ocean_salmon_ghg,4.287991713407406e-7
+234,Africa,Tunisia,ocean_salmon_ghg,1.3637328732559715e-6
+235,Asia,Turkey,ocean_salmon_ghg,3.4680419923017122e-6
+237,Americas,Turks and Caicos Islands,ocean_salmon_ghg,3.970790661367535e-10
+238,Oceania,Tuvalu,ocean_salmon_ghg,1.114287232911341e-10
+240,Europe,Ukraine,ocean_salmon_ghg,3.1945788419430754e-7
+241,Asia,United Arab Emirates,ocean_salmon_ghg,1.5579224713316717e-6
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_salmon_ghg,8.589413384426852e-6
+243,Americas,United States of America,ocean_salmon_ghg,1.0028214617357866e-6
+245,Americas,Uruguay,ocean_salmon_ghg,4.7497769181867436e-7
+247,Oceania,Vanuatu,ocean_salmon_ghg,1.7155979567930674e-10
+249,Americas,Venezuela (Bolivarian Republic of),ocean_salmon_ghg,7.33770478143994e-7
+250,Asia,Viet Nam,ocean_salmon_ghg,4.0861121930056787e-7
+252,Oceania,Wallis and Futuna Islands,ocean_salmon_ghg,4.625389031447677e-12
+253,Africa,Western Sahara,ocean_salmon_ghg,3.3431827460865544e-6
+254,Asia,Yemen,ocean_salmon_ghg,8.170508052254479e-7
+300,Africa,Madeira Island,ocean_salmon_ghg,3.795326890908197e-7
+301,Africa,Democratic Republic of the Congo,ocean_salmon_ghg,1.7101970133988833e-8
+4,Europe,Albania,ocean_broiler_water,0.023644278744643258
+5,Africa,Algeria,ocean_broiler_water,0.0012909376197652075
+6,Oceania,American Samoa,ocean_broiler_water,0
+8,Africa,Angola,ocean_broiler_water,0.030868449840997247
+9,Americas,Anguilla,ocean_broiler_water,0
+11,Americas,Antigua and Barbuda,ocean_broiler_water,1.1684297678175936e-4
+12,Americas,Argentina,ocean_broiler_water,0.14318007126193458
+14,Americas,Aruba,ocean_broiler_water,0
+15,Oceania,Australia,ocean_broiler_water,0.03298632094766003
+18,Americas,Bahamas,ocean_broiler_water,2.140849607950584e-4
+19,Asia,Bahrain,ocean_broiler_water,3.4758231437234124e-4
+20,Asia,Bangladesh,ocean_broiler_water,0.06483488356176817
+21,Americas,Barbados,ocean_broiler_water,1.7175693710689768e-4
+23,Europe,Belgium,ocean_broiler_water,0.3577012633449892
+24,Americas,Belize,ocean_broiler_water,0.0413197710438404
+25,Africa,Benin,ocean_broiler_water,0.08754481130380089
+26,Americas,Bermuda,ocean_broiler_water,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_broiler_water,0
+30,Europe,Bosnia and Herzegovina,ocean_broiler_water,0.12658721799880232
+33,Americas,Brazil,ocean_broiler_water,0.1374554124107147
+34,Africa,British Indian Ocean Territory,ocean_broiler_water,0
+35,Americas,British Virgin Islands,ocean_broiler_water,0
+36,Asia,Brunei Darussalam,ocean_broiler_water,0.003002841444973277
+37,Europe,Bulgaria,ocean_broiler_water,0.27809812152999736
+40,Asia,Cambodia,ocean_broiler_water,0.04131914191414568
+41,Africa,Cameroon,ocean_broiler_water,0.06249492550593248
+42,Americas,Canada,ocean_broiler_water,0.007754832733829431
+43,Africa,Cabo Verde,ocean_broiler_water,4.5699253978899204e-7
+45,Americas,Cayman Islands,ocean_broiler_water,0
+48,Americas,Chile,ocean_broiler_water,0.0031300251658114885
+49,Asia,China,ocean_broiler_water,0.11701170109332105
+50,Oceania,Christmas Island,ocean_broiler_water,0
+52,Oceania,Cocos (Keeling) Islands,ocean_broiler_water,0
+53,Americas,Colombia,ocean_broiler_water,0.03606100799906537
+54,Africa,Comoros,ocean_broiler_water,4.344056931672203e-6
+55,Oceania,Cook Islands,ocean_broiler_water,0
+56,Americas,Costa Rica,ocean_broiler_water,0.0010692386444340664
+57,Africa,Côte d’Ivoire,ocean_broiler_water,0.037368556336728136
+58,Europe,Croatia,ocean_broiler_water,0.08950317457740607
+59,Americas,Cuba,ocean_broiler_water,0
+60,Americas,Curaçao,ocean_broiler_water,0
+61,Asia,Cyprus,ocean_broiler_water,0.0018326397231764368
+64,Europe,Denmark,ocean_broiler_water,0.07066067621578065
+65,Africa,Djibouti,ocean_broiler_water,1.5729631722343613e-8
+66,Americas,Dominica,ocean_broiler_water,3.0129648754216227e-5
+67,Americas,Dominican Republic,ocean_broiler_water,0.013153994998079606
+68,Americas,Ecuador,ocean_broiler_water,0.031313418581071735
+69,Africa,Egypt,ocean_broiler_water,0.004848371130114097
+70,Americas,El Salvador,ocean_broiler_water,0.11856237344279243
+71,Africa,Equatorial Guinea,ocean_broiler_water,4.384832661403905e-6
+72,Africa,Eritrea,ocean_broiler_water,0.004370149190373891
+73,Europe,Estonia,ocean_broiler_water,0.06897739820335928
+75,Americas,Falkland Islands (Malvinas),ocean_broiler_water,0
+76,Europe,Faroe Islands,ocean_broiler_water,0
+77,Oceania,Fiji,ocean_broiler_water,7.586462540195507e-5
+78,Europe,Finland,ocean_broiler_water,0.011273089966692396
+79,Europe,France,ocean_broiler_water,0.29505457368701576
+80,Americas,French Guiana,ocean_broiler_water,1.2124631786325253e-5
+81,Oceania,French Polynesia,ocean_broiler_water,0
+83,Africa,Gabon,ocean_broiler_water,0.0032305234557067184
+84,Africa,Gambia,ocean_broiler_water,0.050689675110286575
+85,Asia,Georgia,ocean_broiler_water,0.01708249993435877
+86,Europe,Germany,ocean_broiler_water,0.18870469040885018
+87,Africa,Ghana,ocean_broiler_water,0.03967674050233523
+88,Europe,Gibraltar,ocean_broiler_water,0
+89,Europe,Greece,ocean_broiler_water,0.018674809413189337
+90,Americas,Greenland,ocean_broiler_water,0
+91,Americas,Grenada,ocean_broiler_water,2.1996054055069334e-5
+94,Americas,Guatemala,ocean_broiler_water,0.1749845210458854
+95,Europe,Guernsey,ocean_broiler_water,0
+96,Africa,Guinea,ocean_broiler_water,0.009477121004516614
+97,Africa,Guinea-Bissau,ocean_broiler_water,0.008739196383027554
+98,Americas,Guyana,ocean_broiler_water,0.0032379454272006463
+99,Americas,Haiti,ocean_broiler_water,0.027902674438493445
+101,Americas,Honduras,ocean_broiler_water,0.07390237972967585
+104,Europe,Iceland,ocean_broiler_water,5.979868299143364e-7
+105,Asia,India,ocean_broiler_water,0.28511872321466203
+106,Asia,Indonesia,ocean_broiler_water,0.030233169352879587
+107,Asia,Iran (Islamic Republic of),ocean_broiler_water,0.1148383887604081
+108,Asia,Iraq,ocean_broiler_water,0.050529657735864444
+109,Europe,Ireland,ocean_broiler_water,0.006794390272880037
+111,Asia,Israel,ocean_broiler_water,0.09571129358316015
+112,Europe,Italy,ocean_broiler_water,0.06705982194769461
+113,Americas,Jamaica,ocean_broiler_water,0.002377026758127641
+114,Asia,Japan,ocean_broiler_water,0.007640172445186678
+115,Europe,Jersey,ocean_broiler_water,0
+116,Asia,Jordan,ocean_broiler_water,0.014695390997885234
+118,Africa,Kenya,ocean_broiler_water,0.011977300296842956
+119,Oceania,Kiribati,ocean_broiler_water,0
+121,Asia,Kuwait,ocean_broiler_water,0.008305858477135638
+124,Europe,Latvia,ocean_broiler_water,0.10889206247726428
+125,Asia,Lebanon,ocean_broiler_water,0.0461539205255996
+127,Africa,Liberia,ocean_broiler_water,0.004026570637265437
+128,Africa,Libya,ocean_broiler_water,7.830509199902506e-5
+130,Europe,Lithuania,ocean_broiler_water,0.2857094527575623
+134,Africa,Madagascar,ocean_broiler_water,0.013114614285539724
+136,Asia,Malaysia,ocean_broiler_water,0.011190247901807854
+137,Asia,Maldives,ocean_broiler_water,0
+139,Europe,Malta,ocean_broiler_water,0.001088936096863585
+140,Oceania,Marshall Islands,ocean_broiler_water,0
+142,Africa,Mauritania,ocean_broiler_water,0.0019095149624920606
+143,Africa,Mauritius,ocean_broiler_water,6.729761552324469e-9
+144,Africa,Mayotte,ocean_broiler_water,0
+145,Americas,Mexico,ocean_broiler_water,0.05512201422539106
+146,Oceania,Micronesia (Federated States of),ocean_broiler_water,0
+148,Europe,Monaco,ocean_broiler_water,0
+150,Europe,Montenegro,ocean_broiler_water,1.6107133929723025e-4
+151,Americas,Montserrat,ocean_broiler_water,0
+152,Africa,Morocco,ocean_broiler_water,0.045980739741168584
+153,Africa,Mozambique,ocean_broiler_water,0.02361314178843253
+154,Asia,Myanmar,ocean_broiler_water,0.08566595749424614
+155,Africa,Namibia,ocean_broiler_water,0.0012307100761740106
+156,Oceania,Nauru,ocean_broiler_water,0
+158,Europe,Netherlands,ocean_broiler_water,0.11275640468636479
+159,Oceania,New Caledonia,ocean_broiler_water,2.1986356770553615e-8
+160,Oceania,New Zealand,ocean_broiler_water,0.0020011346476103134
+161,Americas,Nicaragua,ocean_broiler_water,0.0696625083108701
+163,Africa,Nigeria,ocean_broiler_water,0.1154642517850513
+164,Oceania,Niue,ocean_broiler_water,0
+165,Oceania,Norfolk Island,ocean_broiler_water,0
+166,Asia,Democratic People's Republic of Korea,ocean_broiler_water,0.022609549976769578
+169,Europe,Norway,ocean_broiler_water,4.255643987487093e-4
+170,Asia,Oman,ocean_broiler_water,1.7330588625005626e-4
+171,Asia,Pakistan,ocean_broiler_water,0.15707730381254523
+172,Oceania,Palau,ocean_broiler_water,0
+174,Americas,Panama,ocean_broiler_water,0.023077953756988942
+175,Oceania,Papua New Guinea,ocean_broiler_water,3.885913608046139e-6
+178,Americas,Peru,ocean_broiler_water,0.02609557169014963
+179,Asia,Philippines,ocean_broiler_water,0.05230828150951151
+180,Oceania,Pitcairn,ocean_broiler_water,0
+181,Europe,Poland,ocean_broiler_water,0.4137325705355148
+182,Europe,Portugal,ocean_broiler_water,0.007565193110458517
+184,Asia,Qatar,ocean_broiler_water,5.141716824861185e-4
+185,Africa,Congo,ocean_broiler_water,0.007780153955558229
+186,Africa,Réunion,ocean_broiler_water,0
+187,Europe,Romania,ocean_broiler_water,0.38329456889641966
+188,Europe,Russian Federation,ocean_broiler_water,0.018591928633113573
+191,Americas,Saint Martin (French Part),ocean_broiler_water,0
+192,Africa,Saint Helena,ocean_broiler_water,0
+193,Americas,Saint Kitts and Nevis,ocean_broiler_water,1.6466774941077384e-5
+194,Americas,Saint Lucia,ocean_broiler_water,1.0655981455690777e-4
+195,Americas,Saint Pierre and Miquelon,ocean_broiler_water,0
+196,Americas,Saint Vincent and the Grenadines,ocean_broiler_water,2.985292701685632e-4
+197,Oceania,Samoa,ocean_broiler_water,0
+199,Africa,Sao Tome and Principe,ocean_broiler_water,3.6053608424541474e-4
+200,Asia,Saudi Arabia,ocean_broiler_water,0.007543468239559846
+201,Africa,Senegal,ocean_broiler_water,0.04013735401061962
+203,Africa,Seychelles,ocean_broiler_water,0
+204,Africa,Sierra Leone,ocean_broiler_water,0.015279203528699294
+205,Asia,Singapore,ocean_broiler_water,0.014065464492887259
+206,Americas,Sint Maarten (Dutch part),ocean_broiler_water,0
+208,Europe,Slovenia,ocean_broiler_water,0.1588978223786685
+209,Oceania,Solomon Islands,ocean_broiler_water,3.0286037749756747e-7
+210,Africa,Somalia,ocean_broiler_water,0.0032124262041029403
+211,Africa,South Africa,ocean_broiler_water,0.10636776259393514
+213,Asia,Republic of Korea,ocean_broiler_water,0.04163943708030789
+215,Europe,Spain,ocean_broiler_water,0.03882034575269158
+217,Asia,Sri Lanka,ocean_broiler_water,0.03405208278556037
+218,Africa,Sudan,ocean_broiler_water,0.008198684679223257
+219,Americas,Suriname,ocean_broiler_water,1.375565073157834e-4
+222,Europe,Sweden,ocean_broiler_water,0.013010200481346924
+224,Asia,Syrian Arab Republic,ocean_broiler_water,0.00444702086384394
+225,Asia,Taiwan,ocean_broiler_water,0.003592675615827771
+227,Africa,United Republic of Tanzania,ocean_broiler_water,0.04265247197832588
+228,Asia,Thailand,ocean_broiler_water,0.10415082329830953
+229,Asia,Timor-Leste,ocean_broiler_water,0.00582363960683431
+230,Africa,Togo,ocean_broiler_water,0.3241463829061678
+231,Oceania,Tokelau,ocean_broiler_water,0
+232,Oceania,Tonga,ocean_broiler_water,0
+233,Americas,Trinidad and Tobago,ocean_broiler_water,0.0052182966239675025
+234,Africa,Tunisia,ocean_broiler_water,0.006643203513646069
+235,Asia,Turkey,ocean_broiler_water,0.19715520220563398
+237,Americas,Turks and Caicos Islands,ocean_broiler_water,0
+238,Oceania,Tuvalu,ocean_broiler_water,0
+240,Europe,Ukraine,ocean_broiler_water,0.5712887593486092
+241,Asia,United Arab Emirates,ocean_broiler_water,0.003153795122334379
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_broiler_water,0.06148790517060399
+243,Americas,United States of America,ocean_broiler_water,0.09287395597538184
+245,Americas,Uruguay,ocean_broiler_water,0.12877405458984217
+247,Oceania,Vanuatu,ocean_broiler_water,1.8482869648659894e-4
+249,Americas,Venezuela (Bolivarian Republic of),ocean_broiler_water,0.034452915851250404
+250,Asia,Viet Nam,ocean_broiler_water,0.0030054818717403535
+252,Oceania,Wallis and Futuna Islands,ocean_broiler_water,0
+253,Africa,Western Sahara,ocean_broiler_water,3.131156354628505e-10
+254,Asia,Yemen,ocean_broiler_water,2.565972285613343e-4
+300,Africa,Madeira Island,ocean_broiler_water,0
+301,Africa,Democratic Republic of the Congo,ocean_broiler_water,1.357437192251976e-4
+4,Europe,Albania,ocean_salmon_water,3.77332406991173e-9
+5,Africa,Algeria,ocean_salmon_water,1.340728958684296e-7
+6,Oceania,American Samoa,ocean_salmon_water,0
+8,Africa,Angola,ocean_salmon_water,3.887479985959812e-14
+9,Americas,Anguilla,ocean_salmon_water,0
+11,Americas,Antigua and Barbuda,ocean_salmon_water,0
+12,Americas,Argentina,ocean_salmon_water,0.0012556057292854746
+14,Americas,Aruba,ocean_salmon_water,0
+15,Oceania,Australia,ocean_salmon_water,3.7284145987198923e-4
+18,Americas,Bahamas,ocean_salmon_water,0
+19,Asia,Bahrain,ocean_salmon_water,0
+20,Asia,Bangladesh,ocean_salmon_water,6.352864497306631e-6
+21,Americas,Barbados,ocean_salmon_water,3.317188624440775e-12
+23,Europe,Belgium,ocean_salmon_water,0.03197495067881795
+24,Americas,Belize,ocean_salmon_water,1.3289579051435378e-7
+25,Africa,Benin,ocean_salmon_water,2.4757182530214144e-10
+26,Americas,Bermuda,ocean_salmon_water,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_salmon_water,0
+30,Europe,Bosnia and Herzegovina,ocean_salmon_water,7.226073924197169e-6
+33,Americas,Brazil,ocean_salmon_water,6.250582548672898e-4
+34,Africa,British Indian Ocean Territory,ocean_salmon_water,0
+35,Americas,British Virgin Islands,ocean_salmon_water,0
+36,Asia,Brunei Darussalam,ocean_salmon_water,4.445439572009491e-9
+37,Europe,Bulgaria,ocean_salmon_water,0.006896636321474404
+40,Asia,Cambodia,ocean_salmon_water,1.2967275353767352e-8
+41,Africa,Cameroon,ocean_salmon_water,7.388330343133977e-9
+42,Americas,Canada,ocean_salmon_water,7.43418846169641e-4
+43,Africa,Cabo Verde,ocean_salmon_water,1.1963200935068955e-11
+45,Americas,Cayman Islands,ocean_salmon_water,0
+48,Americas,Chile,ocean_salmon_water,0.0036545964972913678
+49,Asia,China,ocean_salmon_water,2.724050985293899e-4
+50,Oceania,Christmas Island,ocean_salmon_water,0
+52,Oceania,Cocos (Keeling) Islands,ocean_salmon_water,0
+53,Americas,Colombia,ocean_salmon_water,6.848633508217442e-7
+54,Africa,Comoros,ocean_salmon_water,0
+55,Oceania,Cook Islands,ocean_salmon_water,0
+56,Americas,Costa Rica,ocean_salmon_water,1.414814773171161e-10
+57,Africa,Côte d’Ivoire,ocean_salmon_water,2.9820748972601426e-9
+58,Europe,Croatia,ocean_salmon_water,2.2826277321382748e-5
+59,Americas,Cuba,ocean_salmon_water,0
+60,Americas,Curaçao,ocean_salmon_water,0
+61,Asia,Cyprus,ocean_salmon_water,6.585622506255374e-8
+64,Europe,Denmark,ocean_salmon_water,0.01343164968780591
+65,Africa,Djibouti,ocean_salmon_water,0
+66,Americas,Dominica,ocean_salmon_water,0
+67,Americas,Dominican Republic,ocean_salmon_water,9.577525005213169e-9
+68,Americas,Ecuador,ocean_salmon_water,3.5932211798205625e-8
+69,Africa,Egypt,ocean_salmon_water,8.470503872913073e-6
+70,Americas,El Salvador,ocean_salmon_water,1.9284674065610797e-8
+71,Africa,Equatorial Guinea,ocean_salmon_water,0
+72,Africa,Eritrea,ocean_salmon_water,1.4518448574323802e-10
+73,Europe,Estonia,ocean_salmon_water,0.005274197323803415
+75,Americas,Falkland Islands (Malvinas),ocean_salmon_water,0
+76,Europe,Faroe Islands,ocean_salmon_water,0
+77,Oceania,Fiji,ocean_salmon_water,6.035845525859966e-8
+78,Europe,Finland,ocean_salmon_water,0.004331678502401471
+79,Europe,France,ocean_salmon_water,0.004249137578785379
+80,Americas,French Guiana,ocean_salmon_water,0
+81,Oceania,French Polynesia,ocean_salmon_water,0
+83,Africa,Gabon,ocean_salmon_water,1.4550297366550857e-15
+84,Africa,Gambia,ocean_salmon_water,1.722494963605261e-10
+85,Asia,Georgia,ocean_salmon_water,1.934397606974876e-8
+86,Europe,Germany,ocean_salmon_water,0.013388554511527801
+87,Africa,Ghana,ocean_salmon_water,8.826448308336649e-7
+88,Europe,Gibraltar,ocean_salmon_water,0
+89,Europe,Greece,ocean_salmon_water,2.2560715479784265e-6
+90,Americas,Greenland,ocean_salmon_water,0
+91,Americas,Grenada,ocean_salmon_water,0
+94,Americas,Guatemala,ocean_salmon_water,3.571925684449793e-8
+95,Europe,Guernsey,ocean_salmon_water,0
+96,Africa,Guinea,ocean_salmon_water,2.4589224436175498e-14
+97,Africa,Guinea-Bissau,ocean_salmon_water,1.1867359520837598e-10
+98,Americas,Guyana,ocean_salmon_water,2.064507375577437e-9
+99,Americas,Haiti,ocean_salmon_water,4.0482277953843377e-10
+101,Americas,Honduras,ocean_salmon_water,1.2668973800316016e-11
+104,Europe,Iceland,ocean_salmon_water,0
+105,Asia,India,ocean_salmon_water,2.0107929357539702e-5
+106,Asia,Indonesia,ocean_salmon_water,9.222326928812016e-8
+107,Asia,Iran (Islamic Republic of),ocean_salmon_water,2.2955076253533115e-7
+108,Asia,Iraq,ocean_salmon_water,3.321153841063346e-9
+109,Europe,Ireland,ocean_salmon_water,6.254024165625758e-4
+111,Asia,Israel,ocean_salmon_water,2.3051086756188334e-6
+112,Europe,Italy,ocean_salmon_water,9.690516478289429e-5
+113,Americas,Jamaica,ocean_salmon_water,2.9715146925512742e-8
+114,Asia,Japan,ocean_salmon_water,5.1179705308304395e-5
+115,Europe,Jersey,ocean_salmon_water,0
+116,Asia,Jordan,ocean_salmon_water,3.2600449967409834e-6
+118,Africa,Kenya,ocean_salmon_water,3.011511713373958e-8
+119,Oceania,Kiribati,ocean_salmon_water,0
+121,Asia,Kuwait,ocean_salmon_water,0
+124,Europe,Latvia,ocean_salmon_water,0.027466113536291886
+125,Asia,Lebanon,ocean_salmon_water,3.186173838413918e-4
+127,Africa,Liberia,ocean_salmon_water,6.690812647236333e-14
+128,Africa,Libya,ocean_salmon_water,1.2693521673090724e-13
+130,Europe,Lithuania,ocean_salmon_water,0.03286013778195631
+134,Africa,Madagascar,ocean_salmon_water,3.927859794432465e-9
+136,Asia,Malaysia,ocean_salmon_water,7.0335560870646815e-6
+137,Asia,Maldives,ocean_salmon_water,0
+139,Europe,Malta,ocean_salmon_water,0
+140,Oceania,Marshall Islands,ocean_salmon_water,0
+142,Africa,Mauritania,ocean_salmon_water,8.588915586979393e-14
+143,Africa,Mauritius,ocean_salmon_water,0
+144,Africa,Mayotte,ocean_salmon_water,0
+145,Americas,Mexico,ocean_salmon_water,1.3498570119016073e-6
+146,Oceania,Micronesia (Federated States of),ocean_salmon_water,0
+148,Europe,Monaco,ocean_salmon_water,0
+150,Europe,Montenegro,ocean_salmon_water,1.0317842711024286e-8
+151,Americas,Montserrat,ocean_salmon_water,0
+152,Africa,Morocco,ocean_salmon_water,4.1142300527097865e-8
+153,Africa,Mozambique,ocean_salmon_water,1.8659659486420927e-9
+154,Asia,Myanmar,ocean_salmon_water,7.951667264762132e-6
+155,Africa,Namibia,ocean_salmon_water,1.0462738381240236e-10
+156,Oceania,Nauru,ocean_salmon_water,0
+158,Europe,Netherlands,ocean_salmon_water,0.002796145890426028
+159,Oceania,New Caledonia,ocean_salmon_water,0
+160,Oceania,New Zealand,ocean_salmon_water,5.2329684803470054e-5
+161,Americas,Nicaragua,ocean_salmon_water,1.5434580078014948e-4
+163,Africa,Nigeria,ocean_salmon_water,6.071179084899279e-7
+164,Oceania,Niue,ocean_salmon_water,0
+165,Oceania,Norfolk Island,ocean_salmon_water,0
+166,Asia,Democratic People's Republic of Korea,ocean_salmon_water,9.118091247192392e-7
+169,Europe,Norway,ocean_salmon_water,9.680496471396409e-4
+170,Asia,Oman,ocean_salmon_water,1.3473686226199276e-6
+171,Asia,Pakistan,ocean_salmon_water,1.7128180950750393e-6
+172,Oceania,Palau,ocean_salmon_water,0
+174,Americas,Panama,ocean_salmon_water,1.3188020413632772e-9
+175,Oceania,Papua New Guinea,ocean_salmon_water,0
+178,Americas,Peru,ocean_salmon_water,1.6686264034396252e-4
+179,Asia,Philippines,ocean_salmon_water,1.4188292193148572e-8
+180,Oceania,Pitcairn,ocean_salmon_water,0
+181,Europe,Poland,ocean_salmon_water,0.006284963425507689
+182,Europe,Portugal,ocean_salmon_water,7.792972915630526e-5
+184,Asia,Qatar,ocean_salmon_water,0
+185,Africa,Congo,ocean_salmon_water,0
+186,Africa,Réunion,ocean_salmon_water,0
+187,Europe,Romania,ocean_salmon_water,4.843967896714236e-4
+188,Europe,Russian Federation,ocean_salmon_water,3.530893791094452e-4
+191,Americas,Saint Martin (French Part),ocean_salmon_water,0
+192,Africa,Saint Helena,ocean_salmon_water,0
+193,Americas,Saint Kitts and Nevis,ocean_salmon_water,0
+194,Americas,Saint Lucia,ocean_salmon_water,0
+195,Americas,Saint Pierre and Miquelon,ocean_salmon_water,0
+196,Americas,Saint Vincent and the Grenadines,ocean_salmon_water,0
+197,Oceania,Samoa,ocean_salmon_water,0
+199,Africa,Sao Tome and Principe,ocean_salmon_water,0
+200,Asia,Saudi Arabia,ocean_salmon_water,4.6587206676942205e-8
+201,Africa,Senegal,ocean_salmon_water,1.7796065551977163e-8
+203,Africa,Seychelles,ocean_salmon_water,0
+204,Africa,Sierra Leone,ocean_salmon_water,0
+205,Asia,Singapore,ocean_salmon_water,0
+206,Americas,Sint Maarten (Dutch part),ocean_salmon_water,0
+208,Europe,Slovenia,ocean_salmon_water,1.2349156168550314e-5
+209,Oceania,Solomon Islands,ocean_salmon_water,0
+210,Africa,Somalia,ocean_salmon_water,0
+211,Africa,South Africa,ocean_salmon_water,2.5793915674329883e-5
+213,Asia,Republic of Korea,ocean_salmon_water,2.631675751490595e-5
+215,Europe,Spain,ocean_salmon_water,8.473509879324077e-4
+217,Asia,Sri Lanka,ocean_salmon_water,1.2499047855257052e-7
+218,Africa,Sudan,ocean_salmon_water,4.629009007260434e-8
+219,Americas,Suriname,ocean_salmon_water,0
+222,Europe,Sweden,ocean_salmon_water,0.005660919892374586
+224,Asia,Syrian Arab Republic,ocean_salmon_water,1.8149407072642696e-6
+225,Asia,Taiwan,ocean_salmon_water,2.405036104204268e-6
+227,Africa,United Republic of Tanzania,ocean_salmon_water,1.4517673128156718e-7
+228,Asia,Thailand,ocean_salmon_water,7.2708406061821875e-6
+229,Asia,Timor-Leste,ocean_salmon_water,6.516934704299783e-12
+230,Africa,Togo,ocean_salmon_water,4.685800851810275e-8
+231,Oceania,Tokelau,ocean_salmon_water,0
+232,Oceania,Tonga,ocean_salmon_water,0
+233,Americas,Trinidad and Tobago,ocean_salmon_water,1.1938518997732477e-8
+234,Africa,Tunisia,ocean_salmon_water,1.702460627432428e-7
+235,Asia,Turkey,ocean_salmon_water,7.130294087414623e-5
+237,Americas,Turks and Caicos Islands,ocean_salmon_water,0
+238,Oceania,Tuvalu,ocean_salmon_water,0
+240,Europe,Ukraine,ocean_salmon_water,4.706954671199317e-4
+241,Asia,United Arab Emirates,ocean_salmon_water,3.191090492206604e-5
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_salmon_water,0.005171972192475776
+243,Americas,United States of America,ocean_salmon_water,2.3948143079314234e-4
+245,Americas,Uruguay,ocean_salmon_water,0.0018185448843941704
+247,Oceania,Vanuatu,ocean_salmon_water,0
+249,Americas,Venezuela (Bolivarian Republic of),ocean_salmon_water,2.0032863161858927e-9
+250,Asia,Viet Nam,ocean_salmon_water,1.7782887087259783e-6
+252,Oceania,Wallis and Futuna Islands,ocean_salmon_water,0
+253,Africa,Western Sahara,ocean_salmon_water,0
+254,Asia,Yemen,ocean_salmon_water,8.839931953661772e-11
+300,Africa,Madeira Island,ocean_salmon_water,0
+301,Africa,Democratic Republic of the Congo,ocean_salmon_water,4.746916111079929e-14
+4,Europe,Albania,ocean_broiler_nutrient,0.039695733276807234
+5,Africa,Algeria,ocean_broiler_nutrient,0.025216897675877672
+6,Oceania,American Samoa,ocean_broiler_nutrient,0
+8,Africa,Angola,ocean_broiler_nutrient,0.010945852729579661
+9,Americas,Anguilla,ocean_broiler_nutrient,0
+11,Americas,Antigua and Barbuda,ocean_broiler_nutrient,1.9689183612441302e-4
+12,Americas,Argentina,ocean_broiler_nutrient,0.061380688755688646
+14,Americas,Aruba,ocean_broiler_nutrient,0
+15,Oceania,Australia,ocean_broiler_nutrient,0.015954562578670548
+18,Americas,Bahamas,ocean_broiler_nutrient,0.0020255718604010693
+19,Asia,Bahrain,ocean_broiler_nutrient,0
+20,Asia,Bangladesh,ocean_broiler_nutrient,0.23156027168305618
+21,Americas,Barbados,ocean_broiler_nutrient,0.0027014858171994596
+23,Europe,Belgium,ocean_broiler_nutrient,0.5335846082160242
+24,Americas,Belize,ocean_broiler_nutrient,0.03408654853775244
+25,Africa,Benin,ocean_broiler_nutrient,0.008435449185697382
+26,Americas,Bermuda,ocean_broiler_nutrient,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_broiler_nutrient,0
+30,Europe,Bosnia and Herzegovina,ocean_broiler_nutrient,0.1592861919033443
+33,Americas,Brazil,ocean_broiler_nutrient,0.11339814599348386
+34,Africa,British Indian Ocean Territory,ocean_broiler_nutrient,0
+35,Americas,British Virgin Islands,ocean_broiler_nutrient,0
+36,Asia,Brunei Darussalam,ocean_broiler_nutrient,0.07089228965000254
+37,Europe,Bulgaria,ocean_broiler_nutrient,0.13387886374812616
+40,Asia,Cambodia,ocean_broiler_nutrient,0.025873365891093143
+41,Africa,Cameroon,ocean_broiler_nutrient,0.025126703006155465
+42,Americas,Canada,ocean_broiler_nutrient,0.008741331263101915
+43,Africa,Cabo Verde,ocean_broiler_nutrient,0
+45,Americas,Cayman Islands,ocean_broiler_nutrient,0
+48,Americas,Chile,ocean_broiler_nutrient,0.0083645589200316
+49,Asia,China,ocean_broiler_nutrient,0.22447645539578973
+50,Oceania,Christmas Island,ocean_broiler_nutrient,0
+52,Oceania,Cocos (Keeling) Islands,ocean_broiler_nutrient,0
+53,Americas,Colombia,ocean_broiler_nutrient,0.06034973020806158
+54,Africa,Comoros,ocean_broiler_nutrient,7.796977218680642e-4
+55,Oceania,Cook Islands,ocean_broiler_nutrient,0
+56,Americas,Costa Rica,ocean_broiler_nutrient,0.019427051420821385
+57,Africa,Côte d’Ivoire,ocean_broiler_nutrient,0.034760335715046595
+58,Europe,Croatia,ocean_broiler_nutrient,0.026262979668443417
+59,Americas,Cuba,ocean_broiler_nutrient,0
+60,Americas,Curaçao,ocean_broiler_nutrient,0
+61,Asia,Cyprus,ocean_broiler_nutrient,0.020477526874843693
+64,Europe,Denmark,ocean_broiler_nutrient,0.15576322046142838
+65,Africa,Djibouti,ocean_broiler_nutrient,2.484198056633933e-6
+66,Americas,Dominica,ocean_broiler_nutrient,0.007352785782867603
+67,Americas,Dominican Republic,ocean_broiler_nutrient,0.018522594323249278
+68,Americas,Ecuador,ocean_broiler_nutrient,0.03847123360445107
+69,Africa,Egypt,ocean_broiler_nutrient,2.112145631591017e-6
+70,Americas,El Salvador,ocean_broiler_nutrient,0.05964524683121367
+71,Africa,Equatorial Guinea,ocean_broiler_nutrient,7.688905359059287e-4
+72,Africa,Eritrea,ocean_broiler_nutrient,5.641767107828387e-4
+73,Europe,Estonia,ocean_broiler_nutrient,0.009667993133246237
+75,Americas,Falkland Islands (Malvinas),ocean_broiler_nutrient,0
+76,Europe,Faroe Islands,ocean_broiler_nutrient,0
+77,Oceania,Fiji,ocean_broiler_nutrient,0.0013953720655553979
+78,Europe,Finland,ocean_broiler_nutrient,0.0047228125258633675
+79,Europe,France,ocean_broiler_nutrient,0.24912125008913416
+80,Americas,French Guiana,ocean_broiler_nutrient,8.859869179003595e-4
+81,Oceania,French Polynesia,ocean_broiler_nutrient,0
+83,Africa,Gabon,ocean_broiler_nutrient,0.00611543130437287
+84,Africa,Gambia,ocean_broiler_nutrient,0.008823746673224187
+85,Asia,Georgia,ocean_broiler_nutrient,0.10843849232613995
+86,Europe,Germany,ocean_broiler_nutrient,0.2574138567886817
+87,Africa,Ghana,ocean_broiler_nutrient,0.02801191945019052
+88,Europe,Gibraltar,ocean_broiler_nutrient,0
+89,Europe,Greece,ocean_broiler_nutrient,0.06046253709900035
+90,Americas,Greenland,ocean_broiler_nutrient,0
+91,Americas,Grenada,ocean_broiler_nutrient,0.005167003027648204
+94,Americas,Guatemala,ocean_broiler_nutrient,0.07007198195293039
+95,Europe,Guernsey,ocean_broiler_nutrient,0
+96,Africa,Guinea,ocean_broiler_nutrient,0.007874395634823813
+97,Africa,Guinea-Bissau,ocean_broiler_nutrient,0.0030005037341420343
+98,Americas,Guyana,ocean_broiler_nutrient,0.021974373744584778
+99,Americas,Haiti,ocean_broiler_nutrient,0.016244071222667286
+101,Americas,Honduras,ocean_broiler_nutrient,0.16730865762576808
+104,Europe,Iceland,ocean_broiler_nutrient,1.35148483322746e-4
+105,Asia,India,ocean_broiler_nutrient,0.28362323830679154
+106,Asia,Indonesia,ocean_broiler_nutrient,0.045315464315748046
+107,Asia,Iran (Islamic Republic of),ocean_broiler_nutrient,0.37091216789928666
+108,Asia,Iraq,ocean_broiler_nutrient,0.13380131022806918
+109,Europe,Ireland,ocean_broiler_nutrient,0.010029735373316149
+111,Asia,Israel,ocean_broiler_nutrient,0.2587652184289861
+112,Europe,Italy,ocean_broiler_nutrient,0.06488371554299784
+113,Americas,Jamaica,ocean_broiler_nutrient,0.031072071768646337
+114,Asia,Japan,ocean_broiler_nutrient,0.04233050187273325
+115,Europe,Jersey,ocean_broiler_nutrient,0
+116,Asia,Jordan,ocean_broiler_nutrient,0.14188038690384472
+118,Africa,Kenya,ocean_broiler_nutrient,0.005033821289667875
+119,Oceania,Kiribati,ocean_broiler_nutrient,0
+121,Asia,Kuwait,ocean_broiler_nutrient,0.539387340226766
+124,Europe,Latvia,ocean_broiler_nutrient,0.035400958284788286
+125,Asia,Lebanon,ocean_broiler_nutrient,0.2862716842075595
+127,Africa,Liberia,ocean_broiler_nutrient,0.001641217106534683
+128,Africa,Libya,ocean_broiler_nutrient,0.008950560581257733
+130,Europe,Lithuania,ocean_broiler_nutrient,0.15678920140120617
+134,Africa,Madagascar,ocean_broiler_nutrient,0.006153575673825557
+136,Asia,Malaysia,ocean_broiler_nutrient,0.14309716367013625
+137,Asia,Maldives,ocean_broiler_nutrient,0
+139,Europe,Malta,ocean_broiler_nutrient,0.004986147547007504
+140,Oceania,Marshall Islands,ocean_broiler_nutrient,0
+142,Africa,Mauritania,ocean_broiler_nutrient,0.00441970771482149
+143,Africa,Mauritius,ocean_broiler_nutrient,0
+144,Africa,Mayotte,ocean_broiler_nutrient,0
+145,Americas,Mexico,ocean_broiler_nutrient,0.054581316474123814
+146,Oceania,Micronesia (Federated States of),ocean_broiler_nutrient,0
+148,Europe,Monaco,ocean_broiler_nutrient,0
+150,Europe,Montenegro,ocean_broiler_nutrient,4.8448888650578865e-5
+151,Americas,Montserrat,ocean_broiler_nutrient,0
+152,Africa,Morocco,ocean_broiler_nutrient,0.1722479393750835
+153,Africa,Mozambique,ocean_broiler_nutrient,0.0030716833407383507
+154,Asia,Myanmar,ocean_broiler_nutrient,0.07144725551530909
+155,Africa,Namibia,ocean_broiler_nutrient,0.0021387016817059658
+156,Oceania,Nauru,ocean_broiler_nutrient,0
+158,Europe,Netherlands,ocean_broiler_nutrient,0.2972453521886891
+159,Oceania,New Caledonia,ocean_broiler_nutrient,0
+160,Oceania,New Zealand,ocean_broiler_nutrient,0.0032470194822185523
+161,Americas,Nicaragua,ocean_broiler_nutrient,0.04416412179866554
+163,Africa,Nigeria,ocean_broiler_nutrient,0.031333336230788905
+164,Oceania,Niue,ocean_broiler_nutrient,0
+165,Oceania,Norfolk Island,ocean_broiler_nutrient,0
+166,Asia,Democratic People's Republic of Korea,ocean_broiler_nutrient,0.01582150314241072
+169,Europe,Norway,ocean_broiler_nutrient,5.234594255493164e-4
+170,Asia,Oman,ocean_broiler_nutrient,1.5928287570438779e-4
+171,Asia,Pakistan,ocean_broiler_nutrient,0.23260752627590137
+172,Oceania,Palau,ocean_broiler_nutrient,0
+174,Americas,Panama,ocean_broiler_nutrient,0.03023451705567478
+175,Oceania,Papua New Guinea,ocean_broiler_nutrient,3.9381512868418543e-4
+178,Americas,Peru,ocean_broiler_nutrient,0.03850033586298829
+179,Asia,Philippines,ocean_broiler_nutrient,0.04945918121261858
+180,Oceania,Pitcairn,ocean_broiler_nutrient,0
+181,Europe,Poland,ocean_broiler_nutrient,0.35794430240966335
+182,Europe,Portugal,ocean_broiler_nutrient,0.014116043044527377
+184,Asia,Qatar,ocean_broiler_nutrient,0.09234044972718869
+185,Africa,Congo,ocean_broiler_nutrient,0.004941250450587818
+186,Africa,Réunion,ocean_broiler_nutrient,0
+187,Europe,Romania,ocean_broiler_nutrient,0.22997402956130222
+188,Europe,Russian Federation,ocean_broiler_nutrient,0.007970334848670702
+191,Americas,Saint Martin (French Part),ocean_broiler_nutrient,0
+192,Africa,Saint Helena,ocean_broiler_nutrient,0
+193,Americas,Saint Kitts and Nevis,ocean_broiler_nutrient,0.004004051835518184
+194,Americas,Saint Lucia,ocean_broiler_nutrient,0
+195,Americas,Saint Pierre and Miquelon,ocean_broiler_nutrient,0
+196,Americas,Saint Vincent and the Grenadines,ocean_broiler_nutrient,0.0043452198871157385
+197,Oceania,Samoa,ocean_broiler_nutrient,0
+199,Africa,Sao Tome and Principe,ocean_broiler_nutrient,6.34167374764181e-4
+200,Asia,Saudi Arabia,ocean_broiler_nutrient,0.05993938773649115
+201,Africa,Senegal,ocean_broiler_nutrient,0.009311346546397826
+203,Africa,Seychelles,ocean_broiler_nutrient,0
+204,Africa,Sierra Leone,ocean_broiler_nutrient,0.008879981994954022
+205,Asia,Singapore,ocean_broiler_nutrient,0.3125
+206,Americas,Sint Maarten (Dutch part),ocean_broiler_nutrient,0
+208,Europe,Slovenia,ocean_broiler_nutrient,0.13058297610931266
+209,Oceania,Solomon Islands,ocean_broiler_nutrient,2.963445458236792e-5
+210,Africa,Somalia,ocean_broiler_nutrient,0.0021575572599314362
+211,Africa,South Africa,ocean_broiler_nutrient,0.09159085521015004
+213,Asia,Republic of Korea,ocean_broiler_nutrient,0.17430695169227556
+215,Europe,Spain,ocean_broiler_nutrient,0.0445363859117184
+217,Asia,Sri Lanka,ocean_broiler_nutrient,0.04921659844116118
+218,Africa,Sudan,ocean_broiler_nutrient,1.6561317383233545e-5
+219,Americas,Suriname,ocean_broiler_nutrient,0.013365001462117101
+222,Europe,Sweden,ocean_broiler_nutrient,0.004811525704671
+224,Asia,Syrian Arab Republic,ocean_broiler_nutrient,0.07241521253650078
+225,Asia,Taiwan,ocean_broiler_nutrient,0
+227,Africa,United Republic of Tanzania,ocean_broiler_nutrient,0.005383366805283327
+228,Asia,Thailand,ocean_broiler_nutrient,0.2182108217746149
+229,Asia,Timor-Leste,ocean_broiler_nutrient,0.011213413575776219
+230,Africa,Togo,ocean_broiler_nutrient,0.1072594084125066
+231,Oceania,Tokelau,ocean_broiler_nutrient,0
+232,Oceania,Tonga,ocean_broiler_nutrient,0
+233,Americas,Trinidad and Tobago,ocean_broiler_nutrient,0.05950514748074207
+234,Africa,Tunisia,ocean_broiler_nutrient,0.20789932545881015
+235,Asia,Turkey,ocean_broiler_nutrient,0.2743694636762596
+237,Americas,Turks and Caicos Islands,ocean_broiler_nutrient,0
+238,Oceania,Tuvalu,ocean_broiler_nutrient,0
+240,Europe,Ukraine,ocean_broiler_nutrient,0.20180201027592834
+241,Asia,United Arab Emirates,ocean_broiler_nutrient,0.18720629158148616
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_broiler_nutrient,0.08411164370171643
+243,Americas,United States of America,ocean_broiler_nutrient,0.08087866309347287
+245,Americas,Uruguay,ocean_broiler_nutrient,0.08840759760050802
+247,Oceania,Vanuatu,ocean_broiler_nutrient,5.86343685967463e-4
+249,Americas,Venezuela (Bolivarian Republic of),ocean_broiler_nutrient,0.04511807734228164
+250,Asia,Viet Nam,ocean_broiler_nutrient,0.003710522434036661
+252,Oceania,Wallis and Futuna Islands,ocean_broiler_nutrient,0
+253,Africa,Western Sahara,ocean_broiler_nutrient,4.858326123073956e-8
+254,Asia,Yemen,ocean_broiler_nutrient,1.0049594633673382e-4
+300,Africa,Madeira Island,ocean_broiler_nutrient,0
+301,Africa,Democratic Republic of the Congo,ocean_broiler_nutrient,8.016486161238776e-4
+4,Europe,Albania,ocean_salmon_nutrient,4.4450531311459573e-5
+5,Africa,Algeria,ocean_salmon_nutrient,1.0109070933790202e-11
+6,Oceania,American Samoa,ocean_salmon_nutrient,0
+8,Africa,Angola,ocean_salmon_nutrient,0
+9,Americas,Anguilla,ocean_salmon_nutrient,0
+11,Americas,Antigua and Barbuda,ocean_salmon_nutrient,0
+12,Americas,Argentina,ocean_salmon_nutrient,4.6911231787211425e-4
+14,Americas,Aruba,ocean_salmon_nutrient,0
+15,Oceania,Australia,ocean_salmon_nutrient,2.7207076117103545e-4
+18,Americas,Bahamas,ocean_salmon_nutrient,0
+19,Asia,Bahrain,ocean_salmon_nutrient,0
+20,Asia,Bangladesh,ocean_salmon_nutrient,3.1831098529959827e-6
+21,Americas,Barbados,ocean_salmon_nutrient,0
+23,Europe,Belgium,ocean_salmon_nutrient,0.004325352617395872
+24,Americas,Belize,ocean_salmon_nutrient,0
+25,Africa,Benin,ocean_salmon_nutrient,0
+26,Americas,Bermuda,ocean_salmon_nutrient,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_salmon_nutrient,0
+30,Europe,Bosnia and Herzegovina,ocean_salmon_nutrient,5.5550399372744905e-11
+33,Americas,Brazil,ocean_salmon_nutrient,3.0721750144164096e-4
+34,Africa,British Indian Ocean Territory,ocean_salmon_nutrient,0
+35,Americas,British Virgin Islands,ocean_salmon_nutrient,0
+36,Asia,Brunei Darussalam,ocean_salmon_nutrient,2.1890919473741808e-10
+37,Europe,Bulgaria,ocean_salmon_nutrient,1.432975608359593e-4
+40,Asia,Cambodia,ocean_salmon_nutrient,1.0557308763254241e-10
+41,Africa,Cameroon,ocean_salmon_nutrient,3.081642693091715e-8
+42,Americas,Canada,ocean_salmon_nutrient,6.522354184140041e-4
+43,Africa,Cabo Verde,ocean_salmon_nutrient,0
+45,Americas,Cayman Islands,ocean_salmon_nutrient,0
+48,Americas,Chile,ocean_salmon_nutrient,0.018821267579383134
+49,Asia,China,ocean_salmon_nutrient,1.1668689429468876e-4
+50,Oceania,Christmas Island,ocean_salmon_nutrient,0
+52,Oceania,Cocos (Keeling) Islands,ocean_salmon_nutrient,0
+53,Americas,Colombia,ocean_salmon_nutrient,2.3093227093812172e-11
+54,Africa,Comoros,ocean_salmon_nutrient,0
+55,Oceania,Cook Islands,ocean_salmon_nutrient,0
+56,Americas,Costa Rica,ocean_salmon_nutrient,1.2985645746870525e-9
+57,Africa,Côte d’Ivoire,ocean_salmon_nutrient,0
+58,Europe,Croatia,ocean_salmon_nutrient,6.84440760785377e-7
+59,Americas,Cuba,ocean_salmon_nutrient,0
+60,Americas,Curaçao,ocean_salmon_nutrient,0
+61,Asia,Cyprus,ocean_salmon_nutrient,4.994869378600993e-7
+64,Europe,Denmark,ocean_salmon_nutrient,0.02967655984700178
+65,Africa,Djibouti,ocean_salmon_nutrient,0
+66,Americas,Dominica,ocean_salmon_nutrient,0
+67,Americas,Dominican Republic,ocean_salmon_nutrient,1.5427323867122964e-8
+68,Americas,Ecuador,ocean_salmon_nutrient,5.639103116982285e-10
+69,Africa,Egypt,ocean_salmon_nutrient,0
+70,Americas,El Salvador,ocean_salmon_nutrient,5.978682324699805e-10
+71,Africa,Equatorial Guinea,ocean_salmon_nutrient,0
+72,Africa,Eritrea,ocean_salmon_nutrient,2.9143048549344685e-11
+73,Europe,Estonia,ocean_salmon_nutrient,1.7625847872260765e-5
+75,Americas,Falkland Islands (Malvinas),ocean_salmon_nutrient,0
+76,Europe,Faroe Islands,ocean_salmon_nutrient,0.013573325464738861
+77,Oceania,Fiji,ocean_salmon_nutrient,0
+78,Europe,Finland,ocean_salmon_nutrient,3.291550189114034e-7
+79,Europe,France,ocean_salmon_nutrient,0.00843720211337338
+80,Americas,French Guiana,ocean_salmon_nutrient,0
+81,Oceania,French Polynesia,ocean_salmon_nutrient,0
+83,Africa,Gabon,ocean_salmon_nutrient,0
+84,Africa,Gambia,ocean_salmon_nutrient,0
+85,Asia,Georgia,ocean_salmon_nutrient,8.103507677404081e-10
+86,Europe,Germany,ocean_salmon_nutrient,0.0030215421558533943
+87,Africa,Ghana,ocean_salmon_nutrient,0
+88,Europe,Gibraltar,ocean_salmon_nutrient,0
+89,Europe,Greece,ocean_salmon_nutrient,2.524441693008782e-5
+90,Americas,Greenland,ocean_salmon_nutrient,0
+91,Americas,Grenada,ocean_salmon_nutrient,0
+94,Americas,Guatemala,ocean_salmon_nutrient,1.7693313809735571e-9
+95,Europe,Guernsey,ocean_salmon_nutrient,0
+96,Africa,Guinea,ocean_salmon_nutrient,0
+97,Africa,Guinea-Bissau,ocean_salmon_nutrient,0
+98,Americas,Guyana,ocean_salmon_nutrient,1.0960523093886235e-6
+99,Americas,Haiti,ocean_salmon_nutrient,2.281215128953057e-10
+101,Americas,Honduras,ocean_salmon_nutrient,3.3930456212946653e-12
+104,Europe,Iceland,ocean_salmon_nutrient,0
+105,Asia,India,ocean_salmon_nutrient,1.6669113420394132e-5
+106,Asia,Indonesia,ocean_salmon_nutrient,1.0918788218625009e-8
+107,Asia,Iran (Islamic Republic of),ocean_salmon_nutrient,6.77966260740037e-8
+108,Asia,Iraq,ocean_salmon_nutrient,3.045104662696129e-8
+109,Europe,Ireland,ocean_salmon_nutrient,0.005134196522204335
+111,Asia,Israel,ocean_salmon_nutrient,1.1168298582951973e-8
+112,Europe,Italy,ocean_salmon_nutrient,2.2334086418294196e-4
+113,Americas,Jamaica,ocean_salmon_nutrient,0
+114,Asia,Japan,ocean_salmon_nutrient,9.763937430166259e-4
+115,Europe,Jersey,ocean_salmon_nutrient,0
+116,Asia,Jordan,ocean_salmon_nutrient,0
+118,Africa,Kenya,ocean_salmon_nutrient,1.4969750542040519e-12
+119,Oceania,Kiribati,ocean_salmon_nutrient,0
+121,Asia,Kuwait,ocean_salmon_nutrient,0
+124,Europe,Latvia,ocean_salmon_nutrient,0.014195496082700949
+125,Asia,Lebanon,ocean_salmon_nutrient,8.711515184323275e-8
+127,Africa,Liberia,ocean_salmon_nutrient,0
+128,Africa,Libya,ocean_salmon_nutrient,6.995335937715667e-18
+130,Europe,Lithuania,ocean_salmon_nutrient,0.020455003078038155
+134,Africa,Madagascar,ocean_salmon_nutrient,0
+136,Asia,Malaysia,ocean_salmon_nutrient,2.1929552087264104e-7
+137,Asia,Maldives,ocean_salmon_nutrient,0
+139,Europe,Malta,ocean_salmon_nutrient,0
+140,Oceania,Marshall Islands,ocean_salmon_nutrient,0
+142,Africa,Mauritania,ocean_salmon_nutrient,0
+143,Africa,Mauritius,ocean_salmon_nutrient,0
+144,Africa,Mayotte,ocean_salmon_nutrient,0
+145,Americas,Mexico,ocean_salmon_nutrient,6.17082328184496e-6
+146,Oceania,Micronesia (Federated States of),ocean_salmon_nutrient,0
+148,Europe,Monaco,ocean_salmon_nutrient,0
+150,Europe,Montenegro,ocean_salmon_nutrient,3.482366710456177e-10
+151,Americas,Montserrat,ocean_salmon_nutrient,0
+152,Africa,Morocco,ocean_salmon_nutrient,2.556399705911781e-8
+153,Africa,Mozambique,ocean_salmon_nutrient,1.5829895503489933e-11
+154,Asia,Myanmar,ocean_salmon_nutrient,4.157104472953742e-7
+155,Africa,Namibia,ocean_salmon_nutrient,2.7954058558620384e-10
+156,Oceania,Nauru,ocean_salmon_nutrient,0
+158,Europe,Netherlands,ocean_salmon_nutrient,0.002356495476401397
+159,Oceania,New Caledonia,ocean_salmon_nutrient,0
+160,Oceania,New Zealand,ocean_salmon_nutrient,5.956348763753632e-5
+161,Americas,Nicaragua,ocean_salmon_nutrient,4.390632747246802e-5
+163,Africa,Nigeria,ocean_salmon_nutrient,1.4740069173605463e-6
+164,Oceania,Niue,ocean_salmon_nutrient,0
+165,Oceania,Norfolk Island,ocean_salmon_nutrient,0
+166,Asia,Democratic People's Republic of Korea,ocean_salmon_nutrient,6.743004989377209e-7
+169,Europe,Norway,ocean_salmon_nutrient,0.0064476651159225806
+170,Asia,Oman,ocean_salmon_nutrient,6.483867800009452e-5
+171,Asia,Pakistan,ocean_salmon_nutrient,9.036743561739234e-7
+172,Oceania,Palau,ocean_salmon_nutrient,0
+174,Americas,Panama,ocean_salmon_nutrient,1.0277770722802896e-14
+175,Oceania,Papua New Guinea,ocean_salmon_nutrient,0
+178,Americas,Peru,ocean_salmon_nutrient,2.721134033423522e-4
+179,Asia,Philippines,ocean_salmon_nutrient,1.31282686173514e-8
+180,Oceania,Pitcairn,ocean_salmon_nutrient,0
+181,Europe,Poland,ocean_salmon_nutrient,8.600027459284961e-4
+182,Europe,Portugal,ocean_salmon_nutrient,1.688825167013732e-7
+184,Asia,Qatar,ocean_salmon_nutrient,0
+185,Africa,Congo,ocean_salmon_nutrient,0
+186,Africa,Réunion,ocean_salmon_nutrient,0
+187,Europe,Romania,ocean_salmon_nutrient,3.7782368346083674e-5
+188,Europe,Russian Federation,ocean_salmon_nutrient,1.3210090353183154e-5
+191,Americas,Saint Martin (French Part),ocean_salmon_nutrient,0
+192,Africa,Saint Helena,ocean_salmon_nutrient,0
+193,Americas,Saint Kitts and Nevis,ocean_salmon_nutrient,0
+194,Americas,Saint Lucia,ocean_salmon_nutrient,0
+195,Americas,Saint Pierre and Miquelon,ocean_salmon_nutrient,0
+196,Americas,Saint Vincent and the Grenadines,ocean_salmon_nutrient,0
+197,Oceania,Samoa,ocean_salmon_nutrient,0
+199,Africa,Sao Tome and Principe,ocean_salmon_nutrient,0
+200,Asia,Saudi Arabia,ocean_salmon_nutrient,6.666690266797638e-7
+201,Africa,Senegal,ocean_salmon_nutrient,0
+203,Africa,Seychelles,ocean_salmon_nutrient,0
+204,Africa,Sierra Leone,ocean_salmon_nutrient,0
+205,Asia,Singapore,ocean_salmon_nutrient,0
+206,Americas,Sint Maarten (Dutch part),ocean_salmon_nutrient,0
+208,Europe,Slovenia,ocean_salmon_nutrient,2.220384565395958e-6
+209,Oceania,Solomon Islands,ocean_salmon_nutrient,0
+210,Africa,Somalia,ocean_salmon_nutrient,0
+211,Africa,South Africa,ocean_salmon_nutrient,3.050156551287019e-4
+213,Asia,Republic of Korea,ocean_salmon_nutrient,8.705850304376573e-7
+215,Europe,Spain,ocean_salmon_nutrient,0.00184242571974043
+217,Asia,Sri Lanka,ocean_salmon_nutrient,5.8527174619462956e-8
+218,Africa,Sudan,ocean_salmon_nutrient,2.8522794041558456e-12
+219,Americas,Suriname,ocean_salmon_nutrient,0
+222,Europe,Sweden,ocean_salmon_nutrient,0.0015526233696422135
+224,Asia,Syrian Arab Republic,ocean_salmon_nutrient,2.3517254373262857e-6
+225,Asia,Taiwan,ocean_salmon_nutrient,0
+227,Africa,United Republic of Tanzania,ocean_salmon_nutrient,0
+228,Asia,Thailand,ocean_salmon_nutrient,7.175512259256793e-8
+229,Asia,Timor-Leste,ocean_salmon_nutrient,4.846925148819825e-13
+230,Africa,Togo,ocean_salmon_nutrient,0
+231,Oceania,Tokelau,ocean_salmon_nutrient,0
+232,Oceania,Tonga,ocean_salmon_nutrient,0
+233,Americas,Trinidad and Tobago,ocean_salmon_nutrient,0
+234,Africa,Tunisia,ocean_salmon_nutrient,6.98554178631941e-10
+235,Asia,Turkey,ocean_salmon_nutrient,6.098499234440839e-4
+237,Americas,Turks and Caicos Islands,ocean_salmon_nutrient,0
+238,Oceania,Tuvalu,ocean_salmon_nutrient,0
+240,Europe,Ukraine,ocean_salmon_nutrient,2.935632550575876e-5
+241,Asia,United Arab Emirates,ocean_salmon_nutrient,0.003369547740798224
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_salmon_nutrient,0.0045367781360009345
+243,Americas,United States of America,ocean_salmon_nutrient,5.830391088137886e-4
+245,Americas,Uruguay,ocean_salmon_nutrient,6.330464426752749e-5
+247,Oceania,Vanuatu,ocean_salmon_nutrient,0
+249,Americas,Venezuela (Bolivarian Republic of),ocean_salmon_nutrient,7.287029389987759e-10
+250,Asia,Viet Nam,ocean_salmon_nutrient,1.7692978466993025e-6
+252,Oceania,Wallis and Futuna Islands,ocean_salmon_nutrient,0
+253,Africa,Western Sahara,ocean_salmon_nutrient,0
+254,Asia,Yemen,ocean_salmon_nutrient,6.301926702099053e-9
+300,Africa,Madeira Island,ocean_salmon_nutrient,0
+301,Africa,Democratic Republic of the Congo,ocean_salmon_nutrient,0
+4,Europe,Albania,ocean_broiler_disturbance,0.06782526766383858
+5,Africa,Algeria,ocean_broiler_disturbance,0.016693359593750883
+6,Oceania,American Samoa,ocean_broiler_disturbance,4.3416547199677123e-4
+8,Africa,Angola,ocean_broiler_disturbance,0.014800132494273305
+9,Americas,Anguilla,ocean_broiler_disturbance,5.864895562835606e-5
+11,Americas,Antigua and Barbuda,ocean_broiler_disturbance,8.896940026784165e-4
+12,Americas,Argentina,ocean_broiler_disturbance,0.13579843685945187
+14,Americas,Aruba,ocean_broiler_disturbance,0.006926710639269121
+15,Oceania,Australia,ocean_broiler_disturbance,0.03871101073595503
+18,Americas,Bahamas,ocean_broiler_disturbance,0.0021607762918832633
+19,Asia,Bahrain,ocean_broiler_disturbance,0.07824806613133889
+20,Asia,Bangladesh,ocean_broiler_disturbance,0.14933572327208133
+21,Americas,Barbados,ocean_broiler_disturbance,0.002712978806978913
+23,Europe,Belgium,ocean_broiler_disturbance,0.6005597679547882
+24,Americas,Belize,ocean_broiler_disturbance,0.049901831230084216
+25,Africa,Benin,ocean_broiler_disturbance,0.030271156083449647
+26,Americas,Bermuda,ocean_broiler_disturbance,1.3598214225075468e-5
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_broiler_disturbance,0.0017613758738398726
+30,Europe,Bosnia and Herzegovina,ocean_broiler_disturbance,0.3244465225900893
+33,Americas,Brazil,ocean_broiler_disturbance,0.1288858686073483
+34,Africa,British Indian Ocean Territory,ocean_broiler_disturbance,1.0616455912506369e-5
+35,Americas,British Virgin Islands,ocean_broiler_disturbance,1.0493317125672409e-4
+36,Asia,Brunei Darussalam,ocean_broiler_disturbance,0.07967609952077556
+37,Europe,Bulgaria,ocean_broiler_disturbance,0.21705974425714275
+40,Asia,Cambodia,ocean_broiler_disturbance,0.03534561107588986
+41,Africa,Cameroon,ocean_broiler_disturbance,0.046759540682793505
+42,Americas,Canada,ocean_broiler_disturbance,0.00850114910185126
+43,Africa,Cabo Verde,ocean_broiler_disturbance,2.534053119084892e-6
+45,Americas,Cayman Islands,ocean_broiler_disturbance,3.085024534189872e-7
+48,Americas,Chile,ocean_broiler_disturbance,0.014879056573895964
+49,Asia,China,ocean_broiler_disturbance,0.1769519943891626
+50,Oceania,Christmas Island,ocean_broiler_disturbance,8.526891650414422e-4
+52,Oceania,Cocos (Keeling) Islands,ocean_broiler_disturbance,2.80728846975651e-4
+53,Americas,Colombia,ocean_broiler_disturbance,0.05957749989984383
+54,Africa,Comoros,ocean_broiler_disturbance,8.28999527284636e-4
+55,Oceania,Cook Islands,ocean_broiler_disturbance,3.551998234641339e-6
+56,Americas,Costa Rica,ocean_broiler_disturbance,0.010427965935312438
+57,Africa,Côte d’Ivoire,ocean_broiler_disturbance,0.03741901673046172
+58,Europe,Croatia,ocean_broiler_disturbance,0.12151917864484559
+59,Americas,Cuba,ocean_broiler_disturbance,0.007283619237626236
+60,Americas,Curaçao,ocean_broiler_disturbance,0.007658453255562809
+61,Asia,Cyprus,ocean_broiler_disturbance,0.01220802973851155
+64,Europe,Denmark,ocean_broiler_disturbance,0.1983276484663111
+65,Africa,Djibouti,ocean_broiler_disturbance,0.005337946606109023
+66,Americas,Dominica,ocean_broiler_disturbance,0.004144010183245995
+67,Americas,Dominican Republic,ocean_broiler_disturbance,0.11846824626025024
+68,Americas,Ecuador,ocean_broiler_disturbance,0.04393963708218881
+69,Africa,Egypt,ocean_broiler_disturbance,0.007826796023132037
+70,Americas,El Salvador,ocean_broiler_disturbance,0.1083514944530397
+71,Africa,Equatorial Guinea,ocean_broiler_disturbance,0.0030051891462587505
+72,Africa,Eritrea,ocean_broiler_disturbance,0.007996018994996456
+73,Europe,Estonia,ocean_broiler_disturbance,0.09118338847725446
+75,Americas,Falkland Islands (Malvinas),ocean_broiler_disturbance,0.003991929049158535
+76,Europe,Faroe Islands,ocean_broiler_disturbance,0.014650200565538844
+77,Oceania,Fiji,ocean_broiler_disturbance,0.0015181052253024454
+78,Europe,Finland,ocean_broiler_disturbance,0.025257889529905403
+79,Europe,France,ocean_broiler_disturbance,0.2859567382411131
+80,Americas,French Guiana,ocean_broiler_disturbance,0.0016780218966422514
+81,Oceania,French Polynesia,ocean_broiler_disturbance,5.633504077010764e-7
+83,Africa,Gabon,ocean_broiler_disturbance,0.011792568774819441
+84,Africa,Gambia,ocean_broiler_disturbance,0.11203687145878068
+85,Asia,Georgia,ocean_broiler_disturbance,0.053168812432788676
+86,Europe,Germany,ocean_broiler_disturbance,0.3277747614079068
+87,Africa,Ghana,ocean_broiler_disturbance,0.04876094097148645
+88,Europe,Gibraltar,ocean_broiler_disturbance,0.059931911528110504
+89,Europe,Greece,ocean_broiler_disturbance,0.05702719133285219
+90,Americas,Greenland,ocean_broiler_disturbance,5.263497299834316e-4
+91,Americas,Grenada,ocean_broiler_disturbance,0.008318352374220139
+94,Americas,Guatemala,ocean_broiler_disturbance,0.1415109230483898
+95,Europe,Guernsey,ocean_broiler_disturbance,0.04810863560245883
+96,Africa,Guinea,ocean_broiler_disturbance,0.014045865458499002
+97,Africa,Guinea-Bissau,ocean_broiler_disturbance,0.03240698389775856
+98,Americas,Guyana,ocean_broiler_disturbance,0.01669103995799419
+99,Americas,Haiti,ocean_broiler_disturbance,0.03390556653663261
+101,Americas,Honduras,ocean_broiler_disturbance,0.12366981600841205
+104,Europe,Iceland,ocean_broiler_disturbance,0.005155698058558506
+105,Asia,India,ocean_broiler_disturbance,0.28038283709823675
+106,Asia,Indonesia,ocean_broiler_disturbance,0.05388862915264957
+107,Asia,Iran (Islamic Republic of),ocean_broiler_disturbance,0.27122327760729414
+108,Asia,Iraq,ocean_broiler_disturbance,0.072438688706909
+109,Europe,Ireland,ocean_broiler_disturbance,0.03627319352554884
+111,Asia,Israel,ocean_broiler_disturbance,0.22974972537372704
+112,Europe,Italy,ocean_broiler_disturbance,0.10454673286897871
+113,Americas,Jamaica,ocean_broiler_disturbance,0.02065816212534351
+114,Asia,Japan,ocean_broiler_disturbance,0.04405065050589471
+115,Europe,Jersey,ocean_broiler_disturbance,0.04870360604088221
+116,Asia,Jordan,ocean_broiler_disturbance,0.10310940895931463
+118,Africa,Kenya,ocean_broiler_disturbance,0.012308494511307572
+119,Oceania,Kiribati,ocean_broiler_disturbance,1.2201800082065443e-4
+121,Asia,Kuwait,ocean_broiler_disturbance,0.3936306154127963
+124,Europe,Latvia,ocean_broiler_disturbance,0.101858077332524
+125,Asia,Lebanon,ocean_broiler_disturbance,0.249774676676603
+127,Africa,Liberia,ocean_broiler_disturbance,0.009949693793200045
+128,Africa,Libya,ocean_broiler_disturbance,0.00646738872138202
+130,Europe,Lithuania,ocean_broiler_disturbance,0.251617065659977
+134,Africa,Madagascar,ocean_broiler_disturbance,0.01134917555763875
+136,Asia,Malaysia,ocean_broiler_disturbance,0.13996549727906535
+137,Asia,Maldives,ocean_broiler_disturbance,1.357838944830837e-6
+139,Europe,Malta,ocean_broiler_disturbance,0.017237225541542937
+140,Oceania,Marshall Islands,ocean_broiler_disturbance,3.222267494984989e-5
+142,Africa,Mauritania,ocean_broiler_disturbance,0.009065456179768882
+143,Africa,Mauritius,ocean_broiler_disturbance,8.531849373510666e-5
+144,Africa,Mayotte,ocean_broiler_disturbance,1.5653595285609775e-4
+145,Americas,Mexico,ocean_broiler_disturbance,0.05595911469985122
+146,Oceania,Micronesia (Federated States of),ocean_broiler_disturbance,4.481474422443283e-5
+148,Europe,Monaco,ocean_broiler_disturbance,0.013109848648309708
+150,Europe,Montenegro,ocean_broiler_disturbance,0.014738727198247564
+151,Americas,Montserrat,ocean_broiler_disturbance,0.001571143906110064
+152,Africa,Morocco,ocean_broiler_disturbance,0.13549516848995696
+153,Africa,Mozambique,ocean_broiler_disturbance,0.020435303541154907
+154,Asia,Myanmar,ocean_broiler_disturbance,0.09747265495025877
+155,Africa,Namibia,ocean_broiler_disturbance,0.0015988603352796152
+156,Oceania,Nauru,ocean_broiler_disturbance,9.034845070657873e-5
+158,Europe,Netherlands,ocean_broiler_disturbance,0.3321627372786836
+159,Oceania,New Caledonia,ocean_broiler_disturbance,9.073835570156169e-7
+160,Oceania,New Zealand,ocean_broiler_disturbance,0.008708707427204056
+161,Americas,Nicaragua,ocean_broiler_disturbance,0.08620609958799692
+163,Africa,Nigeria,ocean_broiler_disturbance,0.059026222147727375
+164,Oceania,Niue,ocean_broiler_disturbance,1.1872646430706593e-8
+165,Oceania,Norfolk Island,ocean_broiler_disturbance,9.525358244069652e-4
+166,Asia,Democratic People's Republic of Korea,ocean_broiler_disturbance,0.03649533339844854
+169,Europe,Norway,ocean_broiler_disturbance,0.01518839955809255
+170,Asia,Oman,ocean_broiler_disturbance,0.014901247045990239
+171,Asia,Pakistan,ocean_broiler_disturbance,0.20948621994600583
+172,Oceania,Palau,ocean_broiler_disturbance,3.56341987528776e-5
+174,Americas,Panama,ocean_broiler_disturbance,0.02822613191908495
+175,Oceania,Papua New Guinea,ocean_broiler_disturbance,4.7386557056639645e-4
+178,Americas,Peru,ocean_broiler_disturbance,0.04521440038650694
+179,Asia,Philippines,ocean_broiler_disturbance,0.09245861686516106
+180,Oceania,Pitcairn,ocean_broiler_disturbance,5.404771119603248e-7
+181,Europe,Poland,ocean_broiler_disturbance,0.5351895417252666
+182,Europe,Portugal,ocean_broiler_disturbance,0.0160460271140833
+184,Asia,Qatar,ocean_broiler_disturbance,0.05419424424978383
+185,Africa,Congo,ocean_broiler_disturbance,0.011096518307337653
+186,Africa,Réunion,ocean_broiler_disturbance,2.4226502260330567e-5
+187,Europe,Romania,ocean_broiler_disturbance,0.42963201737818213
+188,Europe,Russian Federation,ocean_broiler_disturbance,0.021570155500227072
+191,Americas,Saint Martin (French Part),ocean_broiler_disturbance,0.0016269481315652633
+192,Africa,Saint Helena,ocean_broiler_disturbance,1.8175309819334987e-5
+193,Americas,Saint Kitts and Nevis,ocean_broiler_disturbance,0.007294676710085968
+194,Americas,Saint Lucia,ocean_broiler_disturbance,0.013681543610888323
+195,Americas,Saint Pierre and Miquelon,ocean_broiler_disturbance,0.02418078418097604
+196,Americas,Saint Vincent and the Grenadines,ocean_broiler_disturbance,0.002766971653902188
+197,Oceania,Samoa,ocean_broiler_disturbance,9.735206566599139e-5
+199,Africa,Sao Tome and Principe,ocean_broiler_disturbance,0.007182828880742138
+200,Asia,Saudi Arabia,ocean_broiler_disturbance,0.038975627163311405
+201,Africa,Senegal,ocean_broiler_disturbance,0.053531843140470485
+203,Africa,Seychelles,ocean_broiler_disturbance,3.452905631896931e-5
+204,Africa,Sierra Leone,ocean_broiler_disturbance,0.06082645811270733
+205,Asia,Singapore,ocean_broiler_disturbance,0.3486091010272503
+206,Americas,Sint Maarten (Dutch part),ocean_broiler_disturbance,0
+208,Europe,Slovenia,ocean_broiler_disturbance,0.19379795600921065
+209,Oceania,Solomon Islands,ocean_broiler_disturbance,7.024141496558406e-5
+210,Africa,Somalia,ocean_broiler_disturbance,0.0037132607558928773
+211,Africa,South Africa,ocean_broiler_disturbance,0.10555395051352132
+213,Asia,Republic of Korea,ocean_broiler_disturbance,0.17695498006902619
+215,Europe,Spain,ocean_broiler_disturbance,0.07815840139466144
+217,Asia,Sri Lanka,ocean_broiler_disturbance,0.03538039096981895
+218,Africa,Sudan,ocean_broiler_disturbance,0.007154064803873513
+219,Americas,Suriname,ocean_broiler_disturbance,0.00821361092177575
+222,Europe,Sweden,ocean_broiler_disturbance,0.030518826084399087
+224,Asia,Syrian Arab Republic,ocean_broiler_disturbance,0.03540043922805959
+225,Asia,Taiwan,ocean_broiler_disturbance,0.02012533907385941
+227,Africa,United Republic of Tanzania,ocean_broiler_disturbance,0.023545195719845445
+228,Asia,Thailand,ocean_broiler_disturbance,0.24654883300414365
+229,Asia,Timor-Leste,ocean_broiler_disturbance,0.014744122057042997
+230,Africa,Togo,ocean_broiler_disturbance,0.2096509528286315
+231,Oceania,Tokelau,ocean_broiler_disturbance,1.1186571997884774e-6
+232,Oceania,Tonga,ocean_broiler_disturbance,9.789777926898922e-7
+233,Americas,Trinidad and Tobago,ocean_broiler_disturbance,0.06231997186022544
+234,Africa,Tunisia,ocean_broiler_disturbance,0.14448457264499734
+235,Asia,Turkey,ocean_broiler_disturbance,0.2328204344989356
+237,Americas,Turks and Caicos Islands,ocean_broiler_disturbance,6.139196879930662e-7
+238,Oceania,Tuvalu,ocean_broiler_disturbance,6.1983676226574275e-6
+240,Europe,Ukraine,ocean_broiler_disturbance,0.4099639650220961
+241,Asia,United Arab Emirates,ocean_broiler_disturbance,0.09572998978371801
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_broiler_disturbance,0.1507921321329248
+243,Americas,United States of America,ocean_broiler_disturbance,0.09822109261131771
+245,Americas,Uruguay,ocean_broiler_disturbance,0.11284569729953522
+247,Oceania,Vanuatu,ocean_broiler_disturbance,7.921557585009489e-4
+249,Americas,Venezuela (Bolivarian Republic of),ocean_broiler_disturbance,0.06330561831718357
+250,Asia,Viet Nam,ocean_broiler_disturbance,0.005593390795710286
+252,Oceania,Wallis and Futuna Islands,ocean_broiler_disturbance,2.3188668315797144e-7
+253,Africa,Western Sahara,ocean_broiler_disturbance,0.009870294276913731
+254,Asia,Yemen,ocean_broiler_disturbance,0.011196105845444525
+300,Africa,Madeira Island,ocean_broiler_disturbance,0.0028269878204641363
+301,Africa,Democratic Republic of the Congo,ocean_broiler_disturbance,5.492588173795172e-4
+4,Europe,Albania,ocean_salmon_disturbance,0.05313139633725812
+5,Africa,Algeria,ocean_salmon_disturbance,0.004660677490386923
+6,Oceania,American Samoa,ocean_salmon_disturbance,0.0018235026366865586
+8,Africa,Angola,ocean_salmon_disturbance,0.01216502179217095
+9,Americas,Anguilla,ocean_salmon_disturbance,2.463266498302912e-4
+11,Americas,Antigua and Barbuda,ocean_salmon_disturbance,0.0030744648193712157
+12,Americas,Argentina,ocean_salmon_disturbance,0.016396324961617043
+14,Americas,Aruba,ocean_salmon_disturbance,0.02909230686003162
+15,Oceania,Australia,ocean_salmon_disturbance,0.011066013528762113
+18,Americas,Bahamas,ocean_salmon_disturbance,0.0021950175872057667
+19,Asia,Bahrain,ocean_salmon_disturbance,0.2118374398239305
+20,Asia,Bangladesh,ocean_salmon_disturbance,0.21818364777556967
+21,Americas,Barbados,ocean_salmon_disturbance,4.8270761496300536e-5
+23,Europe,Belgium,ocean_salmon_disturbance,0.07968455964097595
+24,Americas,Belize,ocean_salmon_disturbance,1.231827888101858e-7
+25,Africa,Benin,ocean_salmon_disturbance,0.009468403442464789
+26,Americas,Bermuda,ocean_salmon_disturbance,5.7112739903961625e-5
+29,Americas,Bonaire/ Sint Eustatius and Saba,ocean_salmon_disturbance,0.007397809022838948
+30,Europe,Bosnia and Herzegovina,ocean_salmon_disturbance,0.012832581207296592
+33,Americas,Brazil,ocean_salmon_disturbance,0.004540893814806658
+34,Africa,British Indian Ocean Territory,ocean_salmon_disturbance,4.458930234787208e-5
+35,Americas,British Virgin Islands,ocean_salmon_disturbance,4.4072115796285713e-4
+36,Asia,Brunei Darussalam,ocean_salmon_disturbance,0.10680965712871188
+37,Europe,Bulgaria,ocean_salmon_disturbance,0.019448113309085625
+40,Asia,Cambodia,ocean_salmon_disturbance,0.01569870020611445
+41,Africa,Cameroon,ocean_salmon_disturbance,0.011059232226693565
+42,Americas,Canada,ocean_salmon_disturbance,0.005729762082909847
+43,Africa,Cabo Verde,ocean_salmon_disturbance,4.2229111917333275e-6
+45,Americas,Cayman Islands,ocean_salmon_disturbance,1.295715756914052e-6
+48,Americas,Chile,ocean_salmon_disturbance,0.038809848544899106
+49,Asia,China,ocean_salmon_disturbance,0.04017656916369334
+50,Oceania,Christmas Island,ocean_salmon_disturbance,0.003581309738337655
+52,Oceania,Cocos (Keeling) Islands,ocean_salmon_disturbance,0.0011790660806781615
+53,Americas,Colombia,ocean_salmon_disturbance,0.0012113830422048897
+54,Africa,Comoros,ocean_salmon_disturbance,0.002241994027223062
+55,Oceania,Cook Islands,ocean_salmon_disturbance,1.491845541752234e-5
+56,Americas,Costa Rica,ocean_salmon_disturbance,0.0032942590456596795
+57,Africa,Côte d’Ivoire,ocean_salmon_disturbance,0.017199895596818355
+58,Europe,Croatia,ocean_salmon_disturbance,0.13099947792251346
+59,Americas,Cuba,ocean_salmon_disturbance,0.03059132947572986
+60,Americas,Curaçao,ocean_salmon_disturbance,0.03216564105024756
+61,Asia,Cyprus,ocean_salmon_disturbance,0.0145539655174324
+64,Europe,Denmark,ocean_salmon_disturbance,0.3301180828107227
+65,Africa,Djibouti,ocean_salmon_disturbance,0.022415536738778285
+66,Americas,Dominica,ocean_salmon_disturbance,0.0037639493956488916
+67,Americas,Dominican Republic,ocean_salmon_disturbance,5.9734799816159545e-5
+68,Americas,Ecuador,ocean_salmon_disturbance,0.00501442819606991
+69,Africa,Egypt,ocean_salmon_disturbance,0.023040744844220286
+70,Americas,El Salvador,ocean_salmon_disturbance,0.03151203641271719
+71,Africa,Equatorial Guinea,ocean_salmon_disturbance,0.011425743441744098
+72,Africa,Eritrea,ocean_salmon_disturbance,0.024303202362057144
+73,Europe,Estonia,ocean_salmon_disturbance,0.08906332006753125
+75,Americas,Falkland Islands (Malvinas),ocean_salmon_disturbance,0.016766172334253
+76,Europe,Faroe Islands,ocean_salmon_disturbance,0.061565202825330914
+77,Oceania,Fiji,ocean_salmon_disturbance,2.488438316866317e-4
+78,Europe,Finland,ocean_salmon_disturbance,0.03443144273525886
+79,Europe,France,ocean_salmon_disturbance,0.06721209806838878
+80,Americas,French Guiana,ocean_salmon_disturbance,0.005465219684788746
+81,Oceania,French Polynesia,ocean_salmon_disturbance,2.366081713161585e-6
+83,Africa,Gabon,ocean_salmon_disturbance,0.027983467272413583
+84,Africa,Gambia,ocean_salmon_disturbance,0.18600620768546552
+85,Asia,Georgia,ocean_salmon_disturbance,0.04021178650426934
+86,Europe,Germany,ocean_salmon_disturbance,0.08955770770676473
+87,Africa,Ghana,ocean_salmon_disturbance,0.04436832744358382
+88,Europe,Gibraltar,ocean_salmon_disturbance,0.2517150938510895
+89,Europe,Greece,ocean_salmon_disturbance,0.05658810378065215
+90,Americas,Greenland,ocean_salmon_disturbance,0.0022106781280141928
+91,Americas,Grenada,ocean_salmon_disturbance,0.025484464170695165
+94,Americas,Guatemala,ocean_salmon_disturbance,0.002799347041747804
+95,Europe,Guernsey,ocean_salmon_disturbance,0.20205711693533004
+96,Africa,Guinea,ocean_salmon_disturbance,0.03362008797934771
+97,Africa,Guinea-Bissau,ocean_salmon_disturbance,0.069082154234149
+98,Americas,Guyana,ocean_salmon_disturbance,0.002190598601158865
+99,Americas,Haiti,ocean_salmon_disturbance,7.560436385169261e-5
+101,Americas,Honduras,ocean_salmon_disturbance,5.185289357177966e-4
+104,Europe,Iceland,ocean_salmon_disturbance,0.020979171172909733
+105,Asia,India,ocean_salmon_disturbance,0.03657018881809601
+106,Asia,Indonesia,ocean_salmon_disturbance,0.07413300033584323
+107,Asia,Iran (Islamic Republic of),ocean_salmon_disturbance,0.008041965345273532
+108,Asia,Iraq,ocean_salmon_disturbance,1.528153029070381e-4
+109,Europe,Ireland,ocean_salmon_disturbance,0.09605423229895464
+111,Asia,Israel,ocean_salmon_disturbance,0.040916471667926106
+112,Europe,Italy,ocean_salmon_disturbance,0.0660155066652689
+113,Americas,Jamaica,ocean_salmon_disturbance,1.4828803057973249e-4
+114,Asia,Japan,ocean_salmon_disturbance,0.0664399460367468
+115,Europe,Jersey,ocean_salmon_disturbance,0.20455599536320992
+116,Asia,Jordan,ocean_salmon_disturbance,8.771973430830762e-4
+118,Africa,Kenya,ocean_salmon_disturbance,0.0014173936475247281
+119,Oceania,Kiribati,ocean_salmon_disturbance,5.124777546928682e-4
+121,Asia,Kuwait,ocean_salmon_disturbance,0.059052514495893084
+124,Europe,Latvia,ocean_salmon_disturbance,0.09476037281490553
+125,Asia,Lebanon,ocean_salmon_disturbance,0.05188821016962622
+127,Africa,Liberia,ocean_salmon_disturbance,0.021537745569702834
+128,Africa,Libya,ocean_salmon_disturbance,0.0044998311891099345
+130,Europe,Lithuania,ocean_salmon_disturbance,0.06664206996362367
+134,Africa,Madagascar,ocean_salmon_disturbance,0.00020162992760769065
+136,Asia,Malaysia,ocean_salmon_disturbance,0.19147061551370248
+137,Asia,Maldives,ocean_salmon_disturbance,5.7029474995165034e-6
+139,Europe,Malta,ocean_salmon_disturbance,0.050046223998525985
+140,Oceania,Marshall Islands,ocean_salmon_disturbance,1.3533580554627014e-4
+142,Africa,Mauritania,ocean_salmon_disturbance,0.026627915217262696
+143,Africa,Mauritius,ocean_salmon_disturbance,3.583307654787627e-4
+144,Africa,Mayotte,ocean_salmon_disturbance,6.574538046906691e-4
+145,Americas,Mexico,ocean_salmon_disturbance,0.013891944625648156
+146,Oceania,Micronesia (Federated States of),ocean_salmon_disturbance,1.8822271913551322e-4
+148,Europe,Monaco,ocean_salmon_disturbance,0.0550615981221199
+150,Europe,Montenegro,ocean_salmon_disturbance,0.0609020760947042
+151,Americas,Montserrat,ocean_salmon_disturbance,0.00659883196696624
+152,Africa,Morocco,ocean_salmon_disturbance,0.13802598221138176
+153,Africa,Mozambique,ocean_salmon_disturbance,1.802849057921451e-4
+154,Asia,Myanmar,ocean_salmon_disturbance,0.0710362547736144
+155,Africa,Namibia,ocean_salmon_disturbance,8.130280921687799e-4
+156,Oceania,Nauru,ocean_salmon_disturbance,3.7946509531255396e-4
+158,Europe,Netherlands,ocean_salmon_disturbance,0.2836512959471004
+159,Oceania,New Caledonia,ocean_salmon_disturbance,3.7050631239000547e-6
+160,Oceania,New Zealand,ocean_salmon_disturbance,0.02231123831891923
+161,Americas,Nicaragua,ocean_salmon_disturbance,0.006225072068064447
+163,Africa,Nigeria,ocean_salmon_disturbance,0.027301263773699316
+164,Oceania,Niue,ocean_salmon_disturbance,4.986532458679379e-8
+165,Oceania,Norfolk Island,ocean_salmon_disturbance,0.004000667175709299
+166,Asia,Democratic People's Republic of Korea,ocean_salmon_disturbance,0.028953575012227343
+169,Europe,Norway,ocean_salmon_disturbance,0.06062681255501906
+170,Asia,Oman,ocean_salmon_disturbance,0.06233319607145436
+171,Asia,Pakistan,ocean_salmon_disturbance,0.02036610188910206
+172,Oceania,Palau,ocean_salmon_disturbance,1.496642619534732e-4
+174,Americas,Panama,ocean_salmon_disturbance,1.4597093303169567e-4
+175,Oceania,Papua New Guinea,ocean_salmon_disturbance,4.015765593738151e-4
+178,Americas,Peru,ocean_salmon_disturbance,0.06106639645118637
+179,Asia,Philippines,ocean_salmon_disturbance,0.15550848986345656
+180,Oceania,Pitcairn,ocean_salmon_disturbance,2.270013233438168e-6
+181,Europe,Poland,ocean_salmon_disturbance,0.04823944190254483
+182,Europe,Portugal,ocean_salmon_disturbance,0.015953609116620845
+184,Asia,Qatar,ocean_salmon_disturbance,0.06628768280321776
+185,Africa,Congo,ocean_salmon_disturbance,0.015967494233107216
+186,Africa,Réunion,ocean_salmon_disturbance,1.0175173488197565e-4
+187,Europe,Romania,ocean_salmon_disturbance,0.0036390465833313532
+188,Europe,Russian Federation,ocean_salmon_disturbance,0.009677689951131522
+191,Americas,Saint Martin (French Part),ocean_salmon_disturbance,0.006833210802315513
+192,Africa,Saint Helena,ocean_salmon_disturbance,7.633662408753444e-5
+193,Americas,Saint Kitts and Nevis,ocean_salmon_disturbance,0.023134447070934965
+194,Americas,Saint Lucia,ocean_salmon_disturbance,0.011782415074561962
+195,Americas,Saint Pierre and Miquelon,ocean_salmon_disturbance,0.10155972164701568
+196,Americas,Saint Vincent and the Grenadines,ocean_salmon_disturbance,0.002196120452204427
+197,Oceania,Samoa,ocean_salmon_disturbance,4.088803435491146e-4
+199,Africa,Sao Tome and Principe,ocean_salmon_disturbance,0.02537655934584637
+200,Asia,Saudi Arabia,ocean_salmon_disturbance,0.02573916673593705
+201,Africa,Senegal,ocean_salmon_disturbance,0.07189818800074561
+203,Africa,Seychelles,ocean_salmon_disturbance,1.450226481151674e-4
+204,Africa,Sierra Leone,ocean_salmon_disturbance,0.125531009470871
+205,Asia,Singapore,ocean_salmon_disturbance,0.30083103105425835
+206,Americas,Sint Maarten (Dutch part),ocean_salmon_disturbance,0
+208,Europe,Slovenia,ocean_salmon_disturbance,0.010606859759817608
+209,Oceania,Solomon Islands,ocean_salmon_disturbance,1.7471662566569476e-4
+210,Africa,Somalia,ocean_salmon_disturbance,9.99647222457758e-4
+211,Africa,South Africa,ocean_salmon_disturbance,0.001932566347827245
+213,Asia,Republic of Korea,ocean_salmon_disturbance,0.18499147065880656
+215,Europe,Spain,ocean_salmon_disturbance,0.04962400186435571
+217,Asia,Sri Lanka,ocean_salmon_disturbance,0.021704383572526544
+218,Africa,Sudan,ocean_salmon_disturbance,0.006067858425328633
+219,Americas,Suriname,ocean_salmon_disturbance,7.935178160130505e-5
+222,Europe,Sweden,ocean_salmon_disturbance,0.060810094434551897
+224,Asia,Syrian Arab Republic,ocean_salmon_disturbance,0.006152056761908792
+225,Asia,Taiwan,ocean_salmon_disturbance,0.07860372457064703
+227,Africa,United Republic of Tanzania,ocean_salmon_disturbance,0.011131693472620968
+228,Asia,Thailand,ocean_salmon_disturbance,0.09494893651562897
+229,Asia,Timor-Leste,ocean_salmon_disturbance,0.03848307846053424
+230,Africa,Togo,ocean_salmon_disturbance,0.030647488975709535
+231,Oceania,Tokelau,ocean_salmon_disturbance,4.698379805222567e-6
+232,Oceania,Tonga,ocean_salmon_disturbance,4.11172390000464e-6
+233,Americas,Trinidad and Tobago,ocean_salmon_disturbance,0.019411392264769792
+234,Africa,Tunisia,ocean_salmon_disturbance,0.06478946498175948
+235,Asia,Turkey,ocean_salmon_disturbance,0.06751847853621766
+237,Americas,Turks and Caicos Islands,ocean_salmon_disturbance,2.5784735027216744e-6
+238,Oceania,Tuvalu,ocean_salmon_disturbance,2.6033253310343956e-5
+240,Europe,Ukraine,ocean_salmon_disturbance,0.033223182227404106
+241,Asia,United Arab Emirates,ocean_salmon_disturbance,0.051000484792312964
+242,Europe,United Kingdom of Great Britain and Northern Ireland,ocean_salmon_disturbance,0.19253710740426178
+243,Americas,United States of America,ocean_salmon_disturbance,0.009850786221628691
+245,Americas,Uruguay,ocean_salmon_disturbance,0.036644292045198826
+247,Oceania,Vanuatu,ocean_salmon_disturbance,3.1764491540851706e-4
+249,Americas,Venezuela (Bolivarian Republic of),ocean_salmon_disturbance,0.02870068227128909
+250,Asia,Viet Nam,ocean_salmon_disturbance,0.0124564626183268
+252,Oceania,Wallis and Futuna Islands,ocean_salmon_disturbance,9.739280983829385e-7
+253,Africa,Western Sahara,ocean_salmon_disturbance,0.04145532759396354
+254,Asia,Yemen,ocean_salmon_disturbance,0.04628734812019891
+300,Africa,Madeira Island,ocean_salmon_disturbance,0.011873398525276567
+301,Africa,Democratic Republic of the Congo,ocean_salmon_disturbance,5.981518935720897e-4
+4,Europe,Albania,land_broiler_ghg,0.16837685713056275
+5,Africa,Algeria,land_broiler_ghg,0.0397373507362895
+6,Oceania,American Samoa,land_broiler_ghg,1.761104329034424e-8
+8,Africa,Angola,land_broiler_ghg,0.022837031897245442
+9,Americas,Anguilla,land_broiler_ghg,0
+11,Americas,Antigua and Barbuda,land_broiler_ghg,0.08631251873436578
+12,Americas,Argentina,land_broiler_ghg,0.027399546485953587
+14,Americas,Aruba,land_broiler_ghg,6.507703650034576e-7
+15,Oceania,Australia,land_broiler_ghg,0.006000348459636806
+18,Americas,Bahamas,land_broiler_ghg,0.1254065089282422
+19,Asia,Bahrain,land_broiler_ghg,0.5555536686342495
+20,Asia,Bangladesh,land_broiler_ghg,0.1911499863116085
+21,Americas,Barbados,land_broiler_ghg,1
+23,Europe,Belgium,land_broiler_ghg,0.6719834698256113
+24,Americas,Belize,land_broiler_ghg,0.13244711605455736
+25,Africa,Benin,land_broiler_ghg,0.01646840384796467
+26,Americas,Bermuda,land_broiler_ghg,5.304388039917285e-9
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_broiler_ghg,0
+30,Europe,Bosnia and Herzegovina,land_broiler_ghg,0.6314358410589179
+33,Americas,Brazil,land_broiler_ghg,0.09073107838344333
+34,Africa,British Indian Ocean Territory,land_broiler_ghg,0
+35,Americas,British Virgin Islands,land_broiler_ghg,2.28400121038419e-9
+36,Asia,Brunei Darussalam,land_broiler_ghg,0.5302711530145228
+37,Europe,Bulgaria,land_broiler_ghg,0.1999965464601475
+40,Asia,Cambodia,land_broiler_ghg,0.020661549346857915
+41,Africa,Cameroon,land_broiler_ghg,0.03845529174083219
+42,Americas,Canada,land_broiler_ghg,0.005567109016563468
+43,Africa,Cabo Verde,land_broiler_ghg,0
+45,Americas,Cayman Islands,land_broiler_ghg,0
+48,Americas,Chile,land_broiler_ghg,0.05376909953874107
+49,Asia,China,land_broiler_ghg,0.26385482310605357
+50,Oceania,Christmas Island,land_broiler_ghg,0
+52,Oceania,Cocos (Keeling) Islands,land_broiler_ghg,3.436429452108314e-8
+53,Americas,Colombia,land_broiler_ghg,0.1325109272607423
+54,Africa,Comoros,land_broiler_ghg,0.12815265101019355
+55,Oceania,Cook Islands,land_broiler_ghg,0
+56,Americas,Costa Rica,land_broiler_ghg,0.19903003230920502
+57,Africa,Côte d’Ivoire,land_broiler_ghg,0.07841803478541952
+58,Europe,Croatia,land_broiler_ghg,0.20352990635576795
+59,Americas,Cuba,land_broiler_ghg,3.4696486221156654e-8
+60,Americas,Curaçao,land_broiler_ghg,1.9290077943878713e-7
+61,Asia,Cyprus,land_broiler_ghg,0.2416168716673727
+64,Europe,Denmark,land_broiler_ghg,0.2430771377517215
+65,Africa,Djibouti,land_broiler_ghg,1.9366520448854246e-8
+66,Americas,Dominica,land_broiler_ghg,0.5157246134523958
+67,Americas,Dominican Republic,land_broiler_ghg,0.8471210761480973
+68,Americas,Ecuador,land_broiler_ghg,0.21526968812777567
+69,Africa,Egypt,land_broiler_ghg,2.5983757785730813e-4
+70,Americas,El Salvador,land_broiler_ghg,0.3415585709666703
+71,Africa,Equatorial Guinea,land_broiler_ghg,0.015019346294319573
+72,Africa,Eritrea,land_broiler_ghg,8.473519302677899e-4
+73,Europe,Estonia,land_broiler_ghg,0.04064035436058494
+75,Americas,Falkland Islands (Malvinas),land_broiler_ghg,9.343588568865615e-8
+76,Europe,Faroe Islands,land_broiler_ghg,1.8328658411402826e-6
+77,Oceania,Fiji,land_broiler_ghg,0.15023562256788847
+78,Europe,Finland,land_broiler_ghg,0.012695241410529032
+79,Europe,France,land_broiler_ghg,0.2351702306251033
+80,Americas,French Guiana,land_broiler_ghg,0.00425747113704413
+81,Oceania,French Polynesia,land_broiler_ghg,0
+83,Africa,Gabon,land_broiler_ghg,0.021505465344408184
+84,Africa,Gambia,land_broiler_ghg,0.029652833724870084
+85,Asia,Georgia,land_broiler_ghg,0.18419202420351566
+86,Europe,Germany,land_broiler_ghg,0.37766684841266757
+87,Africa,Ghana,land_broiler_ghg,0.11124286436972489
+88,Europe,Gibraltar,land_broiler_ghg,8.264771622634726e-7
+89,Europe,Greece,land_broiler_ghg,0.27237158369328573
+90,Americas,Greenland,land_broiler_ghg,2.0362790639111683e-9
+91,Americas,Grenada,land_broiler_ghg,0.6322198334704574
+94,Americas,Guatemala,land_broiler_ghg,0.12396405217851822
+95,Europe,Guernsey,land_broiler_ghg,7.813081784509753e-7
+96,Africa,Guinea,land_broiler_ghg,0.01776194987852997
+97,Africa,Guinea-Bissau,land_broiler_ghg,0.019648841296768332
+98,Americas,Guyana,land_broiler_ghg,0.052265993096466325
+99,Americas,Haiti,land_broiler_ghg,0.03404031962369413
+101,Americas,Honduras,land_broiler_ghg,0.618144694174659
+104,Europe,Iceland,land_broiler_ghg,0.003319195724552852
+105,Asia,India,land_broiler_ghg,0.21191753781905512
+106,Asia,Indonesia,land_broiler_ghg,0.21816574379930834
+107,Asia,Iran (Islamic Republic of),land_broiler_ghg,0.5502311037761272
+108,Asia,Iraq,land_broiler_ghg,0.2004061607733908
+109,Europe,Ireland,land_broiler_ghg,0.14997459012957717
+111,Asia,Israel,land_broiler_ghg,0.6740254598412094
+112,Europe,Italy,land_broiler_ghg,0.2170957923917702
+113,Americas,Jamaica,land_broiler_ghg,0.8923342839133606
+114,Asia,Japan,land_broiler_ghg,0.5606426651310332
+115,Europe,Jersey,land_broiler_ghg,6.711853188789974e-7
+116,Asia,Jordan,land_broiler_ghg,0.19402044452122022
+118,Africa,Kenya,land_broiler_ghg,0.010575675126128111
+119,Oceania,Kiribati,land_broiler_ghg,1.2083971739906829e-8
+121,Asia,Kuwait,land_broiler_ghg,0.9461580136942074
+124,Europe,Latvia,land_broiler_ghg,0.06616439515791654
+125,Asia,Lebanon,land_broiler_ghg,0.906107101639116
+127,Africa,Liberia,land_broiler_ghg,0.009394351183498318
+128,Africa,Libya,land_broiler_ghg,0.016044224037203597
+130,Europe,Lithuania,land_broiler_ghg,0.16154672582281726
+134,Africa,Madagascar,land_broiler_ghg,0.029368191496456676
+136,Asia,Malaysia,land_broiler_ghg,0.44248722864823564
+137,Asia,Maldives,land_broiler_ghg,0
+139,Europe,Malta,land_broiler_ghg,0.8333327583633169
+140,Oceania,Marshall Islands,land_broiler_ghg,0
+142,Africa,Mauritania,land_broiler_ghg,0.0018740434779499068
+143,Africa,Mauritius,land_broiler_ghg,1.0762149244697428e-10
+144,Africa,Mayotte,land_broiler_ghg,0
+145,Americas,Mexico,land_broiler_ghg,0.09998649771518107
+146,Oceania,Micronesia (Federated States of),land_broiler_ghg,0
+148,Europe,Monaco,land_broiler_ghg,5.261825890556793e-7
+150,Europe,Montenegro,land_broiler_ghg,2.3155802185557044e-7
+151,Americas,Montserrat,land_broiler_ghg,1.0681377560217697e-8
+152,Africa,Morocco,land_broiler_ghg,0.38134708887820795
+153,Africa,Mozambique,land_broiler_ghg,0.007867446563831676
+154,Asia,Myanmar,land_broiler_ghg,0.050596252909315326
+155,Africa,Namibia,land_broiler_ghg,0.007446067178948828
+156,Oceania,Nauru,land_broiler_ghg,0
+158,Europe,Netherlands,land_broiler_ghg,0.7807151319648494
+159,Oceania,New Caledonia,land_broiler_ghg,0
+160,Oceania,New Zealand,land_broiler_ghg,0.0877248897968466
+161,Americas,Nicaragua,land_broiler_ghg,0.10669573584269355
+163,Africa,Nigeria,land_broiler_ghg,0.0728672601925497
+164,Oceania,Niue,land_broiler_ghg,0
+165,Oceania,Norfolk Island,land_broiler_ghg,2.7783674028114547e-8
+166,Asia,Democratic People's Republic of Korea,land_broiler_ghg,0.05697781956883663
+169,Europe,Norway,land_broiler_ghg,0.014204780993592639
+170,Asia,Oman,land_broiler_ghg,9.782692997382077e-6
+171,Asia,Pakistan,land_broiler_ghg,0.3478721519736489
+172,Oceania,Palau,land_broiler_ghg,0
+174,Americas,Panama,land_broiler_ghg,0.21475061229619707
+175,Oceania,Papua New Guinea,land_broiler_ghg,0.0050720898018340385
+178,Americas,Peru,land_broiler_ghg,0.05273611703828367
+179,Asia,Philippines,land_broiler_ghg,0.37819129185508554
+180,Oceania,Pitcairn,land_broiler_ghg,0
+181,Europe,Poland,land_broiler_ghg,0.48912849522779916
+182,Europe,Portugal,land_broiler_ghg,0.22148279220006037
+184,Asia,Qatar,land_broiler_ghg,0.35887846422678665
+185,Africa,Congo,land_broiler_ghg,0.012047348597782198
+186,Africa,Réunion,land_broiler_ghg,3.4502387318696703e-10
+187,Europe,Romania,land_broiler_ghg,0.54401118668316
+188,Europe,Russian Federation,land_broiler_ghg,0.040769055350346056
+191,Americas,Saint Martin (French Part),land_broiler_ghg,0
+192,Africa,Saint Helena,land_broiler_ghg,2.0421421498273418e-10
+193,Americas,Saint Kitts and Nevis,land_broiler_ghg,0.3333333378370507
+194,Americas,Saint Lucia,land_broiler_ghg,0.599778660713893
+195,Americas,Saint Pierre and Miquelon,land_broiler_ghg,1.4647633506115199e-7
+196,Americas,Saint Vincent and the Grenadines,land_broiler_ghg,0.553100061177692
+197,Oceania,Samoa,land_broiler_ghg,1.8152861839966631e-9
+199,Africa,Sao Tome and Principe,land_broiler_ghg,0.12802987408793362
+200,Asia,Saudi Arabia,land_broiler_ghg,0.07860795060745515
+201,Africa,Senegal,land_broiler_ghg,0.016443533817196033
+203,Africa,Seychelles,land_broiler_ghg,4.175278300877494e-9
+204,Africa,Sierra Leone,land_broiler_ghg,0.04364845117270595
+205,Asia,Singapore,land_broiler_ghg,0.5000024155572647
+206,Americas,Sint Maarten (Dutch part),land_broiler_ghg,0
+208,Europe,Slovenia,land_broiler_ghg,0.20709576879271918
+209,Oceania,Solomon Islands,land_broiler_ghg,0.0035124892885335488
+210,Africa,Somalia,land_broiler_ghg,0.007570692954670184
+211,Africa,South Africa,land_broiler_ghg,0.08809695901722427
+213,Asia,Republic of Korea,land_broiler_ghg,0.7992428829912206
+215,Europe,Spain,land_broiler_ghg,0.2632944744200617
+217,Asia,Sri Lanka,land_broiler_ghg,0.33978635525860373
+218,Africa,Sudan,land_broiler_ghg,0.010065445134655498
+219,Americas,Suriname,land_broiler_ghg,0.03449159236306788
+222,Europe,Sweden,land_broiler_ghg,0.015378162733357669
+224,Asia,Syrian Arab Republic,land_broiler_ghg,0.13418623222544085
+225,Asia,Taiwan,land_broiler_ghg,2.0875579212529206e-7
+227,Africa,United Republic of Tanzania,land_broiler_ghg,0.007627099594640625
+228,Asia,Thailand,land_broiler_ghg,0.46900905799744713
+229,Asia,Timor-Leste,land_broiler_ghg,0.010342662571421496
+230,Africa,Togo,land_broiler_ghg,0.21328533134445488
+231,Oceania,Tokelau,land_broiler_ghg,0
+232,Oceania,Tonga,land_broiler_ghg,0
+233,Americas,Trinidad and Tobago,land_broiler_ghg,0.9245220394819474
+234,Africa,Tunisia,land_broiler_ghg,0.4470251342466837
+235,Asia,Turkey,land_broiler_ghg,0.2383138489368851
+237,Americas,Turks and Caicos Islands,land_broiler_ghg,0
+238,Oceania,Tuvalu,land_broiler_ghg,0
+240,Europe,Ukraine,land_broiler_ghg,0.4027276088003612
+241,Asia,United Arab Emirates,land_broiler_ghg,0.5234127832378803
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_broiler_ghg,0.5124512816340441
+243,Americas,United States of America,land_broiler_ghg,0.054783889291761506
+245,Americas,Uruguay,land_broiler_ghg,0.0323885930441341
+247,Oceania,Vanuatu,land_broiler_ghg,0.06574799499826946
+249,Americas,Venezuela (Bolivarian Republic of),land_broiler_ghg,0.04858423489910711
+250,Asia,Viet Nam,land_broiler_ghg,2.500440198292155e-7
+252,Oceania,Wallis and Futuna Islands,land_broiler_ghg,0
+253,Africa,Western Sahara,land_broiler_ghg,7.390403822739981e-7
+254,Asia,Yemen,land_broiler_ghg,2.8598328602674674e-7
+300,Africa,Madeira Island,land_broiler_ghg,1.7020037355244064e-6
+301,Africa,Democratic Republic of the Congo,land_broiler_ghg,0.0012567146498300345
+4,Europe,Albania,land_salmon_ghg,1.6848615488153595e-7
+5,Africa,Algeria,land_salmon_ghg,9.958129782866464e-8
+6,Oceania,American Samoa,land_salmon_ghg,7.396668877390766e-8
+8,Africa,Angola,land_salmon_ghg,1.4363779409732332e-7
+9,Americas,Anguilla,land_salmon_ghg,0
+11,Americas,Antigua and Barbuda,land_salmon_ghg,1.4856795319910057e-7
+12,Americas,Argentina,land_salmon_ghg,3.441345818912326e-7
+14,Americas,Aruba,land_salmon_ghg,2.733246901698294e-6
+15,Oceania,Australia,land_salmon_ghg,3.667525005452171e-6
+18,Americas,Bahamas,land_salmon_ghg,2.3082947439772483e-9
+19,Asia,Bahrain,land_salmon_ghg,9.805932904782821e-6
+20,Asia,Bangladesh,land_salmon_ghg,9.440364824896648e-6
+21,Americas,Barbados,land_salmon_ghg,0
+23,Europe,Belgium,land_salmon_ghg,1.7829446113144742e-7
+24,Americas,Belize,land_salmon_ghg,0
+25,Africa,Benin,land_salmon_ghg,5.3251425881676136e-8
+26,Americas,Bermuda,land_salmon_ghg,2.2278523914565085e-8
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_salmon_ghg,0
+30,Europe,Bosnia and Herzegovina,land_salmon_ghg,1.1255058308060396e-6
+33,Americas,Brazil,land_salmon_ghg,1.8740803200316691e-7
+34,Africa,British Indian Ocean Territory,land_salmon_ghg,0
+35,Americas,British Virgin Islands,land_salmon_ghg,9.592845628958457e-9
+36,Asia,Brunei Darussalam,land_salmon_ghg,1.4780818976915337e-6
+37,Europe,Bulgaria,land_salmon_ghg,1.9083069250646952e-7
+40,Asia,Cambodia,land_salmon_ghg,3.704876480319629e-8
+41,Africa,Cameroon,land_salmon_ghg,1.392438057064733e-7
+42,Americas,Canada,land_salmon_ghg,7.925352189041128e-8
+43,Africa,Cabo Verde,land_salmon_ghg,0
+45,Americas,Cayman Islands,land_salmon_ghg,0
+48,Americas,Chile,land_salmon_ghg,2.78425731781828e-5
+49,Asia,China,land_salmon_ghg,1.2030057151219827e-6
+50,Oceania,Christmas Island,land_salmon_ghg,0
+52,Oceania,Cocos (Keeling) Islands,land_salmon_ghg,1.4433064166041731e-7
+53,Americas,Colombia,land_salmon_ghg,1.2396427756198124e-8
+54,Africa,Comoros,land_salmon_ghg,5.296508543563649e-7
+55,Oceania,Cook Islands,land_salmon_ghg,0
+56,Americas,Costa Rica,land_salmon_ghg,3.897110272661073e-8
+57,Africa,Côte d’Ivoire,land_salmon_ghg,3.3104230920769755e-7
+58,Europe,Croatia,land_salmon_ghg,2.8737863271738764e-6
+59,Americas,Cuba,land_salmon_ghg,1.4572585351961717e-7
+60,Americas,Curaçao,land_salmon_ghg,8.101867024379316e-7
+61,Asia,Cyprus,land_salmon_ghg,1.089388508471599e-7
+64,Europe,Denmark,land_salmon_ghg,7.213136006332294e-6
+65,Africa,Djibouti,land_salmon_ghg,8.133972817002079e-8
+66,Americas,Dominica,land_salmon_ghg,4.617655235961138e-8
+67,Americas,Dominican Republic,land_salmon_ghg,3.00427256203329e-11
+68,Americas,Ecuador,land_salmon_ghg,1.13219598763527e-6
+69,Africa,Egypt,land_salmon_ghg,8.079421407254907e-7
+70,Americas,El Salvador,land_salmon_ghg,6.193721981487796e-8
+71,Africa,Equatorial Guinea,land_salmon_ghg,2.777816362709018e-7
+72,Africa,Eritrea,land_salmon_ghg,3.0048766827682736e-8
+73,Europe,Estonia,land_salmon_ghg,1.9137403697844387e-6
+75,Americas,Falkland Islands (Malvinas),land_salmon_ghg,3.9243237182308124e-7
+76,Europe,Faroe Islands,land_salmon_ghg,7.69806889039524e-6
+77,Oceania,Fiji,land_salmon_ghg,2.415278336858582e-8
+78,Europe,Finland,land_salmon_ghg,4.84792378984726e-7
+79,Europe,France,land_salmon_ghg,7.186308187648087e-6
+80,Americas,French Guiana,land_salmon_ghg,1.4799137834659471e-9
+81,Oceania,French Polynesia,land_salmon_ghg,0
+83,Africa,Gabon,land_salmon_ghg,1.023642210715496e-6
+84,Africa,Gambia,land_salmon_ghg,8.985051675745847e-6
+85,Asia,Georgia,land_salmon_ghg,2.0459823442922023e-7
+86,Europe,Germany,land_salmon_ghg,8.725980932646013e-7
+87,Africa,Ghana,land_salmon_ghg,1.2130057148560996e-6
+88,Europe,Gibraltar,land_salmon_ghg,3.471218633421813e-6
+89,Europe,Greece,land_salmon_ghg,9.062538656072047e-7
+90,Americas,Greenland,land_salmon_ghg,8.55240795747646e-9
+91,Americas,Grenada,land_salmon_ghg,1.2281891628163067e-7
+94,Americas,Guatemala,land_salmon_ghg,1.5356704792667175e-8
+95,Europe,Guernsey,land_salmon_ghg,3.2815079672824745e-6
+96,Africa,Guinea,land_salmon_ghg,1.1020647184124487e-7
+97,Africa,Guinea-Bissau,land_salmon_ghg,3.1223768389645865e-7
+98,Americas,Guyana,land_salmon_ghg,0
+99,Americas,Haiti,land_salmon_ghg,2.7166141080692166e-15
+101,Americas,Honduras,land_salmon_ghg,1.832005331104289e-9
+104,Europe,Iceland,land_salmon_ghg,2.495574802873526e-8
+105,Asia,India,land_salmon_ghg,1.0237064485039686e-6
+106,Asia,Indonesia,land_salmon_ghg,1.0586182629213189e-6
+107,Asia,Iran (Islamic Republic of),land_salmon_ghg,2.6031867388379074e-8
+108,Asia,Iraq,land_salmon_ghg,1.2276480980792666e-9
+109,Europe,Ireland,land_salmon_ghg,1.1763485811108682e-6
+111,Asia,Israel,land_salmon_ghg,2.848202205994294e-8
+112,Europe,Italy,land_salmon_ghg,7.273079415421189e-7
+113,Americas,Jamaica,land_salmon_ghg,0
+114,Asia,Japan,land_salmon_ghg,3.878148972331219e-6
+115,Europe,Jersey,land_salmon_ghg,2.8189901968289632e-6
+116,Asia,Jordan,land_salmon_ghg,6.054224719143217e-9
+118,Africa,Kenya,land_salmon_ghg,3.9094778553423e-9
+119,Oceania,Kiribati,land_salmon_ghg,5.0752893998584625e-8
+121,Asia,Kuwait,land_salmon_ghg,3.2401294605342956e-7
+124,Europe,Latvia,land_salmon_ghg,9.405585487863567e-7
+125,Asia,Lebanon,land_salmon_ghg,1.4000189149310578e-7
+127,Africa,Liberia,land_salmon_ghg,2.970126553307497e-7
+128,Africa,Libya,land_salmon_ghg,7.120822135086444e-9
+130,Europe,Lithuania,land_salmon_ghg,1.9028126502481043e-7
+134,Africa,Madagascar,land_salmon_ghg,0
+136,Asia,Malaysia,land_salmon_ghg,2.055408169505335e-6
+137,Asia,Maldives,land_salmon_ghg,0
+139,Europe,Malta,land_salmon_ghg,1.2132452127389115e-6
+140,Oceania,Marshall Islands,land_salmon_ghg,0
+142,Africa,Mauritania,land_salmon_ghg,6.628368805205091e-7
+143,Africa,Mauritius,land_salmon_ghg,0
+144,Africa,Mayotte,land_salmon_ghg,0
+145,Americas,Mexico,land_salmon_ghg,1.675292120415617e-7
+146,Oceania,Micronesia (Federated States of),land_salmon_ghg,0
+148,Europe,Monaco,land_salmon_ghg,2.209975946243503e-6
+150,Europe,Montenegro,land_salmon_ghg,9.72547221020621e-7
+151,Americas,Montserrat,land_salmon_ghg,4.48619719151111e-8
+152,Africa,Morocco,land_salmon_ghg,5.982320998583582e-6
+153,Africa,Mozambique,land_salmon_ghg,0
+154,Asia,Myanmar,land_salmon_ghg,2.994457741798768e-7
+155,Africa,Namibia,land_salmon_ghg,1.8655515771820596e-9
+156,Oceania,Nauru,land_salmon_ghg,0
+158,Europe,Netherlands,land_salmon_ghg,2.9602236245793474e-6
+159,Oceania,New Caledonia,land_salmon_ghg,0
+160,Oceania,New Zealand,land_salmon_ghg,5.81020460424064e-7
+161,Americas,Nicaragua,land_salmon_ghg,4.9101916114988e-9
+163,Africa,Nigeria,land_salmon_ghg,4.437246612250583e-7
+164,Oceania,Niue,land_salmon_ghg,0
+165,Oceania,Norfolk Island,land_salmon_ghg,1.1669191479768415e-7
+166,Asia,Democratic People's Republic of Korea,land_salmon_ghg,2.869141532042638e-7
+169,Europe,Norway,land_salmon_ghg,3.954524659425615e-6
+170,Asia,Oman,land_salmon_ghg,1.2157107821264773e-6
+171,Asia,Pakistan,land_salmon_ghg,2.8177265937363605e-7
+172,Oceania,Palau,land_salmon_ghg,0
+174,Americas,Panama,land_salmon_ghg,1.6592998022809873e-9
+175,Oceania,Papua New Guinea,land_salmon_ghg,1.4344940288471592e-10
+178,Americas,Peru,land_salmon_ghg,1.508672877231612e-5
+179,Asia,Philippines,land_salmon_ghg,8.686383915686888e-6
+180,Oceania,Pitcairn,land_salmon_ghg,0
+181,Europe,Poland,land_salmon_ghg,1.0106275787278234e-6
+182,Europe,Portugal,land_salmon_ghg,9.612077352035928e-7
+184,Asia,Qatar,land_salmon_ghg,2.563033836698499e-6
+185,Africa,Congo,land_salmon_ghg,2.1260294687713836e-7
+186,Africa,Réunion,land_salmon_ghg,1.4491063869692677e-9
+187,Europe,Romania,land_salmon_ghg,2.087350811897225e-7
+188,Europe,Russian Federation,land_salmon_ghg,1.1524829376311119e-7
+191,Americas,Saint Martin (French Part),land_salmon_ghg,0
+192,Africa,Saint Helena,land_salmon_ghg,8.57703352785677e-10
+193,Americas,Saint Kitts and Nevis,land_salmon_ghg,2.8347206656083774e-8
+194,Americas,Saint Lucia,land_salmon_ghg,1.1287389406973634e-7
+195,Americas,Saint Pierre and Miquelon,land_salmon_ghg,6.15203205711623e-7
+196,Americas,Saint Vincent and the Grenadines,land_salmon_ghg,1.4774811241125008e-7
+197,Oceania,Samoa,land_salmon_ghg,7.624233796487908e-9
+199,Africa,Sao Tome and Principe,land_salmon_ghg,3.5809218464540513e-6
+200,Asia,Saudi Arabia,land_salmon_ghg,2.1674365600435681e-7
+201,Africa,Senegal,land_salmon_ghg,3.088403835263263e-6
+203,Africa,Seychelles,land_salmon_ghg,1.7536242946647463e-8
+204,Africa,Sierra Leone,land_salmon_ghg,9.802940706971525e-6
+205,Asia,Singapore,land_salmon_ghg,1.2628587603558116e-5
+206,Americas,Sint Maarten (Dutch part),land_salmon_ghg,0
+208,Europe,Slovenia,land_salmon_ghg,1.2683834389894258e-7
+209,Oceania,Solomon Islands,land_salmon_ghg,0
+210,Africa,Somalia,land_salmon_ghg,4.022775977543568e-12
+211,Africa,South Africa,land_salmon_ghg,1.153785990409752e-6
+213,Asia,Republic of Korea,land_salmon_ghg,7.795361860712152e-7
+215,Europe,Spain,land_salmon_ghg,1.0009663121051815e-5
+217,Asia,Sri Lanka,land_salmon_ghg,1.4382373848411735e-6
+218,Africa,Sudan,land_salmon_ghg,6.989893327439319e-8
+219,Americas,Suriname,land_salmon_ghg,2.1808107008826712e-10
+222,Europe,Sweden,land_salmon_ghg,8.456632775633216e-7
+224,Asia,Syrian Arab Republic,land_salmon_ghg,1.303194550497056e-8
+225,Asia,Taiwan,land_salmon_ghg,8.767780089771791e-7
+227,Africa,United Republic of Tanzania,land_salmon_ghg,6.951329106938008e-8
+228,Asia,Thailand,land_salmon_ghg,4.786187250605881e-7
+229,Asia,Timor-Leste,land_salmon_ghg,4.53856300445087e-7
+230,Africa,Togo,land_salmon_ghg,1.5417863330506353e-6
+231,Oceania,Tokelau,land_salmon_ghg,0
+232,Oceania,Tonga,land_salmon_ghg,0
+233,Americas,Trinidad and Tobago,land_salmon_ghg,1.7819777651963928e-8
+234,Africa,Tunisia,land_salmon_ghg,2.1715829284842755e-7
+235,Asia,Turkey,land_salmon_ghg,1.3873902851645834e-6
+237,Americas,Turks and Caicos Islands,land_salmon_ghg,0
+238,Oceania,Tuvalu,land_salmon_ghg,0
+240,Europe,Ukraine,land_salmon_ghg,1.7160026429112306e-7
+241,Asia,United Arab Emirates,land_salmon_ghg,1.2307693237229466e-6
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_salmon_ghg,2.829738672599529e-6
+243,Americas,United States of America,land_salmon_ghg,1.1867522045905559e-6
+245,Americas,Uruguay,land_salmon_ghg,5.165711037688061e-7
+247,Oceania,Vanuatu,land_salmon_ghg,0
+249,Americas,Venezuela (Bolivarian Republic of),land_salmon_ghg,2.3809427486821992e-7
+250,Asia,Viet Nam,land_salmon_ghg,3.1601136495655615e-9
+252,Oceania,Wallis and Futuna Islands,land_salmon_ghg,0
+253,Africa,Western Sahara,land_salmon_ghg,3.1039825726082143e-6
+254,Asia,Yemen,land_salmon_ghg,5.644952048123866e-7
+300,Africa,Madeira Island,land_salmon_ghg,7.1484457128628325e-6
+301,Africa,Democratic Republic of the Congo,land_salmon_ghg,2.484393710810512e-9
+4,Europe,Albania,land_broiler_water,0.032745712612616
+5,Africa,Algeria,land_broiler_water,0.001371987610289889
+6,Oceania,American Samoa,land_broiler_water,0
+8,Africa,Angola,land_broiler_water,0.04303029572143896
+9,Americas,Anguilla,land_broiler_water,0
+11,Americas,Antigua and Barbuda,land_broiler_water,0.02599756233394146
+12,Americas,Argentina,land_broiler_water,0.20958609750791754
+14,Americas,Aruba,land_broiler_water,0
+15,Oceania,Australia,land_broiler_water,0.06345370204721064
+18,Americas,Bahamas,land_broiler_water,0.00975331251622138
+19,Asia,Bahrain,land_broiler_water,0.004132367515315612
+20,Asia,Bangladesh,land_broiler_water,0.10238943572415107
+21,Americas,Barbados,land_broiler_water,0.06357869288573663
+23,Europe,Belgium,land_broiler_water,0.4030629019344972
+24,Americas,Belize,land_broiler_water,0.10992931369415265
+25,Africa,Benin,land_broiler_water,0.11002408686172926
+26,Americas,Bermuda,land_broiler_water,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_broiler_water,0
+30,Europe,Bosnia and Herzegovina,land_broiler_water,0.129360241458429
+33,Americas,Brazil,land_broiler_water,0.19710037424406104
+34,Africa,British Indian Ocean Territory,land_broiler_water,0
+35,Americas,British Virgin Islands,land_broiler_water,0
+36,Asia,Brunei Darussalam,land_broiler_water,0.016747758953125226
+37,Europe,Bulgaria,land_broiler_water,0.363716142654169
+40,Asia,Cambodia,land_broiler_water,0.05229656910566794
+41,Africa,Cameroon,land_broiler_water,0.06463700950285364
+42,Americas,Canada,land_broiler_water,0.013715092790982233
+43,Africa,Cabo Verde,land_broiler_water,8.909526555726188e-5
+45,Americas,Cayman Islands,land_broiler_water,0
+48,Americas,Chile,land_broiler_water,0.01795223831637105
+49,Asia,China,land_broiler_water,0.1269517428885191
+50,Oceania,Christmas Island,land_broiler_water,0
+52,Oceania,Cocos (Keeling) Islands,land_broiler_water,0
+53,Americas,Colombia,land_broiler_water,0.059446641869813306
+54,Africa,Comoros,land_broiler_water,4.547541703734743e-4
+55,Oceania,Cook Islands,land_broiler_water,0
+56,Americas,Costa Rica,land_broiler_water,0.012769972698933546
+57,Africa,Côte d’Ivoire,land_broiler_water,0.05763700242551865
+58,Europe,Croatia,land_broiler_water,0.17417902733275775
+59,Americas,Cuba,land_broiler_water,0
+60,Americas,Curaçao,land_broiler_water,0
+61,Asia,Cyprus,land_broiler_water,0.02108924045079551
+64,Europe,Denmark,land_broiler_water,0.240045904969524
+65,Africa,Djibouti,land_broiler_water,0
+66,Americas,Dominica,land_broiler_water,0.0010726154956500976
+67,Americas,Dominican Republic,land_broiler_water,0.08803439203805306
+68,Americas,Ecuador,land_broiler_water,0.16196770521156398
+69,Africa,Egypt,land_broiler_water,0.006126019099786338
+70,Americas,El Salvador,land_broiler_water,0.6456252055384015
+71,Africa,Equatorial Guinea,land_broiler_water,5.455288634933938e-5
+72,Africa,Eritrea,land_broiler_water,0.007237791533492256
+73,Europe,Estonia,land_broiler_water,0.12405811644328922
+75,Americas,Falkland Islands (Malvinas),land_broiler_water,0
+76,Europe,Faroe Islands,land_broiler_water,0
+77,Oceania,Fiji,land_broiler_water,0.005164928263003741
+78,Europe,Finland,land_broiler_water,0.013774055859626395
+79,Europe,France,land_broiler_water,0.4770398494153736
+80,Americas,French Guiana,land_broiler_water,9.108720554868225e-6
+81,Oceania,French Polynesia,land_broiler_water,0
+83,Africa,Gabon,land_broiler_water,0.006039204764229926
+84,Africa,Gambia,land_broiler_water,0.14831712162543095
+85,Asia,Georgia,land_broiler_water,0.022922720818107027
+86,Europe,Germany,land_broiler_water,0.2205683339394054
+87,Africa,Ghana,land_broiler_water,0.07655246133512765
+88,Europe,Gibraltar,land_broiler_water,0
+89,Europe,Greece,land_broiler_water,0.08623887711891846
+90,Americas,Greenland,land_broiler_water,0
+91,Americas,Grenada,land_broiler_water,0.001394549827091396
+94,Americas,Guatemala,land_broiler_water,0.36188375937175743
+95,Europe,Guernsey,land_broiler_water,0
+96,Africa,Guinea,land_broiler_water,0.013655652208224296
+97,Africa,Guinea-Bissau,land_broiler_water,0.03585683672274837
+98,Americas,Guyana,land_broiler_water,0.005371428451153439
+99,Americas,Haiti,land_broiler_water,0.15394409138363946
+101,Americas,Honduras,land_broiler_water,0.21985060518741883
+104,Europe,Iceland,land_broiler_water,4.998946912675781e-6
+105,Asia,India,land_broiler_water,0.4355266168282532
+106,Asia,Indonesia,land_broiler_water,0.12516274338012925
+107,Asia,Iran (Islamic Republic of),land_broiler_water,0.1258208860041394
+108,Asia,Iraq,land_broiler_water,0.04949946361484699
+109,Europe,Ireland,land_broiler_water,0.04754063134850748
+111,Asia,Israel,land_broiler_water,0.23521174746881837
+112,Europe,Italy,land_broiler_water,0.18143521009044447
+113,Americas,Jamaica,land_broiler_water,0.055416653674557836
+114,Asia,Japan,land_broiler_water,0.08331339914156893
+115,Europe,Jersey,land_broiler_water,0
+116,Asia,Jordan,land_broiler_water,0.01581768566505525
+118,Africa,Kenya,land_broiler_water,0.014113816092993612
+119,Oceania,Kiribati,land_broiler_water,0
+121,Asia,Kuwait,land_broiler_water,0.01555583232721087
+124,Europe,Latvia,land_broiler_water,0.1586019151338229
+125,Asia,Lebanon,land_broiler_water,0.1357734322607124
+127,Africa,Liberia,land_broiler_water,0.014509882551341483
+128,Africa,Libya,land_broiler_water,9.668128651787875e-5
+130,Europe,Lithuania,land_broiler_water,0.31444158982978704
+134,Africa,Madagascar,land_broiler_water,0.039990375659474324
+136,Asia,Malaysia,land_broiler_water,0.02657537255113116
+137,Asia,Maldives,land_broiler_water,0
+139,Europe,Malta,land_broiler_water,0.14464701153337955
+140,Oceania,Marshall Islands,land_broiler_water,0
+142,Africa,Mauritania,land_broiler_water,0.0022269242065246332
+143,Africa,Mauritius,land_broiler_water,4.372662568622824e-6
+144,Africa,Mayotte,land_broiler_water,0
+145,Americas,Mexico,land_broiler_water,0.14583593751833696
+146,Oceania,Micronesia (Federated States of),land_broiler_water,0
+148,Europe,Monaco,land_broiler_water,0
+150,Europe,Montenegro,land_broiler_water,1.6676713024099893e-4
+151,Americas,Montserrat,land_broiler_water,0
+152,Africa,Morocco,land_broiler_water,0.07568992806293631
+153,Africa,Mozambique,land_broiler_water,0.04130124862269923
+154,Asia,Myanmar,land_broiler_water,0.14872495338378255
+155,Africa,Namibia,land_broiler_water,0.001977745511661602
+156,Oceania,Nauru,land_broiler_water,0
+158,Europe,Netherlands,land_broiler_water,0.30337125362285505
+159,Oceania,New Caledonia,land_broiler_water,1.6095306471149395e-6
+160,Oceania,New Zealand,land_broiler_water,0.0332136003153434
+161,Americas,Nicaragua,land_broiler_water,0.19192201940309006
+163,Africa,Nigeria,land_broiler_water,0.13820964077842823
+164,Oceania,Niue,land_broiler_water,0
+165,Oceania,Norfolk Island,land_broiler_water,0
+166,Asia,Democratic People's Republic of Korea,land_broiler_water,0.04362095507887337
+169,Europe,Norway,land_broiler_water,0.004341305269863346
+170,Asia,Oman,land_broiler_water,4.483420237675941e-4
+171,Asia,Pakistan,land_broiler_water,0.19563594515933036
+172,Oceania,Palau,land_broiler_water,0
+174,Americas,Panama,land_broiler_water,0.1245035308635006
+175,Oceania,Papua New Guinea,land_broiler_water,2.388804551201487e-5
+178,Americas,Peru,land_broiler_water,0.042941094322405685
+179,Asia,Philippines,land_broiler_water,0.37511416182475654
+180,Oceania,Pitcairn,land_broiler_water,0
+181,Europe,Poland,land_broiler_water,0.45834260498315815
+182,Europe,Portugal,land_broiler_water,0.11188113666724367
+184,Asia,Qatar,land_broiler_water,0.0019603531203135085
+185,Africa,Congo,land_broiler_water,0.008528826947449
+186,Africa,Réunion,land_broiler_water,0
+187,Europe,Romania,land_broiler_water,0.4294689285341015
+188,Europe,Russian Federation,land_broiler_water,0.03125038850508484
+191,Americas,Saint Martin (French Part),land_broiler_water,0
+192,Africa,Saint Helena,land_broiler_water,0
+193,Americas,Saint Kitts and Nevis,land_broiler_water,6.970934725056092e-4
+194,Americas,Saint Lucia,land_broiler_water,0.0029684519769424306
+195,Americas,Saint Pierre and Miquelon,land_broiler_water,0
+196,Americas,Saint Vincent and the Grenadines,land_broiler_water,0.03283821971854195
+197,Oceania,Samoa,land_broiler_water,0
+199,Africa,Sao Tome and Principe,land_broiler_water,0.04635893149922291
+200,Asia,Saudi Arabia,land_broiler_water,0.008542781018025757
+201,Africa,Senegal,land_broiler_water,0.07296980320511487
+203,Africa,Seychelles,land_broiler_water,0
+204,Africa,Sierra Leone,land_broiler_water,0.04844853364023201
+205,Asia,Singapore,land_broiler_water,0.022504743188619614
+206,Americas,Sint Maarten (Dutch part),land_broiler_water,0
+208,Europe,Slovenia,land_broiler_water,0.15936031685943627
+209,Oceania,Solomon Islands,land_broiler_water,1.7133750245096303e-5
+210,Africa,Somalia,land_broiler_water,0.00717382557268084
+211,Africa,South Africa,land_broiler_water,0.2029110356425599
+213,Asia,Republic of Korea,land_broiler_water,0.1742198638970015
+215,Europe,Spain,land_broiler_water,0.11196801875768884
+217,Asia,Sri Lanka,land_broiler_water,0.30729821888148645
+218,Africa,Sudan,land_broiler_water,0.010990489060952935
+219,Americas,Suriname,land_broiler_water,2.6998861773745085e-4
+222,Europe,Sweden,land_broiler_water,0.01711840569134824
+224,Asia,Syrian Arab Republic,land_broiler_water,3.854016062753392e-4
+225,Asia,Taiwan,land_broiler_water,0.037025600544029806
+227,Africa,United Republic of Tanzania,land_broiler_water,0.053652243344346186
+228,Asia,Thailand,land_broiler_water,0.1645686354494604
+229,Asia,Timor-Leste,land_broiler_water,0.021939202320967088
+230,Africa,Togo,land_broiler_water,0.4132123191898857
+231,Oceania,Tokelau,land_broiler_water,0
+232,Oceania,Tonga,land_broiler_water,0
+233,Americas,Trinidad and Tobago,land_broiler_water,0.07860059289851051
+234,Africa,Tunisia,land_broiler_water,0.011112730466041268
+235,Asia,Turkey,land_broiler_water,0.26327722168046164
+237,Americas,Turks and Caicos Islands,land_broiler_water,0
+238,Oceania,Tuvalu,land_broiler_water,0
+240,Europe,Ukraine,land_broiler_water,0.6879503521336577
+241,Asia,United Arab Emirates,land_broiler_water,0.005663874466469468
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_broiler_water,0.25603217356604635
+243,Americas,United States of America,land_broiler_water,0.1801859074305188
+245,Americas,Uruguay,land_broiler_water,0.22596610035364298
+247,Oceania,Vanuatu,land_broiler_water,0.009892185859876513
+249,Americas,Venezuela (Bolivarian Republic of),land_broiler_water,0.05243633174207475
+250,Asia,Viet Nam,land_broiler_water,0.00860476161595054
+252,Oceania,Wallis and Futuna Islands,land_broiler_water,0
+253,Africa,Western Sahara,land_broiler_water,0
+254,Asia,Yemen,land_broiler_water,8.538544896353833e-6
+300,Africa,Madeira Island,land_broiler_water,0
+301,Africa,Democratic Republic of the Congo,land_broiler_water,9.285349704290499e-5
+4,Europe,Albania,land_salmon_water,0
+5,Africa,Algeria,land_salmon_water,1.4288385760715682e-7
+6,Oceania,American Samoa,land_salmon_water,0
+8,Africa,Angola,land_salmon_water,0
+9,Americas,Anguilla,land_salmon_water,0
+11,Americas,Antigua and Barbuda,land_salmon_water,0
+12,Americas,Argentina,land_salmon_water,0.0018334167956632536
+14,Americas,Aruba,land_salmon_water,0
+15,Oceania,Australia,land_salmon_water,7.172115660640991e-4
+18,Americas,Bahamas,land_salmon_water,0
+19,Asia,Bahrain,land_salmon_water,0
+20,Asia,Bangladesh,land_salmon_water,1.0187642354088788e-5
+21,Americas,Barbados,land_salmon_water,1.227912655813827e-9
+23,Europe,Belgium,land_salmon_water,0.0364063980752066
+24,Americas,Belize,land_salmon_water,3.535623083460233e-7
+25,Africa,Benin,land_salmon_water,0
+26,Americas,Bermuda,land_salmon_water,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_salmon_water,0
+30,Europe,Bosnia and Herzegovina,land_salmon_water,7.1611208547973015e-6
+33,Americas,Brazil,land_salmon_water,8.952993592029662e-4
+34,Africa,British Indian Ocean Territory,land_salmon_water,0
+35,Americas,British Virgin Islands,land_salmon_water,0
+36,Asia,Brunei Darussalam,land_salmon_water,0
+37,Europe,Bulgaria,land_salmon_water,0.00903830336576022
+40,Asia,Cambodia,land_salmon_water,0
+41,Africa,Cameroon,land_salmon_water,4.4260811558897867e-10
+42,Americas,Canada,land_salmon_water,0.0013146063529797588
+43,Africa,Cabo Verde,land_salmon_water,2.3323456543010434e-9
+45,Americas,Cayman Islands,land_salmon_water,0
+48,Americas,Chile,land_salmon_water,0.02099160365935636
+49,Asia,China,land_salmon_water,2.960251524129502e-4
+50,Oceania,Christmas Island,land_salmon_water,0
+52,Oceania,Cocos (Keeling) Islands,land_salmon_water,0
+53,Americas,Colombia,land_salmon_water,1.1303466983844553e-6
+54,Africa,Comoros,land_salmon_water,0
+55,Oceania,Cook Islands,land_salmon_water,0
+56,Americas,Costa Rica,land_salmon_water,1.696416305604868e-9
+57,Africa,Côte d’Ivoire,land_salmon_water,2.4759858628426947e-9
+58,Europe,Croatia,land_salmon_water,4.156061984620085e-5
+59,Americas,Cuba,land_salmon_water,0
+60,Americas,Curaçao,land_salmon_water,0
+61,Asia,Cyprus,land_salmon_water,7.578454990152965e-7
+64,Europe,Denmark,land_salmon_water,0.04566813341833618
+65,Africa,Djibouti,land_salmon_water,0
+66,Americas,Dominica,land_salmon_water,0
+67,Americas,Dominican Republic,land_salmon_water,6.437224135253435e-8
+68,Americas,Ecuador,land_salmon_water,1.8213012904079257e-7
+69,Africa,Egypt,land_salmon_water,1.0702672079978657e-5
+70,Americas,El Salvador,land_salmon_water,1.059871286456066e-7
+71,Africa,Equatorial Guinea,land_salmon_water,0
+72,Africa,Eritrea,land_salmon_water,0
+73,Europe,Estonia,land_salmon_water,0.009423916295068705
+75,Americas,Falkland Islands (Malvinas),land_salmon_water,0
+76,Europe,Faroe Islands,land_salmon_water,0
+77,Oceania,Fiji,land_salmon_water,4.109255002903558e-6
+78,Europe,Finland,land_salmon_water,0.00529090714054574
+79,Europe,France,land_salmon_water,0.00681151705757986
+80,Americas,French Guiana,land_salmon_water,0
+81,Oceania,French Polynesia,land_salmon_water,0
+83,Africa,Gabon,land_salmon_water,0
+84,Africa,Gambia,land_salmon_water,0
+85,Asia,Georgia,land_salmon_water,2.9761309902424874e-9
+86,Europe,Germany,land_salmon_water,0.015638849931267698
+87,Africa,Ghana,land_salmon_water,1.731358083052946e-6
+88,Europe,Gibraltar,land_salmon_water,0
+89,Europe,Greece,land_salmon_water,1.0180010623244955e-5
+90,Americas,Greenland,land_salmon_water,0
+91,Americas,Grenada,land_salmon_water,0
+94,Americas,Guatemala,land_salmon_water,7.379060086076299e-8
+95,Europe,Guernsey,land_salmon_water,0
+96,Africa,Guinea,land_salmon_water,0
+97,Africa,Guinea-Bissau,land_salmon_water,0
+98,Americas,Guyana,land_salmon_water,6.408301085580494e-11
+99,Americas,Haiti,land_salmon_water,3.056601531719974e-11
+101,Americas,Honduras,land_salmon_water,3.716227901907768e-11
+104,Europe,Iceland,land_salmon_water,0
+105,Asia,India,land_salmon_water,3.071059138889569e-5
+106,Asia,Indonesia,land_salmon_water,2.3768555384808987e-8
+107,Asia,Iran (Islamic Republic of),land_salmon_water,2.5020303499244743e-7
+108,Asia,Iraq,land_salmon_water,0
+109,Europe,Ireland,land_salmon_water,0.004376170123396837
+111,Asia,Israel,land_salmon_water,5.258589983662139e-6
+112,Europe,Italy,land_salmon_water,2.6218411201004777e-4
+113,Americas,Jamaica,land_salmon_water,6.927620820544911e-7
+114,Asia,Japan,land_salmon_water,5.580967245032457e-4
+115,Europe,Jersey,land_salmon_water,0
+116,Asia,Jordan,land_salmon_water,3.5334958451038778e-6
+118,Africa,Kenya,land_salmon_water,3.555456812659428e-8
+119,Oceania,Kiribati,land_salmon_water,0
+121,Asia,Kuwait,land_salmon_water,0
+124,Europe,Latvia,land_salmon_water,0.04054727412251132
+125,Asia,Lebanon,land_salmon_water,9.335351333469376e-4
+127,Africa,Liberia,land_salmon_water,0
+128,Africa,Libya,land_salmon_water,0
+130,Europe,Lithuania,land_salmon_water,0.035678496960796766
+134,Africa,Madagascar,land_salmon_water,1.1977217575532798e-8
+136,Asia,Malaysia,land_salmon_water,1.9858608978766122e-5
+137,Asia,Maldives,land_salmon_water,0
+139,Europe,Malta,land_salmon_water,0
+140,Oceania,Marshall Islands,land_salmon_water,0
+142,Africa,Mauritania,land_salmon_water,0
+143,Africa,Mauritius,land_salmon_water,0
+144,Africa,Mayotte,land_salmon_water,0
+145,Americas,Mexico,land_salmon_water,3.33505672098441e-6
+146,Oceania,Micronesia (Federated States of),land_salmon_water,0
+148,Europe,Monaco,land_salmon_water,0
+150,Europe,Montenegro,land_salmon_water,0
+151,Americas,Montserrat,land_salmon_water,0
+152,Africa,Morocco,land_salmon_water,6.77223213409202e-8
+153,Africa,Mozambique,land_salmon_water,0
+154,Asia,Myanmar,land_salmon_water,6.719216174434099e-7
+155,Africa,Namibia,land_salmon_water,0
+156,Oceania,Nauru,land_salmon_water,0
+158,Europe,Netherlands,land_salmon_water,0.00784195406855128
+159,Oceania,New Caledonia,land_salmon_water,0
+160,Oceania,New Zealand,land_salmon_water,8.685358767666544e-4
+161,Americas,Nicaragua,land_salmon_water,4.2424998104316665e-4
+163,Africa,Nigeria,land_salmon_water,7.310799132477713e-7
+164,Oceania,Niue,land_salmon_water,0
+165,Oceania,Norfolk Island,land_salmon_water,0
+166,Asia,Democratic People's Republic of Korea,land_salmon_water,0
+169,Europe,Norway,land_salmon_water,0.009875182526679556
+170,Asia,Oman,land_salmon_water,0
+171,Asia,Pakistan,land_salmon_water,2.1081526446478148e-6
+172,Oceania,Palau,land_salmon_water,0
+174,Americas,Panama,land_salmon_water,0
+175,Oceania,Papua New Guinea,land_salmon_water,0
+178,Americas,Peru,land_salmon_water,2.7356561388490854e-4
+179,Asia,Philippines,land_salmon_water,1.0174735587117105e-7
+180,Oceania,Pitcairn,land_salmon_water,0
+181,Europe,Poland,land_salmon_water,0.006959486374046328
+182,Europe,Portugal,land_salmon_water,0.001146552300319928
+184,Asia,Qatar,land_salmon_water,0
+185,Africa,Congo,land_salmon_water,0
+186,Africa,Réunion,land_salmon_water,0
+187,Europe,Romania,land_salmon_water,5.390791971627793e-4
+188,Europe,Russian Federation,land_salmon_water,5.943617248208276e-4
+191,Americas,Saint Martin (French Part),land_salmon_water,0
+192,Africa,Saint Helena,land_salmon_water,0
+193,Americas,Saint Kitts and Nevis,land_salmon_water,0
+194,Americas,Saint Lucia,land_salmon_water,0
+195,Americas,Saint Pierre and Miquelon,land_salmon_water,0
+196,Americas,Saint Vincent and the Grenadines,land_salmon_water,0
+197,Oceania,Samoa,land_salmon_water,0
+199,Africa,Sao Tome and Principe,land_salmon_water,0
+200,Asia,Saudi Arabia,land_salmon_water,5.213707640583221e-8
+201,Africa,Senegal,land_salmon_water,3.224281766307494e-8
+203,Africa,Seychelles,land_salmon_water,0
+204,Africa,Sierra Leone,land_salmon_water,0
+205,Asia,Singapore,land_salmon_water,0
+206,Americas,Sint Maarten (Dutch part),land_salmon_water,0
+208,Europe,Slovenia,land_salmon_water,6.408983775909374e-6
+209,Oceania,Solomon Islands,land_salmon_water,0
+210,Africa,Somalia,land_salmon_water,0
+211,Africa,South Africa,land_salmon_water,4.967628794408726e-5
+213,Asia,Republic of Korea,land_salmon_water,1.1010960363404136e-4
+215,Europe,Spain,land_salmon_water,0.002445948214166827
+217,Asia,Sri Lanka,land_salmon_water,1.1279589468353125e-6
+218,Africa,Sudan,land_salmon_water,6.120342525895527e-8
+219,Americas,Suriname,land_salmon_water,0
+222,Europe,Sweden,land_salmon_water,0.00744624231740157
+224,Asia,Syrian Arab Republic,land_salmon_water,3.398051888210391e-7
+225,Asia,Taiwan,land_salmon_water,2.4785957768057434e-5
+227,Africa,United Republic of Tanzania,land_salmon_water,1.8272439937654755e-7
+228,Asia,Thailand,land_salmon_water,1.1766027211238309e-5
+229,Asia,Timor-Leste,land_salmon_water,0
+230,Africa,Togo,land_salmon_water,1.188420800822419e-8
+231,Oceania,Tokelau,land_salmon_water,0
+232,Oceania,Tonga,land_salmon_water,0
+233,Americas,Trinidad and Tobago,land_salmon_water,1.7982394240334543e-7
+234,Africa,Tunisia,land_salmon_water,2.851263480914594e-7
+235,Asia,Turkey,land_salmon_water,9.521856326181997e-5
+237,Americas,Turks and Caicos Islands,land_salmon_water,0
+238,Oceania,Tuvalu,land_salmon_water,0
+240,Europe,Ukraine,land_salmon_water,5.591484687279622e-4
+241,Asia,United Arab Emirates,land_salmon_water,7.184748621053365e-5
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_salmon_water,0.02153546751870399
+243,Americas,United States of America,land_salmon_water,4.6410438562365834e-4
+245,Americas,Uruguay,land_salmon_water,0.003195639270742275
+247,Oceania,Vanuatu,land_salmon_water,0
+249,Americas,Venezuela (Bolivarian Republic of),land_salmon_water,1.5103264401464375e-10
+250,Asia,Viet Nam,land_salmon_water,5.423554920795202e-6
+252,Oceania,Wallis and Futuna Islands,land_salmon_water,0
+253,Africa,Western Sahara,land_salmon_water,0
+254,Asia,Yemen,land_salmon_water,0
+300,Africa,Madeira Island,land_salmon_water,0
+301,Africa,Democratic Republic of the Congo,land_salmon_water,0
+4,Europe,Albania,land_broiler_nutrient,0.054993792806354073
+5,Africa,Algeria,land_broiler_nutrient,0.026823380558939767
+6,Oceania,American Samoa,land_broiler_nutrient,0
+8,Africa,Angola,land_broiler_nutrient,0.015267238570347843
+9,Americas,Anguilla,land_broiler_nutrient,0
+11,Americas,Antigua and Barbuda,land_broiler_nutrient,0.0438084335376819
+12,Americas,Argentina,land_broiler_nutrient,0.08991894278106756
+14,Americas,Aruba,land_broiler_nutrient,0
+15,Oceania,Australia,land_broiler_nutrient,0.03069078427287757
+18,Americas,Bahamas,land_broiler_nutrient,0.09228128545408593
+19,Asia,Bahrain,land_broiler_nutrient,0
+20,Asia,Bangladesh,land_broiler_nutrient,0.36909653490392186
+21,Americas,Barbados,land_broiler_nutrient,1
+23,Europe,Belgium,land_broiler_nutrient,0.5945077999914469
+24,Americas,Belize,land_broiler_nutrient,0.09073884309076227
+25,Africa,Benin,land_broiler_nutrient,0.010488933110211764
+26,Americas,Bermuda,land_broiler_nutrient,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_broiler_nutrient,0
+30,Europe,Bosnia and Herzegovina,land_broiler_nutrient,0.1617223191123078
+33,Americas,Brazil,land_broiler_nutrient,0.1626694949105196
+34,Africa,British Indian Ocean Territory,land_broiler_nutrient,0
+35,Americas,British Virgin Islands,land_broiler_nutrient,0
+36,Asia,Brunei Darussalam,land_broiler_nutrient,0.39889459726252846
+37,Europe,Bulgaria,land_broiler_nutrient,0.17852623980680138
+40,Asia,Cambodia,land_broiler_nutrient,0.03270615395979492
+41,Africa,Cameroon,land_broiler_nutrient,0.025408576347512903
+42,Americas,Canada,land_broiler_nutrient,0.015457289723176948
+43,Africa,Cabo Verde,land_broiler_nutrient,0
+45,Americas,Cayman Islands,land_broiler_nutrient,0
+48,Americas,Chile,land_broiler_nutrient,0.04778396647195452
+49,Asia,China,land_broiler_nutrient,0.24351435556883874
+50,Oceania,Christmas Island,land_broiler_nutrient,0
+52,Oceania,Cocos (Keeling) Islands,land_broiler_nutrient,0
+53,Americas,Colombia,land_broiler_nutrient,0.0994733988004135
+54,Africa,Comoros,land_broiler_nutrient,0.08162204046292525
+55,Oceania,Cook Islands,land_broiler_nutrient,0
+56,Americas,Costa Rica,land_broiler_nutrient,0.23283908055806413
+57,Africa,Côte d’Ivoire,land_broiler_nutrient,0.05330336593723238
+58,Europe,Croatia,land_broiler_nutrient,0.0499151172921771
+59,Americas,Cuba,land_broiler_nutrient,0
+60,Americas,Curaçao,land_broiler_nutrient,0
+61,Asia,Cyprus,land_broiler_nutrient,0.23564669184005735
+64,Europe,Denmark,land_broiler_nutrient,0.5293108677591207
+65,Africa,Djibouti,land_broiler_nutrient,0
+66,Americas,Dominica,land_broiler_nutrient,0.2617591738700867
+67,Americas,Dominican Republic,land_broiler_nutrient,0.12254066351143753
+68,Americas,Ecuador,land_broiler_nutrient,0.19920238807517562
+69,Africa,Egypt,land_broiler_nutrient,0
+70,Americas,El Salvador,land_broiler_nutrient,0.3269197556063185
+71,Africa,Equatorial Guinea,land_broiler_nutrient,0.009565974635604237
+72,Africa,Eritrea,land_broiler_nutrient,9.291190137929114e-4
+73,Europe,Estonia,land_broiler_nutrient,0.01737576074028206
+75,Americas,Falkland Islands (Malvinas),land_broiler_nutrient,0
+76,Europe,Faroe Islands,land_broiler_nutrient,0
+77,Oceania,Fiji,land_broiler_nutrient,0.09499811777370558
+78,Europe,Finland,land_broiler_nutrient,0.005764448207545766
+79,Europe,France,land_broiler_nutrient,0.4028241316765224
+80,Americas,French Guiana,land_broiler_nutrient,0.0021749366920243425
+81,Oceania,French Polynesia,land_broiler_nutrient,0
+83,Africa,Gabon,land_broiler_nutrient,0.01056402997487602
+84,Africa,Gambia,land_broiler_nutrient,0.018884880760673524
+85,Asia,Georgia,land_broiler_nutrient,0.1450120960999087
+86,Europe,Germany,land_broiler_nutrient,0.3012901373320898
+87,Africa,Ghana,land_broiler_nutrient,0.0540483741567746
+88,Europe,Gibraltar,land_broiler_nutrient,0
+89,Europe,Greece,land_broiler_nutrient,0.27920809018757653
+90,Americas,Greenland,land_broiler_nutrient,0
+91,Americas,Grenada,land_broiler_nutrient,0.3275879919528961
+94,Americas,Guatemala,land_broiler_nutrient,0.1447199317815475
+95,Europe,Guernsey,land_broiler_nutrient,0
+96,Africa,Guinea,land_broiler_nutrient,0.011312696574214878
+97,Africa,Guinea-Bissau,land_broiler_nutrient,0.012514556098692464
+98,Americas,Guyana,land_broiler_nutrient,0.036026982459798816
+99,Americas,Haiti,land_broiler_nutrient,0.09020972071875803
+101,Americas,Honduras,land_broiler_nutrient,0.49632843038763147
+104,Europe,Iceland,land_broiler_nutrient,0.0011297909245858095
+105,Asia,India,land_broiler_nutrient,0.43356795947388377
+106,Asia,Indonesia,land_broiler_nutrient,0.18753621707168214
+107,Asia,Iran (Islamic Republic of),land_broiler_nutrient,0.4059728098149156
+108,Asia,Iraq,land_broiler_nutrient,0.13142414305393008
+109,Europe,Ireland,land_broiler_nutrient,0.07232305721715879
+111,Asia,Israel,land_broiler_nutrient,0.6060193571831964
+112,Europe,Italy,land_broiler_nutrient,0.17552148317708527
+113,Americas,Jamaica,land_broiler_nutrient,0.7243966582481429
+114,Asia,Japan,land_broiler_nutrient,0.4615992667296118
+115,Europe,Jersey,land_broiler_nutrient,0
+116,Asia,Jordan,land_broiler_nutrient,0.1521714611461799
+118,Africa,Kenya,land_broiler_nutrient,0.00594629493040462
+119,Oceania,Kiribati,land_broiler_nutrient,0
+121,Asia,Kuwait,land_broiler_nutrient,0.9174202023910423
+124,Europe,Latvia,land_broiler_nutrient,0.05270839093835141
+125,Asia,Lebanon,land_broiler_nutrient,0.829192660119513
+127,Africa,Liberia,land_broiler_nutrient,0.005983340025473739
+128,Africa,Libya,land_broiler_nutrient,0.011054225412737343
+130,Europe,Lithuania,land_broiler_nutrient,0.17130383467092225
+134,Africa,Madagascar,land_broiler_nutrient,0.018764090005805263
+136,Asia,Malaysia,land_broiler_nutrient,0.3395145488261968
+137,Asia,Maldives,land_broiler_nutrient,0
+139,Europe,Malta,land_broiler_nutrient,0.6623265991608301
+140,Oceania,Marshall Islands,land_broiler_nutrient,0
+142,Africa,Mauritania,land_broiler_nutrient,0.005246857581627206
+143,Africa,Mauritius,land_broiler_nutrient,0
+144,Africa,Mayotte,land_broiler_nutrient,0
+145,Americas,Mexico,land_broiler_nutrient,0.1443928448671869
+146,Oceania,Micronesia (Federated States of),land_broiler_nutrient,0
+148,Europe,Monaco,land_broiler_nutrient,0
+150,Europe,Montenegro,land_broiler_nutrient,4.1578123117779655e-9
+151,Americas,Montserrat,land_broiler_nutrient,0
+152,Africa,Morocco,land_broiler_nutrient,0.2837418448307609
+153,Africa,Mozambique,land_broiler_nutrient,0.005442102167830955
+154,Asia,Myanmar,land_broiler_nutrient,0.12400110797913347
+155,Africa,Namibia,land_broiler_nutrient,0.0035289127992706583
+156,Oceania,Nauru,land_broiler_nutrient,0
+158,Europe,Netherlands,land_broiler_nutrient,0.7958016721664333
+159,Oceania,New Caledonia,land_broiler_nutrient,0
+160,Oceania,New Zealand,land_broiler_nutrient,0.05389202941807306
+161,Americas,Nicaragua,land_broiler_nutrient,0.12204815288606714
+163,Africa,Nigeria,land_broiler_nutrient,0.037943924048943076
+164,Oceania,Niue,land_broiler_nutrient,0
+165,Oceania,Norfolk Island,land_broiler_nutrient,0
+166,Asia,Democratic People's Republic of Korea,land_broiler_nutrient,0.029756720014797844
+169,Europe,Norway,land_broiler_nutrient,0.005341881697534269
+170,Asia,Oman,land_broiler_nutrient,0
+171,Asia,Pakistan,land_broiler_nutrient,0.28955590295409195
+172,Oceania,Palau,land_broiler_nutrient,0
+174,Americas,Panama,land_broiler_nutrient,0.1633725129545118
+175,Oceania,Papua New Guinea,land_broiler_nutrient,0.0024209168463881392
+178,Americas,Peru,land_broiler_nutrient,0.06326343898416284
+179,Asia,Philippines,land_broiler_nutrient,0.3546826385748612
+180,Oceania,Pitcairn,land_broiler_nutrient,0
+181,Europe,Poland,land_broiler_nutrient,0.39634943899631014
+182,Europe,Portugal,land_broiler_nutrient,0.20850181700754158
+184,Asia,Qatar,land_broiler_nutrient,0.3507887426499898
+185,Africa,Congo,land_broiler_nutrient,0.005554205424644724
+186,Africa,Réunion,land_broiler_nutrient,0
+187,Europe,Romania,land_broiler_nutrient,0.2578756578680048
+188,Europe,Russian Federation,land_broiler_nutrient,0.013399844334712604
+191,Americas,Saint Martin (French Part),land_broiler_nutrient,0
+192,Africa,Saint Helena,land_broiler_nutrient,0
+193,Americas,Saint Kitts and Nevis,land_broiler_nutrient,0.16950486103693643
+194,Americas,Saint Lucia,land_broiler_nutrient,0
+195,Americas,Saint Pierre and Miquelon,land_broiler_nutrient,0
+196,Americas,Saint Vincent and the Grenadines,land_broiler_nutrient,0.47797418758273125
+197,Oceania,Samoa,land_broiler_nutrient,0
+199,Africa,Sao Tome and Principe,land_broiler_nutrient,0.08154335493842761
+200,Asia,Saudi Arabia,land_broiler_nutrient,0.06688707523294007
+201,Africa,Senegal,land_broiler_nutrient,0.017112196884686116
+203,Africa,Seychelles,land_broiler_nutrient,0
+204,Africa,Sierra Leone,land_broiler_nutrient,0.028295230781680933
+205,Asia,Singapore,land_broiler_nutrient,0.5
+206,Americas,Sint Maarten (Dutch part),land_broiler_nutrient,0
+208,Europe,Slovenia,land_broiler_nutrient,0.13043468242507755
+209,Oceania,Solomon Islands,land_broiler_nutrient,0.0016765129452036682
+210,Africa,Somalia,land_broiler_nutrient,0.004808541346304044
+211,Africa,South Africa,land_broiler_nutrient,0.17593780438447312
+213,Asia,Republic of Korea,land_broiler_nutrient,0.7293022079419744
+215,Europe,Spain,land_broiler_nutrient,0.12834979397845075
+217,Asia,Sri Lanka,land_broiler_nutrient,0.44414825182991474
+218,Africa,Sudan,land_broiler_nutrient,2.0871723734934495e-5
+219,Americas,Suriname,land_broiler_nutrient,0.02509191647184838
+222,Europe,Sweden,land_broiler_nutrient,0.0063278525688390385
+224,Asia,Syrian Arab Republic,land_broiler_nutrient,0.07096405540292852
+225,Asia,Taiwan,land_broiler_nutrient,0
+227,Africa,United Republic of Tanzania,land_broiler_nutrient,0.006753379389773973
+228,Asia,Thailand,land_broiler_nutrient,0.34534805011684394
+229,Asia,Timor-Leste,land_broiler_nutrient,0.04205811924525758
+230,Africa,Togo,land_broiler_nutrient,0.13693572677849955
+231,Oceania,Tokelau,land_broiler_nutrient,0
+232,Oceania,Tonga,land_broiler_nutrient,0
+233,Americas,Trinidad and Tobago,land_broiler_nutrient,0.8962962839286774
+234,Africa,Tunisia,land_broiler_nutrient,0.3480379201384927
+235,Asia,Turkey,land_broiler_nutrient,0.3665408116069059
+237,Americas,Turks and Caicos Islands,land_broiler_nutrient,0
+238,Oceania,Tuvalu,land_broiler_nutrient,0
+240,Europe,Ukraine,land_broiler_nutrient,0.24220676688967624
+241,Asia,United Arab Emirates,land_broiler_nutrient,0.3324225981274022
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_broiler_nutrient,0.3496311532972873
+243,Americas,United States of America,land_broiler_nutrient,0.15692086840696512
+245,Americas,Uruguay,land_broiler_nutrient,0.15486740166961896
+247,Oceania,Vanuatu,land_broiler_nutrient,0.03138160269271692
+249,Americas,Venezuela (Bolivarian Republic of),land_broiler_nutrient,0.06868196956876278
+250,Asia,Viet Nam,land_broiler_nutrient,0.00965195816040393
+252,Oceania,Wallis and Futuna Islands,land_broiler_nutrient,0
+253,Africa,Western Sahara,land_broiler_nutrient,0
+254,Asia,Yemen,land_broiler_nutrient,2.386708440936094e-7
+300,Africa,Madeira Island,land_broiler_nutrient,0
+301,Africa,Democratic Republic of the Congo,land_broiler_nutrient,8.004321257560708e-4
+4,Europe,Albania,land_salmon_nutrient,0
+5,Africa,Algeria,land_salmon_nutrient,9.38872474487529e-12
+6,Oceania,American Samoa,land_salmon_nutrient,0
+8,Africa,Angola,land_salmon_nutrient,0
+9,Americas,Anguilla,land_salmon_nutrient,0
+11,Americas,Antigua and Barbuda,land_salmon_nutrient,0
+12,Americas,Argentina,land_salmon_nutrient,6.774990276238377e-4
+14,Americas,Aruba,land_salmon_nutrient,0
+15,Oceania,Australia,land_salmon_nutrient,4.035486576107494e-4
+18,Americas,Bahamas,land_salmon_nutrient,0
+19,Asia,Bahrain,land_salmon_nutrient,0
+20,Asia,Bangladesh,land_salmon_nutrient,5.2427391254452574e-6
+21,Americas,Barbados,land_salmon_nutrient,0
+23,Europe,Belgium,land_salmon_nutrient,0.004786135695013463
+24,Americas,Belize,land_salmon_nutrient,0
+25,Africa,Benin,land_salmon_nutrient,0
+26,Americas,Bermuda,land_salmon_nutrient,0
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_salmon_nutrient,0
+30,Europe,Bosnia and Herzegovina,land_salmon_nutrient,1.716041229145252e-12
+33,Americas,Brazil,land_salmon_nutrient,4.4091957030321796e-4
+34,Africa,British Indian Ocean Territory,land_salmon_nutrient,0
+35,Americas,British Virgin Islands,land_salmon_nutrient,0
+36,Asia,Brunei Darussalam,land_salmon_nutrient,0
+37,Europe,Bulgaria,land_salmon_nutrient,1.9255874008943522e-4
+40,Asia,Cambodia,land_salmon_nutrient,0
+41,Africa,Cameroon,land_salmon_nutrient,2.0132497220175323e-11
+42,Americas,Canada,land_salmon_nutrient,8.617047270109452e-4
+43,Africa,Cabo Verde,land_salmon_nutrient,0
+45,Americas,Cayman Islands,land_salmon_nutrient,0
+48,Americas,Chile,land_salmon_nutrient,0.08367704506840276
+49,Asia,China,land_salmon_nutrient,1.2644726978786494e-4
+50,Oceania,Christmas Island,land_salmon_nutrient,0
+52,Oceania,Cocos (Keeling) Islands,land_salmon_nutrient,0
+53,Americas,Colombia,land_salmon_nutrient,0
+54,Africa,Comoros,land_salmon_nutrient,0
+55,Oceania,Cook Islands,land_salmon_nutrient,0
+56,Americas,Costa Rica,land_salmon_nutrient,1.557014505079645e-8
+57,Africa,Côte d’Ivoire,land_salmon_nutrient,0
+58,Europe,Croatia,land_salmon_nutrient,4.585555684878322e-8
+59,Americas,Cuba,land_salmon_nutrient,0
+60,Americas,Curaçao,land_salmon_nutrient,0
+61,Asia,Cyprus,land_salmon_nutrient,5.747883777344627e-6
+64,Europe,Denmark,land_salmon_nutrient,0.10093393504319575
+65,Africa,Djibouti,land_salmon_nutrient,0
+66,Americas,Dominica,land_salmon_nutrient,0
+67,Americas,Dominican Republic,land_salmon_nutrient,1.0239535637579231e-7
+68,Americas,Ecuador,land_salmon_nutrient,2.502509912179315e-9
+69,Africa,Egypt,land_salmon_nutrient,0
+70,Americas,El Salvador,land_salmon_nutrient,3.2786653493279145e-9
+71,Africa,Equatorial Guinea,land_salmon_nutrient,0
+72,Africa,Eritrea,land_salmon_nutrient,0
+73,Europe,Estonia,land_salmon_nutrient,0
+75,Americas,Falkland Islands (Malvinas),land_salmon_nutrient,0
+76,Europe,Faroe Islands,land_salmon_nutrient,1
+77,Oceania,Fiji,land_salmon_nutrient,0
+78,Europe,Finland,land_salmon_nutrient,0
+79,Europe,France,land_salmon_nutrient,0.013648262549610872
+80,Americas,French Guiana,land_salmon_nutrient,0
+81,Oceania,French Polynesia,land_salmon_nutrient,0
+83,Africa,Gabon,land_salmon_nutrient,0
+84,Africa,Gambia,land_salmon_nutrient,0
+85,Asia,Georgia,land_salmon_nutrient,1.0731066094358165e-9
+86,Europe,Germany,land_salmon_nutrient,0.0035029943039260494
+87,Africa,Ghana,land_salmon_nutrient,0
+88,Europe,Gibraltar,land_salmon_nutrient,0
+89,Europe,Greece,land_salmon_nutrient,1.2998729651310202e-4
+90,Americas,Greenland,land_salmon_nutrient,0
+91,Americas,Grenada,land_salmon_nutrient,0
+94,Americas,Guatemala,land_salmon_nutrient,3.656156810478576e-9
+95,Europe,Guernsey,land_salmon_nutrient,0
+96,Africa,Guinea,land_salmon_nutrient,0
+97,Africa,Guinea-Bissau,land_salmon_nutrient,0
+98,Americas,Guyana,land_salmon_nutrient,0
+99,Americas,Haiti,land_salmon_nutrient,7.648001828051282e-12
+101,Americas,Honduras,land_salmon_nutrient,1.0076641003657809e-11
+104,Europe,Iceland,land_salmon_nutrient,0
+105,Asia,India,land_salmon_nutrient,2.5511021160377392e-5
+106,Asia,Indonesia,land_salmon_nutrient,1.1853118557298107e-9
+107,Asia,Iran (Islamic Republic of),land_salmon_nutrient,4.818891494756127e-8
+108,Asia,Iraq,land_salmon_nutrient,0
+109,Europe,Ireland,land_salmon_nutrient,0.023376085033346882
+111,Asia,Israel,land_salmon_nutrient,4.0960014339007085e-8
+112,Europe,Italy,land_salmon_nutrient,6.042652760825573e-4
+113,Americas,Jamaica,land_salmon_nutrient,0
+114,Asia,Japan,land_salmon_nutrient,0.01046491568957346
+115,Europe,Jersey,land_salmon_nutrient,0
+116,Asia,Jordan,land_salmon_nutrient,0
+118,Africa,Kenya,land_salmon_nutrient,0
+119,Oceania,Kiribati,land_salmon_nutrient,0
+121,Asia,Kuwait,land_salmon_nutrient,0
+124,Europe,Latvia,land_salmon_nutrient,0.022486340198452658
+125,Asia,Lebanon,land_salmon_nutrient,2.6237686382148273e-7
+127,Africa,Liberia,land_salmon_nutrient,0
+128,Africa,Libya,land_salmon_nutrient,0
+130,Europe,Lithuania,land_salmon_nutrient,0.022429258691629175
+134,Africa,Madagascar,land_salmon_nutrient,0
+136,Asia,Malaysia,land_salmon_nutrient,7.717847628917733e-7
+137,Asia,Maldives,land_salmon_nutrient,0
+139,Europe,Malta,land_salmon_nutrient,0
+140,Oceania,Marshall Islands,land_salmon_nutrient,0
+142,Africa,Mauritania,land_salmon_nutrient,0
+143,Africa,Mauritius,land_salmon_nutrient,0
+144,Africa,Mayotte,land_salmon_nutrient,0
+145,Americas,Mexico,land_salmon_nutrient,1.603916212142286e-5
+146,Oceania,Micronesia (Federated States of),land_salmon_nutrient,0
+148,Europe,Monaco,land_salmon_nutrient,0
+150,Europe,Montenegro,land_salmon_nutrient,0
+151,Americas,Montserrat,land_salmon_nutrient,0
+152,Africa,Morocco,land_salmon_nutrient,4.2088759040706564e-8
+153,Africa,Mozambique,land_salmon_nutrient,0
+154,Asia,Myanmar,land_salmon_nutrient,6.246428533781022e-7
+155,Africa,Namibia,land_salmon_nutrient,0
+156,Oceania,Nauru,land_salmon_nutrient,0
+158,Europe,Netherlands,land_salmon_nutrient,0.006394162690109321
+159,Oceania,New Caledonia,land_salmon_nutrient,0
+160,Oceania,New Zealand,land_salmon_nutrient,5.12973823828522e-4
+161,Americas,Nicaragua,land_salmon_nutrient,1.2068523085199923e-4
+163,Africa,Nigeria,land_salmon_nutrient,2.009834655292274e-6
+164,Oceania,Niue,land_salmon_nutrient,0
+165,Oceania,Norfolk Island,land_salmon_nutrient,0
+166,Asia,Democratic People's Republic of Korea,land_salmon_nutrient,0
+169,Europe,Norway,land_salmon_nutrient,0.02914253443188867
+170,Asia,Oman,land_salmon_nutrient,0
+171,Asia,Pakistan,land_salmon_nutrient,1.1070179592610452e-6
+172,Oceania,Palau,land_salmon_nutrient,0
+174,Americas,Panama,land_salmon_nutrient,0
+175,Oceania,Papua New Guinea,land_salmon_nutrient,0
+178,Americas,Peru,land_salmon_nutrient,4.466968872326394e-4
+179,Asia,Philippines,land_salmon_nutrient,9.414569426664415e-8
+180,Oceania,Pitcairn,land_salmon_nutrient,0
+181,Europe,Poland,land_salmon_nutrient,0.0015624819587063592
+182,Europe,Portugal,land_salmon_nutrient,4.2590790165699967e-7
+184,Asia,Qatar,land_salmon_nutrient,0
+185,Africa,Congo,land_salmon_nutrient,0
+186,Africa,Réunion,land_salmon_nutrient,0
+187,Europe,Romania,land_salmon_nutrient,4.131795965864418e-5
+188,Europe,Russian Federation,land_salmon_nutrient,1.7740889573141965e-5
+191,Americas,Saint Martin (French Part),land_salmon_nutrient,0
+192,Africa,Saint Helena,land_salmon_nutrient,0
+193,Americas,Saint Kitts and Nevis,land_salmon_nutrient,0
+194,Americas,Saint Lucia,land_salmon_nutrient,0
+195,Americas,Saint Pierre and Miquelon,land_salmon_nutrient,0
+196,Americas,Saint Vincent and the Grenadines,land_salmon_nutrient,0
+197,Oceania,Samoa,land_salmon_nutrient,0
+199,Africa,Sao Tome and Principe,land_salmon_nutrient,0
+200,Asia,Saudi Arabia,land_salmon_nutrient,7.485584333642681e-7
+201,Africa,Senegal,land_salmon_nutrient,0
+203,Africa,Seychelles,land_salmon_nutrient,0
+204,Africa,Sierra Leone,land_salmon_nutrient,0
+205,Asia,Singapore,land_salmon_nutrient,0
+206,Americas,Sint Maarten (Dutch part),land_salmon_nutrient,0
+208,Europe,Slovenia,land_salmon_nutrient,1.1605812663800797e-6
+209,Oceania,Solomon Islands,land_salmon_nutrient,0
+210,Africa,Somalia,land_salmon_nutrient,0
+211,Africa,South Africa,land_salmon_nutrient,5.969403517614535e-4
+213,Asia,Republic of Korea,land_salmon_nutrient,3.6425373671860906e-6
+215,Europe,Spain,land_salmon_nutrient,0.005318559334116625
+217,Asia,Sri Lanka,land_salmon_nutrient,5.281702335210253e-7
+218,Africa,Sudan,land_salmon_nutrient,0
+219,Americas,Suriname,land_salmon_nutrient,0
+222,Europe,Sweden,land_salmon_nutrient,0.0020434709516095545
+224,Asia,Syrian Arab Republic,land_salmon_nutrient,8.48781539347306e-8
+225,Asia,Taiwan,land_salmon_nutrient,0
+227,Africa,United Republic of Tanzania,land_salmon_nutrient,0
+228,Asia,Thailand,land_salmon_nutrient,1.134022039977759e-7
+229,Asia,Timor-Leste,land_salmon_nutrient,0
+230,Africa,Togo,land_salmon_nutrient,0
+231,Oceania,Tokelau,land_salmon_nutrient,0
+232,Oceania,Tonga,land_salmon_nutrient,0
+233,Americas,Trinidad and Tobago,land_salmon_nutrient,0
+234,Africa,Tunisia,land_salmon_nutrient,1.1382545677676595e-9
+235,Asia,Turkey,land_salmon_nutrient,8.139525461640649e-4
+237,Americas,Turks and Caicos Islands,land_salmon_nutrient,0
+238,Oceania,Tuvalu,land_salmon_nutrient,0
+240,Europe,Ukraine,land_salmon_nutrient,3.447669226421087e-5
+241,Asia,United Arab Emirates,land_salmon_nutrient,0.00669746371016706
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_salmon_nutrient,0.011499743327929956
+243,Americas,United States of America,land_salmon_nutrient,0.0010937697178389065
+245,Americas,Uruguay,land_salmon_nutrient,1.0551707384482988e-4
+247,Oceania,Vanuatu,land_salmon_nutrient,0
+249,Americas,Venezuela (Bolivarian Republic of),land_salmon_nutrient,0
+250,Asia,Viet Nam,land_salmon_nutrient,5.135047307477222e-6
+252,Oceania,Wallis and Futuna Islands,land_salmon_nutrient,0
+253,Africa,Western Sahara,land_salmon_nutrient,0
+254,Asia,Yemen,land_salmon_nutrient,0
+300,Africa,Madeira Island,land_salmon_nutrient,0
+301,Africa,Democratic Republic of the Congo,land_salmon_nutrient,0
+4,Europe,Albania,land_broiler_disturbance,0.0799509167251201
+5,Africa,Algeria,land_broiler_disturbance,0.017077379930306492
+6,Oceania,American Samoa,land_broiler_disturbance,0.01650097221136093
+8,Africa,Angola,land_broiler_disturbance,0.01748695608207039
+9,Americas,Anguilla,land_broiler_disturbance,0
+11,Americas,Antigua and Barbuda,land_broiler_disturbance,0.046853672713041306
+12,Americas,Argentina,land_broiler_disturbance,0.19435619919075636
+14,Americas,Aruba,land_broiler_disturbance,0.029687913755575817
+15,Oceania,Australia,land_broiler_disturbance,0.07053492674005918
+18,Americas,Bahamas,land_broiler_disturbance,0.07481082595836068
+19,Asia,Bahrain,land_broiler_disturbance,0.3863026880555683
+20,Asia,Bangladesh,land_broiler_disturbance,0.1788132684734004
+21,Americas,Barbados,land_broiler_disturbance,1
+23,Europe,Belgium,land_broiler_disturbance,0.6617713252249543
+24,Americas,Belize,land_broiler_disturbance,0.13278485868087458
+25,Africa,Benin,land_broiler_disturbance,0.03579086164118783
+26,Americas,Bermuda,land_broiler_disturbance,7.46838515624404e-4
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_broiler_disturbance,0
+30,Europe,Bosnia and Herzegovina,land_broiler_disturbance,0.3276121959994658
+33,Americas,Brazil,land_broiler_disturbance,0.18377229368195197
+34,Africa,British Indian Ocean Territory,land_broiler_disturbance,0
+35,Americas,British Virgin Islands,land_broiler_disturbance,4.566952702589333e-4
+36,Asia,Brunei Darussalam,land_broiler_disturbance,0.3211219853052633
+37,Europe,Bulgaria,land_broiler_disturbance,0.2791645748297395
+40,Asia,Cambodia,land_broiler_disturbance,0.04058831644299732
+41,Africa,Cameroon,land_broiler_disturbance,0.047178176934964865
+42,Americas,Canada,land_broiler_disturbance,0.013502157364040115
+43,Africa,Cabo Verde,land_broiler_disturbance,2.980181507882662e-4
+45,Americas,Cayman Islands,land_broiler_disturbance,0
+48,Americas,Chile,land_broiler_disturbance,0.05590889665430746
+49,Asia,China,land_broiler_disturbance,0.18343670110842775
+50,Oceania,Christmas Island,land_broiler_disturbance,0
+52,Oceania,Cocos (Keeling) Islands,land_broiler_disturbance,0.021736130118370056
+53,Americas,Colombia,land_broiler_disturbance,0.09792196901928947
+54,Africa,Comoros,land_broiler_disturbance,0.03561786945762211
+55,Oceania,Cook Islands,land_broiler_disturbance,0
+56,Americas,Costa Rica,land_broiler_disturbance,0.1185437670448477
+57,Africa,Côte d’Ivoire,land_broiler_disturbance,0.054106204072455324
+58,Europe,Croatia,land_broiler_disturbance,0.1910954020762111
+59,Americas,Cuba,land_broiler_disturbance,0.010678952269794035
+60,Americas,Curaçao,land_broiler_disturbance,0.0199955552816391
+61,Asia,Cyprus,land_broiler_disturbance,0.10494955726189249
+64,Europe,Denmark,land_broiler_disturbance,0.46370814053520926
+65,Africa,Djibouti,land_broiler_disturbance,0.0012713895680812688
+66,Americas,Dominica,land_broiler_disturbance,0.1181920194067061
+67,Americas,Dominican Republic,land_broiler_disturbance,0.7869474405962328
+68,Americas,Ecuador,land_broiler_disturbance,0.2225569205034656
+69,Africa,Egypt,land_broiler_disturbance,0.005436445139118044
+70,Americas,El Salvador,land_broiler_disturbance,0.5613458033456621
+71,Africa,Equatorial Guinea,land_broiler_disturbance,0.009469283890304348
+72,Africa,Eritrea,land_broiler_disturbance,0.004455609220601565
+73,Europe,Estonia,land_broiler_disturbance,0.13540399846055412
+75,Americas,Falkland Islands (Malvinas),land_broiler_disturbance,0.010217108977796463
+76,Europe,Faroe Islands,land_broiler_disturbance,0.05500409551537954
+77,Oceania,Fiji,land_broiler_disturbance,0.09948100425897168
+78,Europe,Finland,land_broiler_disturbance,0.026388555399580897
+79,Europe,France,land_broiler_disturbance,0.44315730579088985
+80,Americas,French Guiana,land_broiler_disturbance,0.0017866334930982466
+81,Oceania,French Polynesia,land_broiler_disturbance,0
+83,Africa,Gabon,land_broiler_disturbance,0.013969344971406328
+84,Africa,Gambia,land_broiler_disturbance,0.23859473811610352
+85,Asia,Georgia,land_broiler_disturbance,0.06438915297790106
+86,Europe,Germany,land_broiler_disturbance,0.36793043130839437
+87,Africa,Ghana,land_broiler_disturbance,0.0798078909936999
+88,Europe,Gibraltar,land_broiler_disturbance,0.059931911528110504
+89,Europe,Greece,land_broiler_disturbance,0.21635365596555378
+90,Americas,Greenland,land_broiler_disturbance,2.2407601763392e-4
+91,Americas,Grenada,land_broiler_disturbance,0.1444751258706674
+94,Americas,Guatemala,land_broiler_disturbance,0.2918865926965396
+95,Europe,Guernsey,land_broiler_disturbance,0.05437787746389707
+96,Africa,Guinea,land_broiler_disturbance,0.01105764837434637
+97,Africa,Guinea-Bissau,land_broiler_disturbance,0.07432683782337933
+98,Americas,Guyana,land_broiler_disturbance,0.026805777111547288
+99,Americas,Haiti,land_broiler_disturbance,0.17880064332527001
+101,Americas,Honduras,land_broiler_disturbance,0.3669515403185663
+104,Europe,Iceland,land_broiler_disturbance,0.0027781724468094195
+105,Asia,India,land_broiler_disturbance,0.41861597224681973
+106,Asia,Indonesia,land_broiler_disturbance,0.16523066708192613
+107,Asia,Iran (Islamic Republic of),land_broiler_disturbance,0.29539363549127723
+108,Asia,Iraq,land_broiler_disturbance,0.07098583417701791
+109,Europe,Ireland,land_broiler_disturbance,0.11548013325604964
+111,Asia,Israel,land_broiler_disturbance,0.5157114516403846
+112,Europe,Italy,land_broiler_disturbance,0.25125853446605906
+113,Americas,Jamaica,land_broiler_disturbance,0.4807896659077048
+114,Asia,Japan,land_broiler_disturbance,0.35308177571710747
+115,Europe,Jersey,land_broiler_disturbance,0.056938398629426956
+116,Asia,Jordan,land_broiler_disturbance,0.11024135718970708
+118,Africa,Kenya,land_broiler_disturbance,0.014276828194006773
+119,Oceania,Kiribati,land_broiler_disturbance,0.00240399363792676
+121,Asia,Kuwait,land_broiler_disturbance,0.6510797637422837
+124,Europe,Latvia,land_broiler_disturbance,0.12743052154007645
+125,Asia,Lebanon,land_broiler_disturbance,0.6951683213484698
+127,Africa,Liberia,land_broiler_disturbance,0.02371452575640179
+128,Africa,Libya,land_broiler_disturbance,0.006991393508851458
+130,Europe,Lithuania,land_broiler_disturbance,0.2703625271812093
+134,Africa,Madagascar,land_broiler_disturbance,0.034460641304908106
+136,Asia,Malaysia,land_broiler_disturbance,0.2435493512694216
+137,Asia,Maldives,land_broiler_disturbance,0
+139,Europe,Malta,land_broiler_disturbance,0.7395696093638738
+140,Oceania,Marshall Islands,land_broiler_disturbance,0
+142,Africa,Mauritania,land_broiler_disturbance,0.005073173753638228
+143,Africa,Mauritius,land_broiler_disturbance,1.301734415667018e-6
+144,Africa,Mayotte,land_broiler_disturbance,0
+145,Americas,Mexico,land_broiler_disturbance,0.142114532422523
+146,Oceania,Micronesia (Federated States of),land_broiler_disturbance,0
+148,Europe,Monaco,land_broiler_disturbance,0.05654143542051315
+150,Europe,Montenegro,land_broiler_disturbance,0.007265423098943803
+151,Americas,Montserrat,land_broiler_disturbance,0.004499821458011866
+152,Africa,Morocco,land_broiler_disturbance,0.18244320685223844
+153,Africa,Mozambique,land_broiler_disturbance,0.03570914200432696
+154,Asia,Myanmar,land_broiler_disturbance,0.1432593844208846
+155,Africa,Namibia,land_broiler_disturbance,0.0023141117806086734
+156,Oceania,Nauru,land_broiler_disturbance,0
+158,Europe,Netherlands,land_broiler_disturbance,0.7388987005946951
+159,Oceania,New Caledonia,land_broiler_disturbance,1.846930821434895e-6
+160,Oceania,New Zealand,land_broiler_disturbance,0.06999902855234018
+161,Americas,Nicaragua,land_broiler_disturbance,0.23443618607081737
+163,Africa,Nigeria,land_broiler_disturbance,0.06564388902369886
+164,Oceania,Niue,land_broiler_disturbance,0
+165,Oceania,Norfolk Island,land_broiler_disturbance,0.010837415233254433
+166,Asia,Democratic People's Republic of Korea,land_broiler_disturbance,0.05908089081486942
+169,Europe,Norway,land_broiler_disturbance,0.03693443107871448
+170,Asia,Oman,land_broiler_disturbance,0.012886110795371672
+171,Asia,Pakistan,land_broiler_disturbance,0.2561345875454568
+172,Oceania,Palau,land_broiler_disturbance,0
+174,Americas,Panama,land_broiler_disturbance,0.15226175541361192
+175,Oceania,Papua New Guinea,land_broiler_disturbance,0.002338257572861987
+178,Americas,Peru,land_broiler_disturbance,0.05946847630507488
+179,Asia,Philippines,land_broiler_disturbance,0.458640466043633
+180,Oceania,Pitcairn,land_broiler_disturbance,0
+181,Europe,Poland,land_broiler_disturbance,0.5837983335802552
+182,Europe,Portugal,land_broiler_disturbance,0.19035361904741616
+184,Asia,Qatar,land_broiler_disturbance,0.1650084830649818
+185,Africa,Congo,land_broiler_disturbance,0.009511925962289695
+186,Africa,Réunion,land_broiler_disturbance,2.864992216018436e-4
+187,Europe,Romania,land_broiler_disturbance,0.48061471271940914
+188,Europe,Russian Federation,land_broiler_disturbance,0.03323120900098651
+191,Americas,Saint Martin (French Part),land_broiler_disturbance,0
+192,Africa,Saint Helena,land_broiler_disturbance,3.07516056636814e-5
+193,Americas,Saint Kitts and Nevis,land_broiler_disturbance,0.08740893689294656
+194,Americas,Saint Lucia,land_broiler_disturbance,0.3069669037977292
+195,Americas,Saint Pierre and Miquelon,land_broiler_disturbance,0.03464842289686203
+196,Americas,Saint Vincent and the Grenadines,land_broiler_disturbance,0.24803145430632867
+197,Oceania,Samoa,land_broiler_disturbance,1.9900630595106068e-4
+199,Africa,Sao Tome and Principe,land_broiler_disturbance,0.19155602032939592
+200,Asia,Saudi Arabia,land_broiler_disturbance,0.03836987424093584
+201,Africa,Senegal,land_broiler_disturbance,0.0770258446182155
+203,Africa,Seychelles,land_broiler_disturbance,4.570617020362988e-5
+204,Africa,Sierra Leone,land_broiler_disturbance,0.13099802616267664
+205,Asia,Singapore,land_broiler_disturbance,0.502284586429596
+206,Americas,Sint Maarten (Dutch part),land_broiler_disturbance,0
+208,Europe,Slovenia,land_broiler_disturbance,0.19310571330460916
+209,Oceania,Solomon Islands,land_broiler_disturbance,0.0016203889743188718
+210,Africa,Somalia,land_broiler_disturbance,0.007761520470917405
+211,Africa,South Africa,land_broiler_disturbance,0.19207152615115639
+213,Asia,Republic of Korea,land_broiler_disturbance,0.5796983933614132
+215,Europe,Spain,land_broiler_disturbance,0.19878271009127915
+217,Asia,Sri Lanka,land_broiler_disturbance,0.2863386910330379
+218,Africa,Sudan,land_broiler_disturbance,0.007393556106328488
+219,Americas,Suriname,land_broiler_disturbance,0.015381982647950767
+222,Europe,Sweden,land_broiler_disturbance,0.026356833494148017
+224,Asia,Syrian Arab Republic,land_broiler_disturbance,0.03242265320924954
+225,Asia,Taiwan,land_broiler_disturbance,0.029207862222136106
+227,Africa,United Republic of Tanzania,land_broiler_disturbance,0.027460041998663413
+228,Asia,Thailand,land_broiler_disturbance,0.3623285685130518
+229,Asia,Timor-Leste,land_broiler_disturbance,0.028282240455317853
+230,Africa,Togo,land_broiler_disturbance,0.2627711506278714
+231,Oceania,Tokelau,land_broiler_disturbance,0
+232,Oceania,Tonga,land_broiler_disturbance,0
+233,Americas,Trinidad and Tobago,land_broiler_disturbance,0.8701750794411822
+234,Africa,Tunisia,land_broiler_disturbance,0.22030796701466818
+235,Asia,Turkey,land_broiler_disturbance,0.2967630951390718
+237,Americas,Turks and Caicos Islands,land_broiler_disturbance,0
+238,Oceania,Tuvalu,land_broiler_disturbance,0
+240,Europe,Ukraine,land_broiler_disturbance,0.486798728793939
+241,Asia,United Arab Emirates,land_broiler_disturbance,0.15147409675884987
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_broiler_disturbance,0.45821646103295466
+243,Americas,United States of America,land_broiler_disturbance,0.18703358493625388
+245,Americas,Uruguay,land_broiler_disturbance,0.1884741354182632
+247,Oceania,Vanuatu,land_broiler_disturbance,0.03834908660873124
+249,Americas,Venezuela (Bolivarian Republic of),land_broiler_disturbance,0.0886184846846039
+250,Asia,Viet Nam,land_broiler_disturbance,0.007225964743397861
+252,Oceania,Wallis and Futuna Islands,land_broiler_disturbance,0
+253,Africa,Western Sahara,land_broiler_disturbance,0.0066792491527018555
+254,Asia,Yemen,land_broiler_disturbance,0.008247060759729048
+300,Africa,Madeira Island,land_broiler_disturbance,0.07760711386799812
+301,Africa,Democratic Republic of the Congo,land_broiler_disturbance,4.0551001759074417e-4
+4,Europe,Albania,land_salmon_disturbance,0.01450795687531027
+5,Africa,Algeria,land_salmon_disturbance,0.002066301807611762
+6,Oceania,American Samoa,land_salmon_disturbance,0.06930437684059143
+8,Africa,Angola,land_salmon_disturbance,0.0036473206644661083
+9,Americas,Anguilla,land_salmon_disturbance,0
+11,Americas,Antigua and Barbuda,land_salmon_disturbance,0.049432137670616307
+12,Americas,Argentina,land_salmon_disturbance,0.005388346578631249
+14,Americas,Aruba,land_salmon_disturbance,0.12468976279099782
+15,Oceania,Australia,land_salmon_disturbance,0.0047762767671294375
+18,Americas,Bahamas,land_salmon_disturbance,7.539835520261942e-4
+19,Asia,Bahrain,land_salmon_disturbance,0.23378661937183803
+20,Asia,Bangladesh,land_salmon_disturbance,0.1018594226485298
+21,Americas,Barbados,land_salmon_disturbance,4.3172951787647423e-10
+23,Europe,Belgium,land_salmon_disturbance,0.046991603511617755
+24,Americas,Belize,land_salmon_disturbance,3.277213747076958e-7
+25,Africa,Benin,land_salmon_disturbance,0.002641129575289079
+26,Americas,Bermuda,land_salmon_disturbance,0.0031367347110062838
+29,Americas,Bonaire/ Sint Eustatius and Saba,land_salmon_disturbance,0
+30,Europe,Bosnia and Herzegovina,land_salmon_disturbance,0.01273473887551035
+33,Americas,Brazil,land_salmon_disturbance,0.0021023022925861544
+34,Africa,British Indian Ocean Territory,land_salmon_disturbance,0
+35,Americas,British Virgin Islands,land_salmon_disturbance,0.001918128109537065
+36,Asia,Brunei Darussalam,land_salmon_disturbance,0.08104976092184348
+37,Europe,Bulgaria,land_salmon_disturbance,0.00682275516465697
+40,Asia,Cambodia,land_salmon_disturbance,0.002658480144865502
+41,Africa,Cameroon,land_salmon_disturbance,0.006406668835151513
+42,Americas,Canada,land_salmon_disturbance,0.0036741218745580105
+43,Africa,Cabo Verde,land_salmon_disturbance,7.801551781816407e-9
+45,Americas,Cayman Islands,land_salmon_disturbance,0
+48,Americas,Chile,land_salmon_disturbance,0.09889508954373254
+49,Asia,China,land_salmon_disturbance,0.0077108914327029664
+50,Oceania,Christmas Island,land_salmon_disturbance,0
+52,Oceania,Cocos (Keeling) Islands,land_salmon_disturbance,0.0912921279668808
+53,Americas,Colombia,land_salmon_disturbance,7.949782528866323e-4
+54,Africa,Comoros,land_salmon_disturbance,0.019806250145560818
+55,Oceania,Cook Islands,land_salmon_disturbance,0
+56,Americas,Costa Rica,land_salmon_disturbance,0.012459874109612306
+57,Africa,Côte d’Ivoire,land_salmon_disturbance,0.012151633285448746
+58,Europe,Croatia,land_salmon_disturbance,0.055955101921416124
+59,Americas,Cuba,land_salmon_disturbance,0.044851787969063237
+60,Americas,Curaçao,land_salmon_disturbance,0.08398169279098511
+61,Asia,Cyprus,land_salmon_disturbance,0.018232093656534387
+64,Europe,Denmark,land_salmon_disturbance,0.23974589409485825
+65,Africa,Djibouti,land_salmon_disturbance,0.005339858623651357
+66,Americas,Dominica,land_salmon_disturbance,0.010790152568370103
+67,Americas,Dominican Republic,land_salmon_disturbance,2.2232309837186794e-5
+68,Americas,Ecuador,land_salmon_disturbance,0.004801094711188495
+69,Africa,Egypt,land_salmon_disturbance,0.010414644352828715
+70,Americas,El Salvador,land_salmon_disturbance,0.05603130434815085
+71,Africa,Equatorial Guinea,land_salmon_disturbance,0.024890106233457724
+72,Africa,Eritrea,land_salmon_disturbance,0.0032497416296858443
+73,Europe,Estonia,land_salmon_disturbance,0.038928165025748154
+75,Americas,Falkland Islands (Malvinas),land_salmon_disturbance,0.04291203734514064
+76,Europe,Faroe Islands,land_salmon_disturbance,0.2335356966807292
+77,Oceania,Fiji,land_salmon_disturbance,6.752864012362787e-4
+78,Europe,Finland,land_salmon_disturbance,0.023337846069300776
+79,Europe,France,land_salmon_disturbance,0.027511796886396017
+80,Americas,French Guiana,land_salmon_disturbance,0.0036236793372934986
+81,Oceania,French Polynesia,land_salmon_disturbance,0
+83,Africa,Gabon,land_salmon_disturbance,0.020835156966414716
+84,Africa,Gambia,land_salmon_disturbance,0.15054828023153638
+85,Asia,Georgia,land_salmon_disturbance,0.026454861941771816
+86,Europe,Germany,land_salmon_disturbance,0.03969305649196581
+87,Africa,Ghana,land_salmon_disturbance,0.02547159173967062
+88,Europe,Gibraltar,land_salmon_disturbance,0.2517150938510895
+89,Europe,Greece,land_salmon_disturbance,0.06150531375769485
+90,Americas,Greenland,land_salmon_disturbance,9.411232210333032e-4
+91,Americas,Grenada,land_salmon_disturbance,0.007492930814623833
+94,Americas,Guatemala,land_salmon_disturbance,0.0017495773599255622
+95,Europe,Guernsey,land_salmon_disturbance,0.22838804125785828
+96,Africa,Guinea,land_salmon_disturbance,0.010368784408710306
+97,Africa,Guinea-Bissau,land_salmon_disturbance,0.034488034396832644
+98,Americas,Guyana,land_salmon_disturbance,3.463815252898257e-11
+99,Americas,Haiti,land_salmon_disturbance,3.091994476003233e-11
+101,Americas,Honduras,land_salmon_disturbance,7.720906577091711e-4
+104,Europe,Iceland,land_salmon_disturbance,0.006026866690690496
+105,Asia,India,land_salmon_disturbance,0.014624789721448827
+106,Asia,Indonesia,land_salmon_disturbance,0.06393486152238695
+107,Asia,Iran (Islamic Republic of),land_salmon_disturbance,0.0017993208148996804
+108,Asia,Iraq,land_salmon_disturbance,2.7100836034157906e-5
+109,Europe,Ireland,land_salmon_disturbance,0.08248917275308816
+111,Asia,Israel,land_salmon_disturbance,0.010708854102465373
+112,Europe,Italy,land_salmon_disturbance,0.045958550694942264
+113,Americas,Jamaica,land_salmon_disturbance,4.4951978524904926e-7
+114,Asia,Japan,land_salmon_disturbance,0.18994461929913753
+115,Europe,Jersey,land_salmon_disturbance,0.2391422688961029
+116,Asia,Jordan,land_salmon_disturbance,8.558731379618038e-5
+118,Africa,Kenya,land_salmon_disturbance,6.700946916015628e-4
+119,Oceania,Kiribati,land_salmon_disturbance,0.010096815633005463
+121,Asia,Kuwait,land_salmon_disturbance,0.019502823895578923
+124,Europe,Latvia,land_salmon_disturbance,0.049835790062565805
+125,Asia,Lebanon,land_salmon_disturbance,0.042159955941204835
+127,Africa,Liberia,land_salmon_disturbance,0.026852060182291842
+128,Africa,Libya,land_salmon_disturbance,0.0013737531601690283
+130,Europe,Lithuania,land_salmon_disturbance,0.047195126853663824
+134,Africa,Madagascar,land_salmon_disturbance,1.2714521879604955e-8
+136,Asia,Malaysia,land_salmon_disturbance,0.08225537168935217
+137,Asia,Maldives,land_salmon_disturbance,0
+139,Europe,Malta,land_salmon_disturbance,0.13732394948601723
+140,Oceania,Marshall Islands,land_salmon_disturbance,0
+142,Africa,Mauritania,land_salmon_disturbance,0.007954743453544761
+143,Africa,Mauritius,land_salmon_disturbance,0
+144,Africa,Mayotte,land_salmon_disturbance,0
+145,Americas,Mexico,land_salmon_disturbance,0.011718536507630464
+146,Oceania,Micronesia (Federated States of),land_salmon_disturbance,0
+148,Europe,Monaco,land_salmon_disturbance,0.23747503757476807
+150,Europe,Montenegro,land_salmon_disturbance,0.02970686092322587
+151,Americas,Montserrat,land_salmon_disturbance,0.018899329006671906
+152,Africa,Morocco,land_salmon_disturbance,0.056539614815481226
+153,Africa,Mozambique,land_salmon_disturbance,0
+154,Asia,Myanmar,land_salmon_disturbance,0.01438671562510878
+155,Africa,Namibia,land_salmon_disturbance,9.586907594594047e-5
+156,Oceania,Nauru,land_salmon_disturbance,0
+158,Europe,Netherlands,land_salmon_disturbance,0.12734262221432266
+159,Oceania,New Caledonia,land_salmon_disturbance,0
+160,Oceania,New Zealand,land_salmon_disturbance,0.05722579772083192
+161,Americas,Nicaragua,land_salmon_disturbance,0.003300298504266625
+163,Africa,Nigeria,land_salmon_disturbance,0.011939388289997107
+164,Oceania,Niue,land_salmon_disturbance,0
+165,Oceania,Norfolk Island,land_salmon_disturbance,0.04551732912659645
+166,Asia,Democratic People's Republic of Korea,land_salmon_disturbance,0.011185853717672448
+169,Europe,Norway,land_salmon_disturbance,0.12264994848728951
+170,Asia,Oman,land_salmon_disturbance,0.053743241113735206
+171,Asia,Pakistan,land_salmon_disturbance,0.006228371207849074
+172,Oceania,Palau,land_salmon_disturbance,0
+174,Americas,Panama,land_salmon_disturbance,4.0441370006888763e-4
+175,Oceania,Papua New Guinea,land_salmon_disturbance,5.46402473057766e-5
+178,Americas,Peru,land_salmon_disturbance,0.038026445431711194
+179,Asia,Philippines,land_salmon_disturbance,0.2566995458192382
+180,Oceania,Pitcairn,land_salmon_disturbance,0
+181,Europe,Poland,land_salmon_disturbance,0.015511798229947416
+182,Europe,Portugal,land_salmon_disturbance,0.04205789492413049
+184,Asia,Qatar,land_salmon_disturbance,0.08090519453088442
+185,Africa,Congo,land_salmon_disturbance,0.0057373755787599985
+186,Africa,Réunion,land_salmon_disturbance,0.0012033017319481587
+187,Europe,Romania,land_salmon_disturbance,0.0010070398619231378
+188,Europe,Russian Federation,land_salmon_disturbance,0.0035410863006616567
+191,Americas,Saint Martin (French Part),land_salmon_disturbance,0
+192,Africa,Saint Helena,land_salmon_disturbance,1.2915728439111263e-4
+193,Americas,Saint Kitts and Nevis,land_salmon_disturbance,0.04947847003738085
+194,Americas,Saint Lucia,land_salmon_disturbance,0.016743507016924144
+195,Americas,Saint Pierre and Miquelon,land_salmon_disturbance,0.14552398920059204
+196,Americas,Saint Vincent and the Grenadines,land_salmon_disturbance,0.004963474348187447
+197,Oceania,Samoa,land_salmon_disturbance,8.358298941995158e-4
+199,Africa,Sao Tome and Principe,land_salmon_disturbance,0.18843829135100046
+200,Asia,Saudi Arabia,land_salmon_disturbance,0.0070858149895152555
+201,Africa,Senegal,land_salmon_disturbance,0.04653899705725089
+203,Africa,Seychelles,land_salmon_disturbance,1.919667236506939e-4
+204,Africa,Sierra Leone,land_salmon_disturbance,0.1366541605378162
+205,Asia,Singapore,land_salmon_disturbance,0.2482707679271698
+206,Americas,Sint Maarten (Dutch part),land_salmon_disturbance,0
+208,Europe,Slovenia,land_salmon_disturbance,0.00841557486688288
+209,Oceania,Solomon Islands,land_salmon_disturbance,0
+210,Africa,Somalia,land_salmon_disturbance,2.051900080783346e-6
+211,Africa,South Africa,land_salmon_disturbance,0.0011887741039333596
+213,Asia,Republic of Korea,land_salmon_disturbance,0.09913410707798044
+215,Europe,Spain,land_salmon_disturbance,0.030839680458710217
+217,Asia,Sri Lanka,land_salmon_disturbance,0.057491601833941704
+218,Africa,Sudan,land_salmon_disturbance,0.001723330596056051
+219,Americas,Suriname,land_salmon_disturbance,8.675548720136804e-5
+222,Europe,Sweden,land_salmon_disturbance,0.022071152945857736
+224,Asia,Syrian Arab Republic,land_salmon_disturbance,0.002146848682998295
+225,Asia,Taiwan,land_salmon_disturbance,0.061631378522447766
+227,Africa,United Republic of Tanzania,land_salmon_disturbance,0.005030161731100935
+228,Asia,Thailand,land_salmon_disturbance,0.03443455337110601
+229,Asia,Timor-Leste,land_salmon_disturbance,0.032813546658810956
+230,Africa,Togo,land_salmon_disturbance,0.01954251555878242
+231,Oceania,Tokelau,land_salmon_disturbance,0
+232,Oceania,Tonga,land_salmon_disturbance,0
+233,Americas,Trinidad and Tobago,land_salmon_disturbance,0.00460100455713075
+234,Africa,Tunisia,land_salmon_disturbance,0.017939559050024968
+235,Asia,Turkey,land_salmon_disturbance,0.0313576915141756
+237,Americas,Turks and Caicos Islands,land_salmon_disturbance,0
+238,Oceania,Tuvalu,land_salmon_disturbance,0
+240,Europe,Ukraine,land_salmon_disturbance,0.013275537523942577
+241,Asia,United Arab Emirates,land_salmon_disturbance,0.014890102053379201
+242,Europe,United Kingdom of Great Britain and Northern Ireland,land_salmon_disturbance,0.0915150346537788
+243,Americas,United States of America,land_salmon_disturbance,0.004356384098814398
+245,Americas,Uruguay,land_salmon_disturbance,0.023351295763608514
+247,Oceania,Vanuatu,land_salmon_disturbance,0
+249,Americas,Venezuela (Bolivarian Republic of),land_salmon_disturbance,0.011077394370255194
+250,Asia,Viet Nam,land_salmon_disturbance,7.682401213686353e-5
+252,Oceania,Wallis and Futuna Islands,land_salmon_disturbance,0
+253,Africa,Western Sahara,land_salmon_disturbance,0.028052963911444687
+254,Asia,Yemen,land_salmon_disturbance,0.03460031208447482
+300,Africa,Madeira Island,land_salmon_disturbance,0.32595124027945777
+301,Africa,Democratic Republic of the Congo,land_salmon_disturbance,1.2707255423391445e-4
