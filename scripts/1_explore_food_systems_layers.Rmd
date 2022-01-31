@@ -23,6 +23,7 @@ Shapefiles
 ```{r}
 
 countries_shp <- ne_countries(scale = 110, returnclass = "sf")
+coasts <- ne_coastline(scale = 110, returnclass = "sf")
 
 ```
 
@@ -263,7 +264,8 @@ Summarised version of the proportion of soy for salmon coming from which countri
 ```{r}
 
 
-soy_producers <- read_csv(file.path(food_systems_feed_dir, "data/proportion_feed_per_country_system.csv")) %>% filter(SPAM_super=="soyb" & grepl("salmon", animal_system)) %>% arrange(iso3c_producing)
+soy_producers <- read_csv(file.path(food_systems_feed_dir, "data/proportion_feed_per_country_system.csv")) %>% filter(SPAM_super=="soyb" & grepl("salmon", animal_system)) %>% arrange(iso3c_producing) %>% 
+  mutate(total_prop = if_else(total_prop == 0, NA_real_, total_prop))
 
 
 rgns <- read_csv(here("data/spatial/food_rgns_xy.csv"), col_types = "ddddcc")
@@ -314,80 +316,232 @@ crop_list <- "soyb"
 total_feed_by_crop <- data.frame(SPAM_super = crop_list, calc_tonnes_from_rast = NA)
 
 for(crop in crop_list){ #crop="soyb"
-all_props <- list.files(here("data/spatial"), pattern="_x_", full=TRUE)
-all_props <- grep(crop, all_props, value=TRUE)
-#all_props <- grep("human_human_human", all_props, invert=TRUE, value=TRUE)
-#all_crop_stack <- raster::stack(all_props)
-#all_crop_sum <- raster::calc(all_crop_stack, sum, na.rm=TRUE)
-all_props <- raster(all_props)
-
-
-#plot(all_crop_sum)
-#click(all_crop_sum)
-prod <- raster(sprintf(here("data/spatial/crop_%s_A_scaled.tif"), crop))
-
-tonnes_consumed <- prod*all_props
-total_tonnes_consumed <- cellStats(tonnes_consumed, "sum", na.rm=TRUE)
-total_feed_by_crop$calc_tonnes_from_rast[total_feed_by_crop$SPAM_super==crop] <- total_tonnes_consumed
+  all_props <- list.files(here("data/spatial"), pattern="_x_", full=TRUE)
+  all_props <- grep(crop, all_props, value=TRUE)
+  #all_props <- grep("human_human_human", all_props, invert=TRUE, value=TRUE)
+  #all_crop_stack <- raster::stack(all_props)
+  #all_crop_sum <- raster::calc(all_crop_stack, sum, na.rm=TRUE)
+  all_props <- raster(all_props)
+  
+  
+  #plot(all_crop_sum)
+  #click(all_crop_sum)
+  prod <- raster(sprintf(here("data/spatial/crop_%s_A_scaled.tif"), crop))
+  prod[prod==0] <- NA
+  
+  tonnes_consumed <- prod*all_props
+  tonnes_consumed[tonnes_consumed==0] <- NA
+  total_tonnes_consumed <- cellStats(tonnes_consumed, "sum", na.rm=TRUE)
+  total_feed_by_crop$calc_tonnes_from_rast[total_feed_by_crop$SPAM_super==crop] <- total_tonnes_consumed
 }
 
 
 soy_production_raster <- prod %>% as("SpatialPixelsDataFrame") %>% data.frame()
 
 
-tonnes_consumed_spatial_df <- tonnes_consumed %>% as("SpatialPixelsDataFrame") %>% data.frame()
-
-ggplot()+
-  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey90", colour="grey90")+
+soy_production <- ggplot()+
+  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey90", colour=NA)+
   geom_tile(data =soy_production_raster, aes(x=x, y=y, fill=(crop_soyb_A_scaled+1)))+
-  scale_fill_gradientn(colours = brewer.pal(9, name = "YlOrRd"),
+  scale_fill_gradientn(colours = brewer.pal(9, name = "YlGn"),
                        trans="log10")+
   theme_bw()+
-  theme(panel.grid = element_blank(),
+   theme(panel.grid = element_blank(),
         legend.position = "bottom",
         legend.direction = "horizontal",
+        legend.box.spacing = unit(0.1, "cm"),
         axis.text = element_blank(),
         axis.title = element_blank(),
         axis.ticks = element_blank(),
         panel.border = element_rect(colour = "grey70", size=0.5),
-        legend.text = element_text(size=8),
-        legend.title = element_text(size = 8))+
+        plot.margin = unit(c(0,r=0.10,-0.1,0), "cm"),
+         legend.text = element_text(size=6),
+        legend.title = element_text(size = 6))+
   labs(fill="Soy production (tonnes)")+
-  guides(fill = guide_colorbar(barheight = unit(0.3, "cm"), title.position = "top", title.hjust = 0.5))
+  guides(fill = guide_colorbar(barheight = unit(0.1, "cm"), title.position = "top", title.hjust = 0.5))
 
 ggsave(here("explore/soy_production_map.jpg"), dpi = 300, device = "jpg", width = 7, height=4)
 
 
 
-
-
 tonnes_consumed_spatial_df <- tonnes_consumed %>% as("SpatialPixelsDataFrame") %>% data.frame()
 
-ggplot()+
-  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey90", colour="grey90")+
-  geom_tile(data =tonnes_consumed_spatial_df, aes(x=x, y=y, fill=(layer+1)))+
+soy_demand <- ggplot()+
+  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey90", colour=NA)+
+  geom_tile(data =tonnes_consumed_spatial_df, aes(x=x, y=y, fill=layer+1))+
   scale_fill_gradientn(colours = brewer.pal(9, name = "PuBu"),
-                       trans = "log10",
-                       labels = c(1, 10, 100, 1000),
-                       breaks = c(1, 10, 100, 1000))+
+                       trans = "log10", 
+                       labels = c(0.001, 10, 100, 1000),
+                       breaks = c(1+0.001, 10, 100, 1000)
+                       )+
   theme_bw()+
-  theme(panel.grid = element_blank(),
+   theme(panel.grid = element_blank(),
         legend.position = "bottom",
         legend.direction = "horizontal",
+        legend.box.spacing = unit(0.1, "cm"),
         axis.text = element_blank(),
         axis.title = element_blank(),
         axis.ticks = element_blank(),
         panel.border = element_rect(colour = "grey70", size=0.5),
-         legend.text = element_text(size=8),
-        legend.title = element_text(size = 8))+
+        plot.margin = unit(c(0,r=0.10,-0.1,0), "cm"),
+         legend.text = element_text(size=6),
+        legend.title = element_text(size = 6))+
   labs(fill="Soy demand (tonnes)")+
-  guides(fill = guide_colorbar(barheight = unit(0.3, "cm"), title.position = "top", title.hjust = 0.5))
+ guides(fill = guide_colorbar(barheight = unit(0.1, "cm"), title.position = "top", title.hjust = 0.5))
 
 
 ggsave(here("explore/salmon_soy_demand_map.jpg"), dpi = 300, device = "jpg", width = 7, height=4)
 
 
 
+```
 
+Import tif from pressure per tonne data layers
+
+```{r}
+
+soy_dist_raster <- raster(here("data/spatial/land_soyb_crop_produce_disturbance_per_tonne_production.tif"))
+
+soy_ghg_raster <- raster(here("data/spatial/land_soyb_crop_produce_ghg_per_tonne_production.tif"))
+
+soy_h2o_raster <- raster(here("data/spatial/land_soyb_crop_produce_water_per_tonne_production.tif"))
+
+soy_nutr_raster <- raster(here("data/spatial/land_soyb_crop_produce_nutrient_per_tonne_production.tif"))
+
+
+
+crop_soyb <- raster(here("data/spatial/crop_soyb.tiff"))
+
+
+```
+
+Create new rasters from press x tonnage calculations
+```{r}
+
+crs(tonnes_consumed) <- crs(soy_dist_raster) #ensure the soy demand is in the same crs as the pressures
+
+soy_dist_product <- soy_dist_raster*tonnes_consumed
+
+soy_ghg_product <- soy_ghg_raster*tonnes_consumed
+
+soy_h2o_product <- soy_h2o_raster*tonnes_consumed
+
+soy_nutr_product <- soy_nutr_raster*tonnes_consumed
+
+
+
+```
+
+```{r}
+#disturbance
+soy_dist_df <- soy_dist_product %>% as("SpatialPixelsDataFrame") %>% data.frame()
+
+
+soy_dist <- ggplot()+
+  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey85", colour=NA)+
+  geom_tile(data = soy_dist_df, aes(x=x, y=y, fill=layer))+
+  theme_bw()+
+  scale_fill_gradientn(colours = brewer.pal(9, name = "YlOrBr"))+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.box.spacing = unit(0.1, "cm"),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.border = element_rect(colour = "grey70", size=0.5),
+        plot.margin = unit(c(0,r=0.10,-0.1,0), "cm"),
+        plot.subtitle = element_text(size=6, vjust=-1),
+         legend.text = element_text(size=6),
+        legend.title = element_text(size = 6))+
+  labs(fill="km2 eq.", subtitle = "Disturbance")+
+  guides(fill = guide_colorbar(barheight = unit(0.1, "cm"), title.position = "top", title.hjust = 0.5))
+
+
+#ghgs 
+
+soy_ghg_df <- soy_ghg_product %>% as("SpatialPixelsDataFrame") %>% data.frame()
+
+soy_ghg <- ggplot()+
+  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey85", colour=NA)+
+  geom_tile(data = soy_ghg_df, aes(x=x, y=y, fill=layer))+
+  theme_bw()+
+  scale_fill_gradientn(colours = brewer.pal(9, name = "RdPu"))+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.box.spacing = unit(0.1, "cm"),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.border = element_rect(colour = "grey70", size=0.5),
+        plot.margin = unit(c(0,0,-0.1,0.1), "cm"),
+          plot.subtitle = element_text(size=6, vjust=-1),
+         legend.text = element_text(size=6),
+        legend.title = element_text(size =6))+
+  labs(fill="kg CO2 eq.", subtitle =  "GHGs")+
+  guides(fill = guide_colorbar(barheight = unit(0.1, "cm"), title.position = "top", title.hjust = 0.5))
+
+
+
+#water 
+
+soy_h2o_df <- soy_h2o_product %>% as("SpatialPixelsDataFrame") %>% data.frame()
+
+soy_h2o <- ggplot()+
+  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey85", colour=NA)+
+  geom_tile(data = soy_h2o_df, aes(x=x, y=y, fill=layer/1000))+
+  theme_bw()+
+  scale_fill_gradientn(colours = brewer.pal(9, name = "Purples"))+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.box.spacing = unit(0.1, "cm"),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.border = element_rect(colour = "grey70", size=0.5),
+        plot.margin = unit(c(t=0,r= 0.1, b=-0.1,l=0.1), "cm"),
+         plot.subtitle = element_text(size=6, vjust=-1),
+         legend.text = element_text(size=6),
+        legend.title = element_text(size = 6))+
+  labs(fill="1000s m3", subtitle = "Water")+
+  guides(fill = guide_colorbar(barheight = unit(0.1, "cm"), title.position = "top", title.hjust = 0.5))
+
+#nutrients
+
+soy_nutr_df <- soy_nutr_product %>% as("SpatialPixelsDataFrame") %>% data.frame()
+
+soy_nutr <- ggplot()+
+  geom_sf(data = countries_shp %>% filter(iso_a3!="ATA"), fill="grey85", colour=NA)+
+  geom_tile(data = soy_nutr_df, aes(x=x, y=y, fill=layer))+
+  theme_bw()+
+  scale_fill_gradientn(colours = brewer.pal(9, name = "Oranges"))+
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.box.spacing = unit(0, "cm"),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.border = element_rect(colour = "grey70", size=0.5),
+        plot.margin = unit(c(0,r=0.1,-0.1,0), "cm"),
+         plot.subtitle = element_text(size=6, vjust=-1),
+         legend.text = element_text(size=6),
+        legend.title = element_text(size = 6))+
+  labs(fill="po4 eq.", subtitle = "Nutrients")+
+  guides(fill = guide_colorbar(barheight = unit(0.1, "cm"), title.position = "top", title.hjust = 0.5))
+
+
+```
+Combine stressor plots
+```{r}
+(soy_production+soy_demand)/
+  (soy_dist+soy_h2o)/
+  (soy_nutr+soy_ghg)
+
+
+ggsave(filename = here("explore/composite_stressor_plot.jpg"), device="jpg", dpi=600, height = 18, width = 18, units="cm")
+
+ggsave(filename = here("explore/composite_stressor_plot.pdf"), device="pdf", dpi=600, height = 16, width = 18, units="cm")
 ```
 
