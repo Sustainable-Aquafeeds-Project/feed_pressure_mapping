@@ -120,7 +120,7 @@ feed_source <- salmon_soy_location %>%
   summarize(consumed_tonnes = sum(producing_crop_consumed_tonnes)) 
 
 
-
+production_location %>% filter(iso3c_consuming == "NOR" & SPAM_super=="soyb" & grepl("salmon", animal_system))
 ```
 Next calculate the proportion of crop produced for soybean in salmon feed for each country
 ```{r}
@@ -301,8 +301,9 @@ writeRaster(prop_feed_crop_raster, filename= sprintf("/mnt/rdsi/feed_pressure_ma
 }
 
 #check it plots OK. Produces a raster of the proportion of that country's production is assigned to salmon soy-based feed
-plot(log(prop_feed_crop_raster+1))
-
+jpeg(filename = here("explore/prop_raster.jpg"), width = 600, height = 350)
+plot((prop_feed_crop_raster))
+dev.off()
 
 ```
 
