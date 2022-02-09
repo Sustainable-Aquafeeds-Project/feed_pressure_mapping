@@ -21,7 +21,7 @@ Change food regions to R object
 
 ```{r}
 
-food_rgns <- read_csv(file.path(food_systems_data_dir, "food_rgns_xy.csv"))
+food_rgns <- read_csv(file.path(food_systems_data_dir, "food_rgns_xy.csv"), col_types = "ddddcc")
 
 saveRDS(object = food_rgns, file = here("data/tidy_data/food_rgns_xy.rds"))
 
