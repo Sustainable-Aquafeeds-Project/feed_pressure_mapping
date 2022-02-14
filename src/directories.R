@@ -1,10 +1,5 @@
 
-food_systems_dir <- "/mnt/rdsi/food_systems"
-food_systems_feed_dir <- "/mnt/rdsi/food_systems/feed"
+food_systems_dir <- "/mnt/rdsi/github/food_systems"
+food_systems_feed_dir <- "/mnt/rdsi/github/food_systems/feed"
 
-
-
-#local directories (Rich's dropbox)
-
-mapspam_local_dir <- "/Users/rsc2/Dropbox/github/feed_pressure_mapping"
-
+food_systems_data_dir <- "/mnt/rdsi/raw_data/food-systems-project"
