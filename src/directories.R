@@ -6,4 +6,6 @@ food_systems_data_dir <- "/mnt/rdsi/raw_data/food-systems-project"
 
 #from ifpri
 mapspam_dir <- "/mnt/rdsi/raw_data/MAPSPAM"
+glw_dir <- "/mnt/rdsi/raw_data/gridded-livestock-of-the-world"
+
 
