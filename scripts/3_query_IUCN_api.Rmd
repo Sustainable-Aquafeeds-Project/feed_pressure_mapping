@@ -1,0 +1,48 @@
+---
+title: "Query IUCN API"
+author: "Rich Cottrell"
+date: "23/02/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(rredlist)
+library(jsonlite)
+library(purrr)
+library(parallel)
+
+source(here("src/directories.R"))
+source(here("src/iucn_fxs.R"))
+
+```
+
+
+```{r}
+
+
+countrylist_url <- sprintf("https://apiv3.iucnredlist.org/api/v3/country/list?token=%s", api_key)
+countries <- jsonlite::fromJSON(countrylist_url)
+
+
+sppcount_url <- sprintf("https://apiv3.iucnredlist.org/api/v3/speciescount?token=%s", api_key)
+nspp <- jsonlite::fromJSON(sppcount_url) %>% .$speciescount %>% as.integer()
+
+pagelist <- c(0:(ceiling(nspp/10000)-1)) #10000 is number of species presented per page
+
+
+get_spp_api <- function(this_page){
+  spplist_url <- sprintf("https://apiv3.iucnredlist.org/api/v3/species/page/%s?token=%s", this_page,  api_key)
+  jsonlite::fromJSON(spplist_url) %>% .$result
+}
+
+spp_list_df <- bind_rows(mclapply(X = pagelist, FUN = get_spp_api, mc.cores = detectCores()))
+
+
+
+
+
+```
+

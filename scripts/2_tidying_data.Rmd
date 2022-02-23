@@ -11,6 +11,7 @@ library(parallel)
 library(raster)
 library(janitor)
 library(here)
+library(rredlist)
 
 source(here("src/directories.R"))
 ```
@@ -81,4 +82,5 @@ lapply(X = glw_zip_files, FUN = unzip_raw_data)
 
 
 ```
+
 
