@@ -46,21 +46,28 @@ Get species habitat data. Note - this takes days to run. Don't run if not needed
 ```{r}
 
 spp_list <- 
-  readRDS(file = here("data/raw_data/iucn/spp_list.rds")) %>% pull(taxonid) %>% as.list()
+  readRDS(file = here("data/raw_data/iucn/spp_list.rds")) %>% pull(taxonid)
   
 # mclapply version - seems quicker on small lists but cannot monitor through message whether it's still processing
-# tic()
+# tic() 
 # habitat_list_df <- bind_rows(mclapply(X = spp_list, FUN = get_habitat_api, mc.cores = 8))
 # toc()
 
 #future/furrr parallelisation with timer
 future::plan(strategy = multisession, workers =8)
 tic()
-habitat_list_df <- future_map(spp_list,  get_habitat_api)
+habitat_list <- future_map(spp_list,  get_habitat_api)
 toc()
 
+habitat_list_df <- bind_cols(habitat_list)
+
+saveRDS(object =  habitat_list_df, file = here("data/raw_data/iucn/habitats_by_spp.rds"))
+
+```
 
 
+Casey's method for IUCN
+```{r}
 
 ```
 
