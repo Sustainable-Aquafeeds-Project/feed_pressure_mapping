@@ -10,8 +10,8 @@ source(here("src/directories.R"))
 api_file <- file.path(iucn_dir, "api_key", "api_token.txt")
 api_key <- scan(api_file, what = 'character')
 
-version <- rl_version(key=api_key)
-version <-  "2021-3" #set the version
+#api_version <- rl_version(key=api_key)
+api_version <-  "2021-3" #set the version
 
 
 get_spp_api <- function(this_page){
@@ -23,87 +23,59 @@ get_spp_api <- function(this_page){
 get_habitat_api <- function(this_spp_id){
   message(paste("processing taxonid #", this_spp_id))
   hablist_url <- sprintf("https://apiv3.iucnredlist.org/api/v3/habitats/species/id/%s?token=%s", this_spp_id,  api_key)
-  bind_cols(jsonlite::fromJSON(hablist_url))
-  
+  this_result <-jsonlite::fromJSON(hablist_url)
+  return(tibble(this_result %>% .$result) %>% mutate(spp_id = this_result %>% .$id))
 }
 
 
-#from casey
 
-get_from_api <- function(url, param, api_key, delay, verbose = FALSE) {
+get_threat_api <- function(this_spp_id){
   
-  i <- 1; tries <- 5; success <- FALSE
+  message(paste("processing taxonid #", this_spp_id))
+  
+  i <- 1; tries <- 5; success <- FALSE; delay=0.5
   
   while(i <= tries & success == FALSE) {
     if(verbose) {
       message('try #', i)
     }
-    Sys.sleep(delay * i) ### be kind to the API server? later attempts wait longer
-    api_info <- fromJSON(sprintf(url, param, api_key)) 
-    if (class(api_info) != 'try-error') {
+    
+    Sys.sleep(delay * i) #add delay for later tries
+    
+    threat_url <- sprintf("https://apiv3.iucnredlist.org/api/v3/threats/species/id/%s?token=%s", this_spp_id,  api_key)
+    
+    this_result <-jsonlite::fromJSON(threat_url)
+    
+    if (class(this_result) != 'try-error') {
       success <- TRUE
     } else {
-      warning(sprintf('try #%s: class(api_info) = %s\n', i, class(api_info)))
+      warning(sprintf('try #%s: class(this_result) = %s\n', i, class(this_result)))
     }
     if(verbose) {
       message('... successful? ', success)
     }
     i <- i + 1
   }
-  
-  if (class(api_info) == 'try-error') { ### multi tries and still try-error
-    api_return <- data.frame(param_id  = param,
+  if (class(this_result) == 'try-error') { ### multi tries and still try-error
+    api_return <- data.frame(spp_id  = this_spp_id,
                              api_error = 'try-error after multiple attempts')
-  } else if (class(api_info$result) != 'data.frame') { ### result isn't data frame for some reason
-    api_return <- data.frame(param_id  = param,
+  } else if (class(this_result$result) != 'data.frame') { ### result isn't data frame for some reason
+    api_return <- data.frame(spp_id  = this_spp_id,
                              api_error = paste('non data.frame output: ', 
-                                               class(api_info$result), 
-                                               ' length = ', length(api_info$result)))
-  } else if (length(api_info$result) == 0) { ### result is empty
-    api_return <- data.frame(param_id  = param,
+                                               class(this_result$result), 
+                                               ' length = ', length(this_result$result)))
+  } else if (length(this_result$result) == 0) { ### result is empty
+    api_return <- data.frame(spp_id  = this_spp_id,
                              api_error = 'zero length data.frame')
   } else {
-    api_return <- api_info %>%
+    api_return <- this_result %>%
       data.frame(stringsAsFactors = FALSE)
-  }
-  
+  }  
+    
   return(api_return)
 }
 
-mc_get_from_api <- function(url, param_vec, api_key, 
-                            cores = NULL, delay = 0.5, 
-                            .id = NULL,
-                            verbose = FALSE) {
-  
-  if(is.null(cores)) {
-    numcores <- ifelse(Sys.info()[['nodename']] == 'mazu', 12, parallel::detectCores()/2)
-  } else { 
-    numcores <- cores
-  }
-  out_list <- parallel::mclapply(param_vec, 
-                                 function(x) {
-                                   get_from_api(url, x, api_key, delay, verbose)
-                                 },
-                                 mc.cores   = numcores,
-                                 mc.cleanup = TRUE) 
-  
-  if(any(sapply(out_list, class) != 'data.frame')) {
-    error_list <- out_list[sapply(out_list, class) != 'data.frame']
-    if(verbose) {
-      message('List items are not data frame: ', paste(sapply(error_list, class), collapse = '; '))
-      message('might be causing the bind_rows() error; returning the raw list instead')
-    }
-    return(out_list)
-  }
-  
-  out_df <- out_list %>%
-    setNames(param_vec) %>%
-    bind_rows(.id = 'param')
-  out_df <- out_df %>%
-    setNames(names(.) %>%
-               str_replace('result.', ''))
-  return(out_df)
-}
+
 
 
 
