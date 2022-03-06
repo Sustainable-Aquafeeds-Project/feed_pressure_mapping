@@ -76,7 +76,7 @@ for (j in 1:length(spp_list_split)){
   
   if(!file.exists(chunk_file)){
     
-    message("Getting threat info for species positions ", first_spp_index, "-", last_spp_index)
+    message("Getting habitat info for species positions ", first_spp_index, "-", last_spp_index)
     
     future::plan(strategy = multisession, workers =8)
     threat_list <- future_map(spp_ids,  get_habitat_api)
@@ -90,6 +90,10 @@ for (j in 1:length(spp_list_split)){
   
 }
 
+habitat_files <- list.files(path = iucn_threats_dir, full.names = TRUE)
+
+
+all_habitats<-  map_df(threat_files, readRDS)
 
 ```
 
