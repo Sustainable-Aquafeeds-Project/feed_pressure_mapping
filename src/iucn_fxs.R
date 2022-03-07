@@ -28,12 +28,22 @@ get_habitat_api <- function(this_spp_id){
 }
 
 
-
 get_threat_api <- function(this_spp_id){
+  message(paste("processing taxonid #", this_spp_id))
+  threat_url <- sprintf("https://apiv3.iucnredlist.org/api/v3/threats/species/id/%s?token=%s", this_spp_id,  api_key)
+  this_result <- jsonlite::fromJSON(threat_url) %>% data.frame(stringsAsFactors = FALSE)
+  return(this_result)
+  
+}
+
+
+
+
+get_threat_api_casey <- function(this_spp_id){
   
   message(paste("processing taxonid #", this_spp_id))
   
-  i <- 1; tries <- 5; success <- FALSE; delay=0.5
+  i <- 1; tries <- 5; success <- FALSE; delay=0.5; verbose=TRUE
   
   while(i <= tries & success == FALSE) {
     if(verbose) {
