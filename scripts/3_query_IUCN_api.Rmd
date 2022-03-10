@@ -116,6 +116,7 @@ saveRDS(object = all_habitats, file = here("data/raw_data/iucn/habitats_by_spp.r
 
 ```
 
+
 Get species threats data. This takes a couple of dats to run. Don't run if not needed. If needed, adjust the 'iucn_threat_dir' to your storage.
 
 ```{r}
@@ -162,10 +163,13 @@ for (j in 1:length(spp_list_split)){
   
 }
 
+threat_files <- list.files(path = file.path(iucn_threat_dir), full.names = TRUE)
 
+all_threats <- map_df(threat_files, readRDS)
 
+saveRDS(object = all_threats, file = file.path(iucn_threat_dir, "1_all_threats.rds"))
 
-
+saveRDS(object = all_threats, file = here("data/raw_data/iucn/threats_by_spp.rds"))
 
 
 ```
