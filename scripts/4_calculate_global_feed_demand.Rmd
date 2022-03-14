@@ -1,0 +1,37 @@
+---
+title: "Calculate_global_feed_demand"
+author: "Rich Cottrell"
+date: "14/03/2022"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+
+source(here("src/directories.R"))
+
+
+```
+
+
+Import aquaculture data and isolate salmon
+```{r}
+
+aquaculture <- readRDS(here("data/tidy_data/aquaculture_production_tidy.rds"))
+
+aquaculture_species_groups <- unique(aquaculture$species)
+
+salmon_species <- aquaculture_species_groups[grep("salmon", aquaculture_species_groups)]
+
+salmon_aquaculture <- aquaculture %>% filter(species %in% salmon_species & year==2017)
+
+(top_producers <- salmon_aquaculture %>% 
+    
+    
+    )
+
+```
+

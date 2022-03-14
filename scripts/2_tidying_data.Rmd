@@ -11,6 +11,7 @@ library(parallel)
 library(raster)
 library(janitor)
 library(here)
+library(countrycode)
 library(rredlist)
 
 source(here("src/directories.R"))
@@ -83,4 +84,49 @@ lapply(X = glw_zip_files, FUN = unzip_raw_data)
 
 ```
 
+
+Tidy global aquaculture production data
+
+```{r}
+
+(aqua_prod_raw <- read.csv(file.path(fishstat_dir, "aqua-prod-raw.csv")) %>% 
+  clean_names() %>% 
+  rename(country= country_country,
+         species = species_asfis_species,
+         area = aquaculture_area_fao_major_fishing_area,
+         environment = environment_environment)
+)
+
+
+#sorts country coding to deal with non-UTF characters that country code depends on
+Encoding(aqua_prod_raw$country) <- "latin1" #deals with the non-UTF
+aqua_prod_raw$country <- iconv(aqua_prod_raw$country, "latin1", "UTF-8",sub='')
+
+
+
+aquaculture_prod <- aqua_prod_raw %>% 
+  pivot_longer(names_to = "year", values_to = "value", -c(country, species, area, environment, unit)) %>% 
+  mutate(iso_3c = countrycode(country, origin = "country.name", destination = "iso3c", warn = TRUE)) %>%
+  mutate(iso_3c = case_when(country == "Zanzibar" ~ "TZA",
+                            TRUE ~ iso_3c)) %>% 
+    mutate(year = gsub("x", "", year) %>% 
+              as.numeric,
+           flag = case_when(value == "..." ~ "No data",
+                           value == " " ~ "Data not separately available",
+                           value == "-" ~ "Nil or zero",
+                           value == "0 0" ~ "0<x<0.5",
+                           grepl(" F", value) ~ "estimate",
+                           TRUE ~ "Reported"),
+           value = case_when(value %in% c("...", " ", "-") ~ "0",
+                           value == "0 0" ~ "0.25",
+                           grepl(" F", value) ~ gsub(" F", "", value),
+                           TRUE ~ value) %>% 
+              as.numeric) %>% 
+   filter(country != "Totals")
+
+  
+saveRDS(object = aquaculture_prod, file = here("data", "tidy_data", "aquaculture_production_tidy.rds"))
+
+
+```
 

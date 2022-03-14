@@ -117,7 +117,7 @@ saveRDS(object = all_habitats, file = here("data/raw_data/iucn/habitats_by_spp.r
 ```
 
 
-Get species threats data. This takes a couple of dats to run. Don't run if not needed. If needed, adjust the 'iucn_threat_dir' to your storage.
+Get species threats data. This takes a couple of days to run. Don't run if not needed. If needed, adjust the 'iucn_threat_dir' to your storage.
 
 ```{r}
 

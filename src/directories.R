@@ -16,6 +16,10 @@ mapspam_dir <- "/mnt/rdsi/raw_data/MAPSPAM"
 glw_dir <- "/mnt/rdsi/raw_data/gridded-livestock-of-the-world"
 
 
-#IUCN Redlist file
+#IUCN Redlist data
 iucn_dir <- "/mnt/rdsi/raw_data/iucn"
 
+
+#FAO data directories
+
+fishstat_dir <- "/mnt/rdsi/raw_data/fao/FAO_fishstat_2019"
