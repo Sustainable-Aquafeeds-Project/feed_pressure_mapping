@@ -42,7 +42,7 @@ salmon_aquaculture <- aquaculture %>% filter(species %in% salmon_species & year=
 ```
 
 
-Import the feed conversion ratios and join to production. Where country information from tacon and metian is not available use global average for that country. And get absolute feed demand. To do this we use the min EFCR given the Tacon and Metian data is old and there is a general upward trend in feed efficiency through time.
+Import the feed conversion ratios and join to production. Where country information from tacon and metian is not available use global average for that country. And get absolute feed demand. To do this we use the min eFCR given the Tacon and Metian data is old and there is a general upward trend in feed efficiency through time.
 ```{r}
 
 fcrs <- read_csv(here("data/raw_data/FCR.csv"))
@@ -92,4 +92,53 @@ map(.x = all_diets_list,  .f = function(this_diet){
 
 
 ```
+
+
+Now calculate ingredient demand per diet and for each country
+
+```{r}
+diet_files <- list.files(here("data/tidy_data/diets"), full.names = TRUE)
+
+feed_demand_files <- readRDS(here("data/tidy_data/global_feed_demand.rds")) %>% 
+  select(country, feed_demand) %>% 
+  group_split(country)
+
+
+#calculate demand for each country individually because of different FCRs
+
+for(i in 1:length(feed_demand_files)){
+  
+  this_country_data <- feed_demand_files[[i]]
+  
+  this_country <- unique(this_country_data$country)
+  
+  this_countrys_feed_demand <- unique(this_country_data$feed_demand)
+  
+  map_df(diet_files, readRDS) %>% 
+  mutate(country = this_country,
+         ingredient_demand = this_countrys_feed_demand * prop) %>% 
+  saveRDS(here(sprintf("data/tidy_data/ingredient-demand-by-country/ingredient_demand_%s.rds", this_country)))
+  
+}
+
+#Summarise and store total feed demand per ingredient
+
+list.files(here("data/tidy_data/ingredient-demand-by-country"), full.names = TRUE) %>% 
+  map_df(readRDS) %>% 
+  group_by(groups, ingredients, diet) %>% 
+  summarise(total_ingredient_demand = sum(ingredient_demand, na.rm = TRUE)) %>% 
+  saveRDS(here("data/tidy_data/total_ingredient_demand.rds"))
+
+```
+
+
+Next step is convert ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM). This data is synthesised from multiple sources.
+
+
+
+
+
+  
+  
+  
 
