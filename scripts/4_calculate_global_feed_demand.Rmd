@@ -17,7 +17,7 @@ source(here("src/directories.R"))
 ```
 
 
-Import aquaculture data and isolate salmon
+Import aquaculture data and isolate salmon. The top 10 producers produce 99% of global production so we can just go with that.
 ```{r}
 
 aquaculture <- readRDS(here("data/tidy_data/aquaculture_production_tidy.rds"))
@@ -29,9 +29,67 @@ salmon_species <- aquaculture_species_groups[grep("salmon", aquaculture_species_
 salmon_aquaculture <- aquaculture %>% filter(species %in% salmon_species & year==2017)
 
 (top_producers <- salmon_aquaculture %>% 
+    group_by(country) %>% 
+    summarise(value = sum(value, na.rm = TRUE)) %>% 
+    arrange(-value) %>% 
+    mutate(prop = value/sum(value),
+           cum_prop = cumsum(prop)) %>% 
+    slice(1:10)
     
     
     )
+
+```
+
+
+Import the feed conversion ratios and join to production. Where country information from tacon and metian is not available use global average for that country. And get absolute feed demand. To do this we use the min EFCR given the Tacon and Metian data is old and there is a general upward trend in feed efficiency through time.
+```{r}
+
+fcrs <- read_csv(here("data/raw_data/FCR.csv"))
+
+feed_demand <- 
+  top_producers %>% 
+  left_join(fcrs, by = "country") %>% 
+  mutate(eFCR_min = if_else(is.na(eFCR_min), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_min),
+         eFCR_max = if_else(is.na(eFCR_max), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_max),
+         eFCR_mean = if_else(is.na(eFCR_mean), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_mean)) %>% 
+  mutate(feed_demand = value*eFCR_min)
+  
+saveRDS(object = feed_demand, file = here("data/tidy_data/global_feed_demand.rds"))
+
+```
+
+
+Bring in diet data
+
+```{r}
+
+ all_diets <- read_csv(here("data/raw_data/diet_formats.csv")) %>% select(1:17)
+
+diet_summaries <- 
+  all_diets %>% 
+  filter(grepl("totals", groups)) %>% 
+  select(c(groups, !matches('[2-9]+')), -ingredients) %>% 
+  set_names(~str_replace_all(., pattern = "_1", replacement = "s"))
+
+saveRDS(object=diet_summaries, file = here("data/tidy_data/diet_summaries.rds"))
+  
+
+all_diets_list <- 
+  all_diets %>% 
+  filter(!grepl("totals", groups)) %>% 
+  filter(groups != "Totals") %>% 
+  pivot_longer(names_to = "diet", values_to = "prop", -c(groups, ingredients)) %>% 
+  arrange(diet) %>% 
+  mutate(prop = prop/100) %>% 
+  group_split(diet)
+  
+
+map(.x = all_diets_list,  .f = function(this_diet){ 
+  this_file_name <- unique(this_diet$diet); 
+  saveRDS(object = this_diet, here(paste0(sprintf("data/tidy_data/diets/%s", this_file_name), ".rds")))
+  })
+
 
 ```
 
