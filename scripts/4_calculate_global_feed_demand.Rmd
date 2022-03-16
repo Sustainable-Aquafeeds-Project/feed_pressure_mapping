@@ -26,7 +26,7 @@ aquaculture_species_groups <- unique(aquaculture$species)
 
 salmon_species <- aquaculture_species_groups[grep("salmon", aquaculture_species_groups)]
 
-salmon_aquaculture <- aquaculture %>% filter(species %in% salmon_species & year==2017)
+salmon_aquaculture <- aquaculture %>% filter(species %in% salmon_species & year==2019)
 
 (top_producers <- salmon_aquaculture %>% 
     group_by(country) %>% 
@@ -38,6 +38,9 @@ salmon_aquaculture <- aquaculture %>% filter(species %in% salmon_species & year=
     
     
     )
+
+
+aquaculture %>% filter(country %in% top_producers$country) %>% filter(grepl("salmon", species)) %>% pull(species) %>% unique()
 
 ```
 
@@ -64,12 +67,12 @@ Bring in diet data
 
 ```{r}
 
- all_diets <- read_csv(here("data/raw_data/diet_formats.csv")) %>% select(1:17)
+all_diets <- read_csv(here("data/raw_data/diet_formats.csv")) %>% dplyr::select(-Sources)
 
 diet_summaries <- 
   all_diets %>% 
   filter(grepl("totals", groups)) %>% 
-  select(c(groups, !matches('[2-9]+')), -ingredients) %>% 
+  dplyr::select(c(groups, !matches('[2-9]+')), -ingredients) %>% 
   set_names(~str_replace_all(., pattern = "_1", replacement = "s"))
 
 saveRDS(object=diet_summaries, file = here("data/tidy_data/diet_summaries.rds"))
@@ -100,7 +103,7 @@ Now calculate ingredient demand per diet and for each country
 diet_files <- list.files(here("data/tidy_data/diets"), full.names = TRUE)
 
 feed_demand_files <- readRDS(here("data/tidy_data/global_feed_demand.rds")) %>% 
-  select(country, feed_demand) %>% 
+  dplyr::select(country, feed_demand) %>% 
   group_split(country)
 
 
