@@ -135,7 +135,21 @@ list.files(here("data/tidy_data/ingredient-demand-by-country"), full.names = TRU
 ```
 
 
-Next step is convert ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM). This data is synthesised from multiple sources.
+Next step is convert ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM) and source. So first, we need to know where the ingredients are largely sourced from. THis may change with infomration that we gain from Biomar but the idea is eventually to make this flexible enough to select any from the top producing countries. This requires knowing the raw material that supports the ingredient and the major places this raw material is grown.
+
+```{r}
+
+#create the ingredient list to match raw materials with ingredients
+
+ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/total_ingredient_demand.rds")) |> pull(ingredients) |> unique()) |> 
+  write_csv(here("data/tidy_data/ingredient_list.csv"))
+
+
+
+
+
+```
+
 
 
 
