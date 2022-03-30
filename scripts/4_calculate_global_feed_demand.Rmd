@@ -145,12 +145,9 @@ ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/total_ingred
   write_csv(here("data/tidy_data/ingredient_list.csv"))
 
 
-
-
-
 ```
 
-
+Have added codes for plant ingredients in teams so join these to production data
 
 
 

@@ -15,6 +15,7 @@ library(countrycode)
 library(rredlist)
 
 source(here("src/directories.R"))
+
 ```
 
 
@@ -143,8 +144,29 @@ saveRDS(object = aquaculture_prod, file = here("data", "tidy_data", "aquaculture
 
 ```
 
-
+Unzip FAOSTAT Production data
 ```{r}
+unzip(list.files(path=file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"), pattern = "Production_Crops", full.names = TRUE), exdir = file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"))
+
+```
+
+Tidy FAOSTAT Production data
+```{r}
+
+production_raw <- read_csv(file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022/Production_Crops_Livestock_E_All_Data_(Normalized).csv"))
+
+production_flags <- read_csv(file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022/Production_Crops_Livestock_E_Flags.csv"))
+
+production_raw <- production_raw |> 
+  left_join(production_flags) |> 
+  mutate(Description = if_else(is.na(Description), true = "Official data", false = Description)) |> 
+  mutate(Sector = case_when(grepl("Milk|milk|Meat|meat|Fat|fat|Chicken|Buffaloes|Cattle|cattle|Camel|ffal|Pigs|abbit|worm|odent|urkey|oghurt|Wool|Sheep|Goat|Egg|egg|Asses|Beeh|Bees|Ducks|Cream|Geese|Horses|Honey|Lard|Mules|Birds|Skins|Butter|Cheese|Snail", Item) ~ "Livestock",
+                            TRUE ~ "Crops"))
+
+sort(unique(production_raw |> filter(Sector == "Crops") |> pull(Item)))
+
+
+saveRDS(object = production_raw, file = here("data/raw_data/crop_livestock_production.rds"))
 
 ```
 
