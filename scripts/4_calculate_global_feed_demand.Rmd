@@ -13,6 +13,7 @@ library(janitor)
 
 source(here("src/directories.R"))
 
+select <- dplyr::select
 
 ```
 
@@ -135,7 +136,7 @@ list.files(here("data/tidy_data/ingredient-demand-by-country"), full.names = TRU
 ```
 
 
-Next step is convert ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM) and source. So first, we need to know where the ingredients are largely sourced from. THis may change with infomration that we gain from Biomar but the idea is eventually to make this flexible enough to select any from the top producing countries. This requires knowing the raw material that supports the ingredient and the major places this raw material is grown.
+Next step is convert ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM) and source. So first, we need to know where the ingredients are largely sourced from. THis may change with information that we gain from Biomar but the idea is eventually to make this flexible enough to select any from the top producing countries. This requires knowing the raw material that supports the ingredient and the major places this raw material is grown.
 
 ```{r}
 
@@ -147,8 +148,29 @@ ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/total_ingred
 
 ```
 
-Have added codes for plant ingredients in teams so join these to production data
 
+CROP INGREDIENTS
+
+Have added codes and FAO_names for plant ingredients in teams so join these to production data. 
+
+```{r}
+
+ingredient_by_raw_material <- 
+  read_csv(here("data/tidy_data/plant_ingredient_codes.csv")) |> 
+  select(-reference) |> 
+  drop_na(ingredient) |> 
+  add_row(ingredient = "pea starch", raw_material = "peas", FAOSTAT_name = "Peas, green", FAO_code = 187, map_spam_code = "opul") |> 
+  mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name)) 
+ 
+
+crop_production <- readRDS(file = here("data/tidy_data/crops_production_tidy.rds"))
+
+crop_production |> 
+  filter(element == "Production" & item %in% ingredient_by_raw_material$FAOSTAT_name & year %in% seq(from = 2015, to = 2020)) 
+
+
+
+```
 
 
 
