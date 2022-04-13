@@ -10,6 +10,7 @@ output: html_document
 library(tidyverse)
 library(here)
 library(janitor)
+library(countrycode)
 
 source(here("src/directories.R"))
 
@@ -163,16 +164,57 @@ ingredient_by_raw_material <-
   mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name)) 
  
 
-crop_production <- readRDS(file = here("data/tidy_data/crops_production_tidy.rds"))
+crop_production_raw <- readRDS(file = here("data/tidy_data/crops_production_tidy.rds"))
 
-crop_production |> 
-  filter(element == "Production" & item %in% ingredient_by_raw_material$FAOSTAT_name & year %in% seq(from = 2015, to = 2020)) 
+(crop_production <- 
+  crop_production_raw |>
+  filter(element == "Production"  & area!= "China" & item %in% ingredient_by_raw_material$FAOSTAT_name & year %in% seq(from = 2015, to = 2020)) |> 
+  group_by(area, item) |> 
+  summarise(mean_value = mean(value, na.rm = TRUE)) |> 
+    ungroup() |> 
+  mutate(area = case_when(grepl("Ivoire", area) ~ "Cote d'Ivoire",
+                          TRUE ~ area),
+         iso3c = countrycode(sourcevar = area, origin = "country.name", destination = "iso3c", warn = TRUE)) |> 
+  filter(!is.na(iso3c)) |> 
+    arrange(item,-mean_value)
+)
+
+
+#need to decide whether we should pick the top 10 producers for things like guar so countries like pakistan are included for pulses nes
+top_10_crop_producers <- 
+  crop_production |> 
+  group_split(item) |> 
+  map_df(\(.){ 
+    #this takes the top ten producers - unless it is for Guar (Pulses nes) where I used the suggestion that most guar production comes from India, Pakistan and Africa (so subsequently took the top 8 African producers of pulses nes to make up the top 10)
+    
+    if(unique(.$item) == "Pulses nes"){
+      . |> filter(area %in% c("India", "Pakistan", "Kenya", 
+                              "Ethiopia", "United Republic of Tanzania", 
+                              "Sudan", "Sierra Leone", "Nigeria", 
+                              "Guinea",  "Central African Republic"))
+      }else{
+        . |>  slice(1:10)}
+  }
+)
+
+
+write.csv(x = top_10_crop_producers, file = here("data/tidy_data/production-data/top_crop_producers.csv"))
+saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-data/top_crop_producers.rds"))
 
 
 
 ```
 
 
+Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors from ingredients to  each of these raw materials in different places. 
+
+```{r}
+
+top_10_crop_producers <- readRDS(here("data/tidy_data/production-data/top_crop_producers.rds"))
+
+
+arrange(ingredient_by_raw_material, FAOSTAT_name)
+```
 
   
   

@@ -163,6 +163,10 @@ production_raw <- production_raw |>
   mutate(Sector = case_when(grepl("Milk|milk|Meat|meat|Fat|fat|Chicken|Buffaloes|Cattle|cattle|Camel|ffal|Pigs|abbit|worm|odent|urkey|oghurt|Wool|Sheep|Goat|Egg|egg|Asses|Beeh|Bees|Ducks|Cream|Geese|Horses|Honey|Lard|Mules|Birds|Skins|Butter|Cheese|Snail", Item) ~ "Livestock",
                             TRUE ~ "Crops"))
 
+Encoding(production_raw$Area) <- "latin1" #deals with the non-UTF
+production_raw$Area <- iconv(production_raw$Area, "latin1", "UTF-8",sub='')
+
+
 #separate by sector
 production_sector_list <- 
   production_raw  |> 
@@ -172,7 +176,7 @@ production_sector_list <-
 
 #save
 map(.x = production_sector_list, .f = function(this_element){
-  saveRDS(object = this_element, file = sprintf(here("data/tidy_data/%s_production_tidy.rds"), tolower(unique(this_element$sector))))
+  saveRDS(object = this_element, file = sprintf(here("data/tidy_data/production-data/%s_production_tidy.rds"), tolower(unique(this_element$sector))))
 })
   
 
