@@ -22,7 +22,7 @@ select <- dplyr::select
 Import aquaculture data and isolate salmon. The top 10 producers produce 99% of global production so we can just go with that.
 ```{r}
 
-aquaculture <- readRDS(here("data/tidy_data/aquaculture_production_tidy.rds"))
+aquaculture <- readRDS(here("data/tidy_data/production-data/aquaculture_production_tidy.rds"))
 
 aquaculture_species_groups <- unique(aquaculture$species)
 
@@ -60,7 +60,7 @@ feed_demand <-
          eFCR_mean = if_else(is.na(eFCR_mean), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_mean)) %>% 
   mutate(feed_demand = value*eFCR_min)
   
-saveRDS(object = feed_demand, file = here("data/tidy_data/global_feed_demand.rds"))
+saveRDS(object = feed_demand, file = here("data/tidy_data/demand/global_feed_demand.rds"))
 
 ```
 
@@ -77,7 +77,7 @@ diet_summaries <-
   dplyr::select(c(groups, !matches('[2-9]+')), -ingredients) %>% 
   set_names(~str_replace_all(., pattern = "_1", replacement = "s"))
 
-saveRDS(object=diet_summaries, file = here("data/tidy_data/diet_summaries.rds"))
+saveRDS(object=diet_summaries, file = here("data/tidy_data/diets/diet_summaries.rds"))
   
 
 all_diets_list <- 
@@ -92,7 +92,7 @@ all_diets_list <-
 
 map(.x = all_diets_list,  .f = function(this_diet){ 
   this_file_name <- unique(this_diet$diet); 
-  saveRDS(object = this_diet, here(paste0(sprintf("data/tidy_data/diets/%s", this_file_name), ".rds")))
+  saveRDS(object = this_diet, here(paste0(sprintf("data/tidy_data/diet-scenarios/%s", this_file_name), ".rds")))
   })
 
 
@@ -102,9 +102,9 @@ map(.x = all_diets_list,  .f = function(this_diet){
 Now calculate ingredient demand per diet and for each country
 
 ```{r}
-diet_files <- list.files(here("data/tidy_data/diets"), full.names = TRUE)
+diet_files <- list.files(here("data/tidy_data/diet-scenarios"), full.names = TRUE)
 
-feed_demand_files <- readRDS(here("data/tidy_data/global_feed_demand.rds")) %>% 
+feed_demand_files <- readRDS(here("data/tidy_data/demand/global_feed_demand.rds")) %>% 
   dplyr::select(country, feed_demand) %>% 
   group_split(country)
 
@@ -132,7 +132,7 @@ list.files(here("data/tidy_data/ingredient-demand-by-country"), full.names = TRU
   map_df(readRDS) %>% 
   group_by(groups, ingredients, diet) %>% 
   summarise(total_ingredient_demand = sum(ingredient_demand, na.rm = TRUE)) %>% 
-  saveRDS(here("data/tidy_data/total_ingredient_demand.rds"))
+  saveRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
 
 ```
 
@@ -143,8 +143,8 @@ Next step is convert ingredient demand into raw material demand which will vary 
 
 #create the ingredient list to match raw materials with ingredients
 
-ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/total_ingredient_demand.rds")) |> pull(ingredients) |> unique()) |> 
-  write_csv(here("data/tidy_data/ingredient_list.csv"))
+ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> pull(ingredients) |> unique()) |> 
+  write_csv(here("data/tidy_data/diets/ingredient_list.csv"))
 
 
 ```
@@ -157,14 +157,14 @@ Have added codes and FAO_names for plant ingredients in teams so join these to p
 ```{r}
 
 ingredient_by_raw_material <- 
-  read_csv(here("data/tidy_data/plant_ingredient_codes.csv")) |> 
+  read_csv(here("data/tidy_data/diets/plant_ingredient_codes.csv")) |> 
   select(-reference) |> 
   drop_na(ingredient) |> 
   add_row(ingredient = "pea starch", raw_material = "peas", FAOSTAT_name = "Peas, green", FAO_code = 187, map_spam_code = "opul") |> 
   mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name)) 
  
 
-crop_production_raw <- readRDS(file = here("data/tidy_data/crops_production_tidy.rds"))
+crop_production_raw <- readRDS(file = here("data/tidy_data/production-data/crops_production_tidy.rds"))
 
 (crop_production <- 
   crop_production_raw |>
@@ -206,14 +206,40 @@ saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-d
 ```
 
 
-Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors from ingredients to  each of these raw materials in different places. 
+Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors from ingredients to  each of these raw materials in different places. This was done separately in the Sustainable Aquafeeds Project Teams interface and subsequently transferred to 'tidy_data' in this project. This can be combined with the global demand 
 
 ```{r}
 
-top_10_crop_producers <- readRDS(here("data/tidy_data/production-data/top_crop_producers.rds"))
+#import codes that will be compatible with MAPSPAM layers
+
+plant_ingredient_codes <- 
+  read_csv(here("data/tidy_data/diets/plant_ingredient_codes.csv")) |> 
+  select(-reference) |> 
+  drop_na(ingredient) |> 
+  #add_row(ingredient = "pea starch", raw_material = "peas", FAOSTAT_name = "Peas, green", FAO_code = 187, map_spam_code = "opul") |> this row is for if you want pea starch to come from green peas and dried peas - just using dried peas for simplicity
+  mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name))
+
+#join codes to top 10 producers and conversion factors data
+(top_10_crop_w_cf <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
+    select(-X7, -mean_value) |> 
+  left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name"))
+)
 
 
-arrange(ingredient_by_raw_material, FAOSTAT_name)
+#join the ingredient demand by diet to the top 10 producer data so for each ingredient there will be an raw material demand per source, and diet scenario. Create new raw_material demand column by dividing total ingredient demand by the conversion factor (i.e. the ingredient extraction rate from the raw material in the first place)
+crop_raw_material_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
+  ungroup() |> 
+  left_join(top_10_crop_w_cf, by = c("ingredients" = "ingredient")) |> 
+  drop_na(item) |> 
+  rename(FAOSTAT_name = item,
+         source_country = area,
+         source_iso3c = iso3c) |> 
+  mutate(total_crop_demand = total_ingredient_demand/cf)
+
+
+saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/total_crop_demand.rds"))
+  
+
 ```
 
   
