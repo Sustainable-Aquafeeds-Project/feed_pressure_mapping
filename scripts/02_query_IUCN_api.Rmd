@@ -44,7 +44,7 @@ saveRDS(object = spp_list_df, file = here("data/raw_data/iucn/spp_list.rds"), co
 
 ```
 
-Get species habitat data. This takes a couple of dats to run. Don't run if not needed. If needed, adjust the 'iucn_habitat_dir' to your storage.
+Get species habitat data. This takes a couple of days to run. Don't run if not needed. If needed, adjust the 'iucn_habitat_dir' to your storage.
 
 ```{r}
 

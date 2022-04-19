@@ -236,8 +236,9 @@ crop_raw_material_demand <- readRDS(here("data/tidy_data/demand/total_ingredient
          source_iso3c = iso3c) |> 
   mutate(total_crop_demand = total_ingredient_demand/cf)
 
-
+#export total crop demand for a woring data source
 saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/total_crop_demand.rds"))
+  
   
 
 ```

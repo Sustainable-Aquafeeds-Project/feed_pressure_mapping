@@ -58,6 +58,8 @@ parallel::mclapply(X = tifs, FUN = adjust_extent, mc.cores = 6)
 
 ```
 
+
+
 This is the code to unzip the gridded livestock of the world rasters - DO NOT RUN IN PROJECT - here as a backup to scripts in the raw data files
 
 ```{r}
