@@ -24,9 +24,6 @@ crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 crop_list <- unique(crop_demand$map_spam_code)
 
-this_file <- "/mnt/rdsi/raw_data/MAPSPAM/new-extents/spam2010V2r0_global_Y_SUNF_R.tif"
-this_code <- crop_list[1]
-
 mclapply(X=crop_list, FUN =  \(this_code){
   #identify all files for each crop
   these_crop_files <- list.files(file.path(mapspam_dir, "new-extents"), pattern = sprintf("_%s_", toupper(this_code)), full.names = TRUE)
@@ -40,7 +37,11 @@ mclapply(X=crop_list, FUN =  \(this_code){
 )
 
 
+```
 
+We're intetrested in the impacts of different diets depending on their make-up and where they are sourced from so probably organise the spatial outputs by diet
+```{r}
+unique(crop_demand$diet)
 
 ```
 
