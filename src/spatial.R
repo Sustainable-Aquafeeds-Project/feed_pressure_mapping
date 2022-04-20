@@ -1,3 +1,10 @@
+#some spatial libraries
+library(tidyverse)
+library(sf)
+library(raster)
+library(rnaturalearth)
+
+
 #projections
 
 equal_area_gp_proj <- "+proj=cea +lon_0=0 +lat_ts=45 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"
@@ -8,9 +15,9 @@ equal_area_moll_esri <- "ESRI:54009"
 
 
 #base rasters
-base <- raster()
-values(base) <- 1:ncell(base)
-base_ea <- projectRaster(base, crs = equal_area_gp_proj )
-res(base_ea) <- 10000
-values(base_ea) <- 1:ncell(base_ea)
+base_raster <- raster()
+values(base_raster) <- 1:ncell(base_raster)
+base_raster_ea <- projectRaster(base_raster, crs = equal_area_gp_proj)
+res(base_raster_ea) <- 10000
+values(base_raster_ea) <- 1:ncell(base_raster_ea) 
 

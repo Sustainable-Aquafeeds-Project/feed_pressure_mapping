@@ -1,0 +1,85 @@
+---
+title: "Allocate_crop_demand"
+author: "Rich Cottrell"
+date: "19/04/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(raster)
+
+source(here("src/directories.R"))
+source(here("src/spatial.R"))
+
+select <- dplyr::select
+
+```
+
+
+Get the mapspam codes of interest from the demand calculations and import the rasters into the project
+```{r}
+
+crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
+
+crop_list <- unique(crop_demand$map_spam_code)
+
+mclapply(X=crop_list, FUN =  \(this_code){
+  #identify all files for each crop
+  these_crop_files <- list.files(file.path(mapspam_dir, "new-extents"), pattern = sprintf("_%s_", toupper(this_code)), full.names = TRUE)
+  these_crop_filenames <- list.files(file.path(mapspam_dir, "new-extents"), pattern = sprintf("_%s_", toupper(this_code)))
+  map2(.x = these_crop_files, .y = these_crop_filenames, .f = \(this_file, this_filename){
+    #import the raster
+    imported_file <- raster(this_file)
+    writeRaster(imported_file, filename = paste0(here("data/spatial/01-crop-layers-raw/"), this_filename), overwrite=TRUE)})
+  },
+  mc.cores = 7
+)
+
+
+```
+
+We're intetrested in the impacts of different diets depending on their make-up and where they are sourced from so probably organise the spatial outputs by diet but also the source country and the ingredient (rather than the crop as we want impacts to be associated per ingredient).
+```{r}
+
+crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
+
+ingredient_per_country_per_diet <- crop_demand |> 
+  group_split(diet, ingredients, source_country)
+
+length(ingredient_per_country_per_diet)
+
+
+AllocateSpatialCropDemand <- \(this_ingredient_source){
+
+}
+
+this_ingredient_source <- ingredient_per_country_per_diet[[1]]
+
+
+#parameters within diet-ingredient-source demand data
+this_diet <- unique(this_ingredient_source$diet)
+
+this_country <- unique(this_ingredient_source$source_iso3c)
+
+this_ingredient <- unique(this_ingredient_source$ingredients)
+
+this_mapspam_code <- unique(this_ingredient_source$map_spam_code)
+
+
+
+
+this_country_raster <- raster(here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
+
+this_global_area_raster <- raster(list.files(here("data/spatial/01-crop-layers-raw"), pattern = sprintf("_A_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
+
+
+plot(projectRaster(from = this_global_raster, to = base_raster_ea)*this_country_raster)
+
+
+
+
+
+```
+

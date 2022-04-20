@@ -1,0 +1,43 @@
+---
+title: "Create country-based rasters"
+author: "Rich Cottrell"
+date: "20/04/2022"
+output: html_document
+---
+Libraries
+```{r}
+library(tidyverse)
+library(sf)
+library(raster)
+library(rnaturalearth)
+library(fasterize)
+
+source(here("src/spatial.R"))
+source(here("src/fxns.R"))
+
+
+```
+
+
+Write country shapefiles to raster for terrestrial systems
+
+```{r}
+
+# country shapefiles
+countries_shp <- ne_countries(scale = "medium", type = "countries", returnclass = "sf")
+
+#crop feed countries
+crop_countries <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> pull(source_iso3c) |> unique()
+
+crop_countries_shp <- countries_shp |> filter(iso_a3 %in% crop_countries)
+
+#check the crop from the demand data and teh shapefile are now all the same
+length(crop_countries_shp |> pull(iso_a3) |> unique())
+length(crop_countries)
+  
+#run it on multiple cores - if it returns null it's because the file already exists
+mclapply(X = crop_countries, FUN = write_country_raster, mc.cores = detectCores()-1)
+
+
+```
+

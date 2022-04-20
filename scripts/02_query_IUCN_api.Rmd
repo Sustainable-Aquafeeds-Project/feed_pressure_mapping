@@ -16,7 +16,7 @@ library(jsonlite)
 library(parallel)
 
 source(here("src/directories.R"))
-source(here("src/iucn_fxs.R"))
+source(here("src/fxns.R"))
 
 
 

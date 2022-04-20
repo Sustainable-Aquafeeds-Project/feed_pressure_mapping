@@ -1,4 +1,4 @@
-# IUCN api query funcitons
+# IUCN API query functions
 
 library(rredlist)
 library(here)
@@ -35,8 +35,6 @@ get_threat_api <- function(this_spp_id){
   return(this_result)
   
 }
-
-
 
 
 get_threat_api_casey <- function(this_spp_id){
@@ -87,6 +85,23 @@ get_threat_api_casey <- function(this_spp_id){
 
 
 
+
+# Functions for rasterizing country shapefiles
+
+write_country_raster <- \(this_country){
+  
+  this_country_filepath <- here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country))
+  
+  if(!file.exists(this_country_filepath)){
+    
+    this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3)) |>  st_transform(crs = equal_area_gp_proj)
+    
+    this_country_raster <- fasterize(this_country_map, raster = base_raster_ea)
+    
+    writeRaster(x = this_country_raster, filename = here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
+    
+  }
+}
 
 
 
