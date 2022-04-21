@@ -86,7 +86,7 @@ get_threat_api_casey <- function(this_spp_id){
 
 
 
-# Functions for rasterizing country shapefiles
+# Function for rasterizing country shapefiles
 
 write_country_raster <- \(this_country){
   
