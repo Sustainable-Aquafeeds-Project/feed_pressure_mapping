@@ -8,13 +8,16 @@ Libraries
 ```{r}
 library(tidyverse)
 library(sf)
-library(raster)
+library(here)
+library(terra)
 library(rnaturalearth)
 library(fasterize)
+library(parallel)
+library(purrr)
 
-source(here("src/spatial.R"))
-source(here("src/fxns.R"))
+  equal_area_gp_proj <- "+proj=cea +lon_0=0 +lat_ts=45 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"
 
+    base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
 ```
 
@@ -36,7 +39,21 @@ length(crop_countries_shp |> pull(iso_a3) |> unique())
 length(crop_countries)
   
 #run it on multiple cores - if it returns null it's because the file already exists
-mclapply(X = crop_countries, FUN = write_country_raster, mc.cores = detectCores()-1)
+
+mclapply(X = crop_countries, FUN =  \(this_country){
+  
+  this_country_filepath <- here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country))
+  
+  if(!file.exists(this_country_filepath)){
+    
+    this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3)) |>  st_transform(crs = equal_area_gp_proj)
+    
+    this_country_raster <- rasterize(x = vect(this_country_map), y = base_raster_ea, )
+    
+    writeRaster(x = this_country_raster, filename = here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)), overwrite=TRUE)
+    
+  }
+}, mc.cores = detectCores()-2)
 
 
 ```

@@ -2,6 +2,7 @@
 
 library(rredlist)
 library(here)
+library(terra)
 
 
 source(here("src/directories.R"))
@@ -92,13 +93,13 @@ write_country_raster <- \(this_country){
   
   this_country_filepath <- here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country))
   
-  if(!file.exists(this_country_filepath)){
+  if(file.exists(this_country_filepath)){
     
     this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3)) |>  st_transform(crs = equal_area_gp_proj)
     
-    this_country_raster <- fasterize(this_country_map, raster = base_raster_ea)
+    this_country_raster <- rasterize(x = vect(this_country_map), y = base_raster_ea)
     
-    writeRaster(x = this_country_raster, filename = here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
+    writeRaster(x = this_country_raster, filename = here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)), overwrite=TRUE)
     
   }
 }

@@ -8,12 +8,11 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(parallel)
-library(raster)
 library(janitor)
 library(here)
 library(countrycode)
 library(rredlist)
-library(raster)
+library(terra)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
@@ -190,13 +189,13 @@ map(.x = production_sector_list, .f = function(this_element){
 Create a base raster
 ```{r}
 
-base_raster <- raster()
+base_raster <- rast()
 values(base_raster) <- 1:ncell(base_raster)
-base_raster_ea <- projectRaster(base_raster, crs = equal_area_gp_proj)
+base_raster_ea <- project(base_raster, equal_area_gp_proj)
 res(base_raster_ea) <- 10000
 values(base_raster_ea) <- 1:ncell(base_raster_ea) 
 
-writeRaster(x = base_raster_ea, file = here("data/spatial/base_raster_gall_peters.tif"))
+writeRaster(x = base_raster_ea, file = here("data/spatial/base_raster_gall_peters.tif"), overwrite=TRUE)
 
 
 

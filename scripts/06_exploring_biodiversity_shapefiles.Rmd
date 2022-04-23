@@ -12,19 +12,34 @@ library(tidyverse)
 library(here)
 library(sf)
 library(dtplyr)
-library(raster)
+library(terra)
 
 source(here("src/directories.R"))
 
 
 ```
 
-Look at birds
+Convert birds of the world from gdb to shapefile
 ```{r}
 
-birds_filepath <- st_read(file.path(iucn_dir, "spp_shapefiles/MAMMALS/MAMMALS.shp"))
+birds_gdb <- st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"))
+
+```
+
+
+
+
+All shapefiles 
+```{r}
+spp_groups <- list.files(file.path(iucn_dir, "spp_shapefiles"))[-grep(pattern = "BOTW", list.files(file.path(iucn_dir, "spp_shapefiles")))] #excluding birds of the wo
+
+
+
+
+birds_filepath <- st_read(file.path(iucn_dir, list.files(sprintf("spp_shapefiles/$s", this_spp_group, pattern )
 
 unique(birds_filepath$binomial)
+
 
 
 ```
