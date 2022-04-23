@@ -19,8 +19,10 @@ source(here("src/directories.R"))
 
 ```
 
-
+Look at birds
 ```{r}
+
+birds_filepath <- st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"))
 
 
 
