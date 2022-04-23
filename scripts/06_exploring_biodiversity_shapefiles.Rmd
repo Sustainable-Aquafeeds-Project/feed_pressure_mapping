@@ -1,0 +1,29 @@
+---
+title: "Exploring biodiversity files"
+output: html_document
+---
+
+This script explores the raw biodiversity shapefiles from IUCN and birds of the world stored on the rdsi storage.
+
+Libraries
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(here)
+library(sf)
+library(dtplyr)
+library(raster)
+
+source(here("src/directories.R"))
+
+
+```
+
+
+```{r}
+
+
+
+
+```
+

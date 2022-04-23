@@ -12,6 +12,8 @@ library(parallel)
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
+base_raster_ea <- raster(here("data/spatial/base_raster_gall_peters.tif"))
+
 select <- dplyr::select
 ```
 

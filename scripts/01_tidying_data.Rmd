@@ -13,8 +13,10 @@ library(janitor)
 library(here)
 library(countrycode)
 library(rredlist)
+library(raster)
 
 source(here("src/directories.R"))
+source(here("src/spatial.R"))
 
 ```
 
@@ -181,6 +183,21 @@ map(.x = production_sector_list, .f = function(this_element){
   saveRDS(object = this_element, file = sprintf(here("data/tidy_data/production-data/%s_production_tidy.rds"), tolower(unique(this_element$sector))))
 })
   
+
+
+
+```
+Create a base raster
+```{r}
+
+base_raster <- raster()
+values(base_raster) <- 1:ncell(base_raster)
+base_raster_ea <- projectRaster(base_raster, crs = equal_area_gp_proj)
+res(base_raster_ea) <- 10000
+values(base_raster_ea) <- 1:ncell(base_raster_ea) 
+
+writeRaster(x = base_raster_ea, file = here("data/spatial/base_raster_gall_peters.tif"))
+
 
 
 
