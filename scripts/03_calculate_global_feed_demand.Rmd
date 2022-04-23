@@ -202,7 +202,6 @@ write.csv(x = top_10_crop_producers, file = here("data/tidy_data/production-data
 saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-data/top_crop_producers.rds"))
 
 
-
 ```
 
 

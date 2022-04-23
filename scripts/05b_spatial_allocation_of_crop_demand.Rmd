@@ -70,7 +70,8 @@ top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_produ
     mutate(demand_production_ratio = total_crop_demand/mean_value,
            check = demand_production_ratio>1))
 
-countries_crops_demand_greaterthan_production <- demand_production_compare |> filter(check==TRUE)
+#demand exceeds average production in 12% of instances 
+(countries_crops_demand_greaterthan_production <- demand_production_compare |> filter(check==TRUE) |> arrange(-demand_production_ratio))
 
 ingredient_per_country_per_diet <- crop_demand |> 
   group_split(diet, ingredients, source_country)
@@ -78,6 +79,7 @@ ingredient_per_country_per_diet <- crop_demand |>
 #should be 15 diets * 16 ingredients * 10 top source countries
 length(ingredient_per_country_per_diet)
 
+this_ingredient_source <- ingredient_per_country_per_diet[[1]]
 
 #allocating demand on spatial production layers by diet, ingredient, and source country
 AllocateSpatialCropDemand <- \(this_ingredient_source){
@@ -100,19 +102,23 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   if(file.exists(this_demand_raster_filename)){
     
     #spatial adjustments of area data by demand
-    this_country_raster <- raster(here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
+    this_country_raster <- rast(here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
     
-    #using all technologiwa at present - may want to disaggregate by rainfed or irrigated
-    this_global_area_raster <- raster(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = sprintf("_A_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
-    this_global_production_raster <- raster(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
+    #using all technologies at present - may want to disaggregate by rainfed or irrigated
+    this_global_area_raster <- rast(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = sprintf("_A_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
+    
+    this_global_production_raster <- rast(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
     
     this_country_area_raster <- this_global_area_raster*this_country_raster
     
     this_country_production_raster <- this_global_production_raster*this_country_raster
     
-    this_demand_production_ratio <- this_demand_quantity/sum(raster::values(this_country_production_raster), na.rm = TRUE)
+    this_demand_production_ratio <- this_demand_quantity/sum(terra::values(this_country_production_raster), na.rm = TRUE)
     
-    #at present this scales the production area for country-ingredient combos. Where demand  is bigger than current production this expands the area beyond the current growing region. To my mind this meets the assumption that expansion provides (on average) a smaller bottleneck that does improving yields. Could also just make the ratio one where demand outstrips production
+    #
+    
+    if
+    
     this_demand_raster <- this_country_area_raster*this_demand_production_ratio
       
     raster::writeRaster( x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
@@ -122,6 +128,7 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
 
 mclapply(X = ingredient_per_country_per_diet, FUN = AllocateSpatialCropDemand, mc.cores = detectCores()-2)
 
+top_10_producers |> filter(item == "Rapeseed")
 
 ```
 
