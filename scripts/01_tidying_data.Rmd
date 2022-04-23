@@ -44,17 +44,19 @@ extent(banana) <- new_extent
 
 #apply new extents to all files
 
-tifs <- list.files(dir, pattern = "\\.tif")
+tifs <- list.files(mapspam_dir, pattern = "\\.tif", full.names = TRUE)
 
-adjust_extent <- function(this_file){
+adjust_extent <- \(this_filename){
+  
+  this_file <- basename(this_filename)
   message(paste("processing", which(tifs==this_file), "of", length(tifs)))
-  this_raster <- raster(this_file)
-  extent(this_raster) <- new_extent
+  this_raster <- rast(this_filename)
+  ext(this_raster) <- new_extent
   writeRaster(x=this_raster, filename = file.path("/mnt/rdsi/raw_data/MAPSPAM/new-extents", this_file), overwrite = TRUE)
 }
 
-#run over mutliple cores to speed things up
-parallel::mclapply(X = tifs, FUN = adjust_extent, mc.cores = 6)
+#run over mutliple cores to speed things up - pointer error but all files ran.
+parallel::mclapply(X = tifs, FUN = adjust_extent, mc.cores = detectCores()-2)
 
 
 ```

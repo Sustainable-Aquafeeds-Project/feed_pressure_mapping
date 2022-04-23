@@ -6,13 +6,13 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(here)
-library(raster)
+library(terra)
 library(parallel)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
-base_raster_ea <- raster(here("data/spatial/base_raster_gall_peters.tif"))
+base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
 select <- dplyr::select
 ```
@@ -24,19 +24,25 @@ crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 crop_list <- unique(crop_demand$map_spam_code)
 
-mclapply(X=crop_list, FUN =  \(this_code){
+this_code <- crop_list[[1]]
+this_filepath <- these_crop_files[[1]]
+
+mclapply(X=crop_list, FUN = \(this_code){
   #identify all files for each crop
   these_crop_files <- list.files(file.path(mapspam_dir, "new-extents"), pattern = sprintf("_%s_", toupper(this_code)), full.names = TRUE)
-  these_crop_filenames <- list.files(file.path(mapspam_dir, "new-extents"), pattern = sprintf("_%s_", toupper(this_code)))
-  map2(.x = these_crop_files, .y = these_crop_filenames, .f = \(this_file, this_filename){
+  
+  mclapply(X = these_crop_files, FUN = \(this_filepath){
+  
+    this_file <- basename(this_filepath)
+    
     #import the raster
-    imported_file <- raster(this_file)
+    imported_file <- rast(this_filepath)
     imported_file <- imported_file*0.01 #converts the imported raster to km2 from ha
-    reprojected_file <-  projectRaster(from = imported_file, to = base_raster_ea)
+    reprojected_file <-  project(x=imported_file, y= base_raster_ea)
     #reprojected_file <- (reprojected_file) 
     
-    writeRaster(imported_file, filename = paste0(here("data/spatial/01-crop-layers-raw/"), this_filename), overwrite=TRUE)
-    writeRaster(reprojected_file, filename = paste0(here("data/spatial/02-crop-layers-reprojected/"), this_filename), overwrite=TRUE)
+    writeRaster(imported_file, filename = paste0(here("data/spatial/01-crop-layers-raw/"), this_file), overwrite=TRUE)
+    writeRaster(reprojected_file, filename = paste0(here("data/spatial/02-crop-layers-reprojected/"), this_file), overwrite=TRUE)
   }
   )
 },
