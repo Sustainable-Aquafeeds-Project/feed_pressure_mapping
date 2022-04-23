@@ -1,8 +1,3 @@
-#some spatial libraries
-library(tidyverse)
-library(sf)
-library(raster)
-library(rnaturalearth)
 
 
 #projections

@@ -1,7 +1,5 @@
 ---
-title: "Allocate_crop_demand"
-author: "Rich Cottrell"
-date: "19/04/2022"
+title: "Spatial Allocation of Crop Demand"
 output: html_document
 ---
 
@@ -9,17 +7,15 @@ output: html_document
 library(tidyverse)
 library(here)
 library(raster)
-
+library(parallel)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
 select <- dplyr::select
-
 ```
 
 
-Get the mapspam codes of interest from the demand calculations, import the rasters into the project, and create new rasters reprojected with the gall-peters equal area projection. This takes a hot second (20+ mins). 
 ```{r}
 
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
@@ -42,15 +38,15 @@ mclapply(X=crop_list, FUN =  \(this_code){
   }
   )
 },
-mc.cores = detectCores()-1
+mc.cores = detectCores()-2
 )
 
 
 ```
 
+
 We're intetrested in the impacts of different diets depending on their make-up and where they are sourced from so probably organise the spatial outputs by diet but also the source country and the ingredient (rather than the crop as we want impacts to be associated per ingredient).
 ```{r}
-
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 #check that demand for each rawe material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive)
@@ -75,6 +71,7 @@ ingredient_per_country_per_diet <- crop_demand |>
 length(ingredient_per_country_per_diet)
 
 
+#allocating demand on spatial production layers by diet, ingredient, and source country
 AllocateSpatialCropDemand <- \(this_ingredient_source){
   
   #parameters within diet-ingredient-source demand data
@@ -115,12 +112,7 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   }
 }
 
-
-
-mclapply(X = ingredient_per_country_per_diet, FUN = AllocateSpatialCropDemand, mc.cores = detectCores()-1)
-
-
-
+mclapply(X = ingredient_per_country_per_diet, FUN = AllocateSpatialCropDemand, mc.cores = detectCores()-2)
 
 
 ```
