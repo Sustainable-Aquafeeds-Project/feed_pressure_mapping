@@ -17,12 +17,26 @@ library(terra)
 source(here("src/directories.R"))
 
 
+current_severe_threats_of_interest <- read_csv(here("data/tidy_data/iucn/current_severe_threats_of_interest.csv"))
+
 ```
+
+Import threat data
+```{r}
+
+current_severe_threats_of_interest <- 
+  
+
+```
+
+
 
 Convert birds of the world from gdb to shapefile
 ```{r}
 
-birds_gdb <- st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"))
+birds_layers <- st_layers(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"))
+
+st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"), layer = "All_Species", METHOD = )
 
 ```
 
