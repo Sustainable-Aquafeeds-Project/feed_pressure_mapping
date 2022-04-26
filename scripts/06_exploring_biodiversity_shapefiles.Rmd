@@ -11,23 +11,35 @@ Libraries
 library(tidyverse)
 library(here)
 library(sf)
+library(data.table)
 library(dtplyr)
 library(terra)
+library(parallel)
 
 source(here("src/directories.R"))
 
+source(here("src/spatial.R"))
 
-current_severe_threats_of_interest <- read_csv(here("data/tidy_data/iucn/current_severe_threats_of_interest.csv"))
+base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
 ```
 
 Import threat data
 ```{r}
 
-current_severe_threats_of_interest <- 
+current_severe_threats_of_interest <- read_csv(here("data/tidy_data/iucn/current_severe_threats_of_interest.csv")) |> 
+  rename(id_no = id)
   
+#how many species fall in to te category of being affected by these threats? 12728 species
+length(unique(current_severe_threats_of_interest$id_no))
+
+#ongoing threats represent 93.9% of all threats
+current_severe_threats_of_interest |> filter(result_timing == "Ongoing") |> nrow()/(current_severe_threats_of_interest |> nrow())
+
+
 
 ```
+
 
 
 
@@ -36,8 +48,20 @@ Convert birds of the world from gdb to shapefile
 
 birds_layers <- st_layers(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"))
 
-st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"), layer = "All_Species", METHOD = )
+birds_gdb <- st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"), layer = "All_Species", METHOD = "SKIP")
 
+st_write(birds_gdb, file.path(iucn_dir, "iucn/spp_shapefiles/BOTW/BOTW.shp"))
+
+
+
+```
+
+
+Explore taxa with multiple shapefiles to see if they can be combined.
+
+```{r}
+
+taxon_list <- list.files(file.path(iucn_dir, "spp_shapefiles"))[-grep(pattern = "BOTW|hybas_table|FW_GROUP", list.files(file.path(iucn_dir, "spp_shapefiles")))] #excluding birds of the world and hybas tables
 ```
 
 
@@ -45,14 +69,150 @@ st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"), layer = "All_Specie
 
 All shapefiles 
 ```{r}
-spp_groups <- list.files(file.path(iucn_dir, "spp_shapefiles"))[-grep(pattern = "BOTW", list.files(file.path(iucn_dir, "spp_shapefiles")))] #excluding birds of the wo
+
+#this can be a bit buggy - takes A LONG TIME to run. Had to restart a few times as kills the memory, something to try to fix. For now splitting the list into chunks of three.
+
+#RUN 1
+map(.x = taxon_list, .f = \(this_taxon){
+  
+  message("processing ", this_taxon) 
+  
+  #read in shp files - can be multiple per taxon
+  this_taxons_shpfiles <- list.files(file.path(iucn_dir, sprintf("spp_shapefiles/%s/", this_taxon)), pattern = "\\.shp$")
+  
+  #read in each in the list of shp files
+    
+  this_taxon_shp_list <- mclapply(X=this_taxons_shpfiles, 
+                       FUN = \(this_shp){
+                         st_read(dsn = paste0("/mnt/rdsi/raw_data/iucn/spp_shapefiles/", this_taxon) , layer =  tools::file_path_sans_ext(this_shp))  
+                       },
+                       mc.cores=detectCores()-2)
+  
+  #filter for extant species and those we know to have ongoing (or past likely to reoccur threats that cause at least slow but substantial declines)
+  this_taxon_shp <- bind_rows(this_taxon_shp_list) |> 
+    filter(grepl("Extant", legend) & presence == 1) #|> 
+    #filter(id_no %in% current_severe_threats_of_interest$id_no)
+  
+  #isolate the species
+  these_spp <- unique(this_taxon_shp$id_no)
+  
+  
+  #cycle through the species
+  mclapply(X = these_spp, FUN = \(this_spp){
+    
+    spp_raster_filepath <- file.path(iucn_dir, sprintf("spp_rasters/spp_%s.tif", this_spp))
+    
+    #does this file path exist? If not create the file
+    if(!file.exists(spp_raster_filepath)){
+      
+      this_spp_shp <- this_taxon_shp |> filter(id_no == this_spp) |> st_transform(crs = equal_area_gp_proj)
+      
+      this_spp_raster <- rasterize(vect(this_spp_shp), base_raster_ea)
+      
+      writeRaster(x = this_spp_raster, filename = spp_raster_filepath, overwrite=TRUE)
+      }
+  },
+  
+  mc.cores = detectCores()-2)}
+  )
 
 
 
 
-birds_filepath <- st_read(file.path(iucn_dir, list.files(sprintf("spp_shapefiles/$s", this_spp_group, pattern )
 
-unique(birds_filepath$binomial)
+
+
+
+
+#RUN 2
+ map(.x = taxon_list[11:20], .f = \(this_taxon){
+  
+  message("processing ", this_taxon) 
+   
+   
+  #read in shp files - can be multiple per taxon
+  this_taxons_files <- list.files(file.path(iucn_dir, sprintf("spp_shapefiles/%s/", this_taxon)), pattern = "\\.shp$", full.names = TRUE)
+  
+  #read in each in the list of shp files
+  this_taxon_shp_list <- mclapply(X=this_taxons_files, 
+                       FUN = st_read, 
+                       mc.cores = detectCores()-2)
+  
+  #filter for extant species and those we know to have ongoing (or past likely to reoccur threats that cause at least slow but substantial declines)
+  this_taxon_shp <- bind_rows(this_taxon_shp_list) |> 
+    filter(grepl("Extant", legend) & presence == 1) |> 
+    filter(id_no %in% current_severe_threats_of_interest$id_no)
+  
+  #isolate the species
+  these_spp <- unique(this_taxon_shp$id_no)
+  
+  
+  #cycle through the species
+  mclapply(X = these_spp, FUN = \(this_spp){
+    
+    spp_raster_filepath <- file.path(iucn_dir, sprintf("spp_rasters/spp_%s.tif", this_spp))
+    
+    #does this file path exist? If not create the file
+    if(!file.exists(spp_raster_filepath)){
+      
+      this_spp_shp <- this_taxon_shp |> filter(id_no == this_spp) |> st_transform(crs = equal_area_gp_proj)
+      
+      this_spp_raster <- rasterize(vect(this_spp_shp), base_raster_ea)
+      
+      writeRaster(x = this_spp_raster, filename = spp_raster_filepath, overwrite=TRUE)
+      }
+  },
+  
+  mc.cores = detectCores()-2)}
+  ) 
+  
+ 
+ #RUN 3
+ 
+ map(.x = taxon_list[21:length(taxon_list)], .f = \(this_taxon){
+   
+   message("processing ", this_taxon) 
+  
+  #read in shp files - can be multiple per taxon
+  this_taxons_files <- list.files(file.path(iucn_dir, sprintf("spp_shapefiles/%s/", this_taxon)), pattern = "\\.shp$", full.names = TRUE)
+  
+  #read in each in the list of shp files
+  this_taxon_shp_list <- mclapply(X=this_taxons_files, 
+                       FUN = st_read, 
+                       mc.cores = detectCores()-2)
+  
+  #filter for extant species and those we know to have ongoing (or past likely to reoccur threats that cause at least slow but substantial declines)
+  this_taxon_shp <- bind_rows(this_taxon_shp_list) |> 
+    filter(grepl("Extant", legend) & presence == 1) |> 
+    filter(id_no %in% current_severe_threats_of_interest$id_no)
+  
+  #isolate the species
+  these_spp <- unique(this_taxon_shp$id_no)
+  
+  
+  #cycle through the species
+  mclapply(X = these_spp, FUN = \(this_spp){
+    
+    spp_raster_filepath <- file.path(iucn_dir, sprintf("spp_rasters/spp_%s.tif", this_spp))
+    
+    #does this file path exist? If not create the file
+    if(!file.exists(spp_raster_filepath)){
+      
+      this_spp_shp <- this_taxon_shp |> filter(id_no == this_spp) |> st_transform(crs = equal_area_gp_proj)
+      
+      this_spp_raster <- rasterize(vect(this_spp_shp), base_raster_ea)
+      
+      writeRaster(x = this_spp_raster, filename = spp_raster_filepath, overwrite=TRUE)
+      }
+  },
+  
+  mc.cores = detectCores()-2)}
+  )
+  
+
+
+
+
 
 
 

@@ -212,9 +212,11 @@ threats <- readRDS(file.path(iucn_dir, "threat_info/1_all_threats.rds")) |>
   drop_na(id) |>
   janitor::clean_names()
 
+unique(threats$result_timing)
+
 current_severe_threats <- 
   threats |> 
-  filter(result_timing %in% c("Ongoing", "Past, Likely to Return") &
+  filter(result_timing %in% c("Ongoing", "Past, Likely to Return", "Past, Unlikely to Return", "Future") &
         result_severity %in% c( "Rapid Declines", "Slow, Significant Declines", "Causing/Could cause fluctuations", "Very Rapid Declines"))
 
 threats_reduced <- 
