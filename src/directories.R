@@ -23,3 +23,7 @@ iucn_dir <- "/mnt/rdsi/raw_data/iucn"
 #FAO data directories
 
 fishstat_dir <- "/mnt/rdsi/raw_data/fao/FAO_fishstat_2019"
+
+#Rich local machine
+iucn_rich_local_dir <- "/Users/rsc2/Dropbox/Data/IUCN Red List"
+
