@@ -22,7 +22,7 @@ source(here("src/spatial.R"))
 
 base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
-iucn_rich_local_dir <- "/Users/rsc2/Dropbox/Data/IUCN Red List/IUCN"
+iucn_rich_local_dir <- "/Users/rsc2/Dropbox/Data/IUCN Red List"
 
 
 ```
@@ -46,7 +46,7 @@ current_severe_threats_of_interest |> filter(result_timing == "Ongoing") |> nrow
 
 
 
-Convert birds of the world from gdb to shapefile
+Convert birds of the world from gdb to shapefile. This works on my local device but not on my NECTAR Cloud RStudio, weirdly. So copied the exported version to the RDSI storage in 'iucn_dir'
 ```{r}
 
 
@@ -55,21 +55,27 @@ birds_layers <- st_layers(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"))
 
 
 birds_gdb_file <- file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb")
+
+birds_local_gdb_file <- file.path(iucn_rich_local_dir, "BOTW/BOTW.gdb")
+
   
-# List all feature classes in a file geodatabase
-subset(rgdal::ogrDrivers(), grepl("GDB", name))
-fc_list = rgdal::ogrListLayers(birds_gdb_file)
-print(fc_list)
+botw <- st_read(dsn = birds_local_gdb_file, layer = "All_Species")
+
+n_groups <- 3
+(len_groups <- (nrow(botw)/n_groups))
+
+botw_list <- botw %>% 
+  mutate(index = rep(1:n_groups, each=len_groups)) %>% 
+  group_split(index)
 
 
-botw <- rgdal::readOGR(dsn=birds_gdb_file, layer="All_Species")
+for(i in seq_along(botw_list)){
   
-  #st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"), layer = "All_Species", METHOD = "SKIP")
+  st_write(botw_list[[i]], paste0())
+  
+  st_write(botw, sprintf("/Users/rsc2/Dropbox/Data/IUCN Red List/BOTW/BOTW_PART_%s.shp", i))
+}
 
-
-
-
-st_write(birds_gdb, file.path(iucn_dir, "iucn/spp_shapefiles/BOTW/BOTW.shp"))
 
 
 
