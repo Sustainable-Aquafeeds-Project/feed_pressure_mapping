@@ -64,18 +64,11 @@ botw <- st_read(dsn = birds_local_gdb_file, layer = "All_Species")
 n_groups <- 3
 (len_groups <- (nrow(botw)/n_groups))
 
-botw_list <- botw %>% 
+botw %>% 
   mutate(index = rep(1:n_groups, each=len_groups)) %>% 
-  group_split(index)
-
-
-for(i in seq_along(botw_list)){
-  
-  st_write(botw_list[[i]], paste0())
-  
-  st_write(botw, sprintf("/Users/rsc2/Dropbox/Data/IUCN Red List/BOTW/BOTW_PART_%s.shp", i))
-}
-
+  group_by(index) %>% 
+  nest() %>% 
+  mutate(txt = walk2(.x = data, .y = index, ~st_write(obj = .x, dsn = paste0(iucn_rich_local_dir, "/BOTW/BOTW_PART_", .y, ".shp"))))
 
 
 
