@@ -22,6 +22,9 @@ source(here("src/spatial.R"))
 
 base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
+iucn_rich_local_dir <- "/Users/rsc2/Dropbox/Data/IUCN Red List/IUCN"
+
+
 ```
 
 Import threat data
@@ -46,9 +49,25 @@ current_severe_threats_of_interest |> filter(result_timing == "Ongoing") |> nrow
 Convert birds of the world from gdb to shapefile
 ```{r}
 
+
+
 birds_layers <- st_layers(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"))
 
-birds_gdb <- st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"), layer = "All_Species", METHOD = "SKIP")
+
+birds_gdb_file <- file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb")
+  
+# List all feature classes in a file geodatabase
+subset(rgdal::ogrDrivers(), grepl("GDB", name))
+fc_list = rgdal::ogrListLayers(birds_gdb_file)
+print(fc_list)
+
+
+botw <- rgdal::readOGR(dsn=birds_gdb_file, layer="All_Species")
+  
+  #st_read(file.path(iucn_dir, "spp_shapefiles/BOTW/BOTW.gdb"), layer = "All_Species", METHOD = "SKIP")
+
+
+
 
 st_write(birds_gdb, file.path(iucn_dir, "iucn/spp_shapefiles/BOTW/BOTW.shp"))
 
