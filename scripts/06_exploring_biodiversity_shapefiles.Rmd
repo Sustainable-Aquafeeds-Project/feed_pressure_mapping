@@ -61,7 +61,7 @@ birds_local_gdb_file <- file.path(iucn_rich_local_dir, "BOTW/BOTW.gdb")
   
 botw <- st_read(dsn = birds_local_gdb_file, layer = "All_Species")
 
-n_groups <- 3
+n_groups <- 9
 (len_groups <- (nrow(botw)/n_groups))
 
 botw %>% 
