@@ -1,0 +1,108 @@
+---
+title: "Calculating area loss from species habitats"
+output: html_document
+---
+
+Libraries
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(here)
+library(sf)
+library(data.table)
+library(dtplyr)
+library(terra)
+library(raster)
+library(parallel)
+
+source(here("src/directories.R"))
+
+source(here("src/spatial.R"))
+
+base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
+
+select <- dplyr::select
+
+```
+
+
+Import threat data
+```{r}
+
+current_severe_threats_of_interest <- read_csv(here("data/tidy_data/iucn/current_severe_threats_of_interest.csv")) |> 
+  rename(id_no = id)
+  
+#how many species fall in to te category of being affected by these threats? 12728 species
+length(unique(current_severe_threats_of_interest$id_no))
+
+#ongoing threats represent 93.9% of all threats
+current_severe_threats_of_interest |> filter(result_timing == "Ongoing") |> nrow()/(current_severe_threats_of_interest |> nrow())
+
+
+
+```
+
+
+
+Import area of soy production using the balanced diet 1 as an example.
+```{r}
+
+base_raster_layer <- base_raster_ea |> raster()
+base_df <- rasterToPoints(base_raster_layer) |> lazy_dt() |> select(x, y)
+
+soy <-  rast(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = "_A_SOYB_A", full.names = TRUE)) |> raster()
+
+spc_files <- list.files(here("data/spatial/balanced_diet_1"), pattern = "soy protein concentrate_AllTech_", full.names = TRUE)
+
+spc_files_short <- spc_files[grepl("USA|BRA|CHN", spc_files)]
+
+country_files <- list.files(here("data/spatial/00-country-rasters"), full.names = TRUE)
+country_files_short <- country_files[grepl("USA|BRA|CHN", country_files)]
+
+
+r <- terra::rast(spc_files_short[[1]]) |> raster()
+
+c <- terra::rast(country_files_short[[1]]) |> raster()
+
+d <- rasterToPoints(r) |> lazy_dt() |> rename(z = soy.protein.concentrate_AllTech_BRA)
+
+
+
+
+
+
+terra::as.points(r, na.rm = FALSE, crs = equal_area_gp_proj)
+
+as.matrix(as.points(rast())) |> as.data.frame()
+
+rast(type = "xyz")
+
+plot(r)
+
+plot(rast(here("data/spatial/00-country-rasters/BRA.tif")))
+
+
+
+terr_mammals <- (list.files(file.path(iucn_dir, "spp_rasters/MAMMALS_TERRESTRIAL_ONLY"), full.names = TRUE, pattern = "\\.tif$"))
+
+extent(r)
+terra::ext(base_raster_ea)
+
+test <- st_read(dsn = "/mnt/rdsi/raw_data/iucn/spp_shapefiles/MANGROVES/MANGROVES.shp", layer = "MANGROVES")
+
+test_1 <- test |> filter(id_no == )
+
+rast2 <- rasterize(vect(test_1), y = base_raster_ea, touches = TRUE) |> raster()
+plot(rast2)
+
+test2 <- test_1 |> st_transform(crs = equal_area_gp_proj)
+
+plot(rast2)
+rast2 |> raster()
+
+terra::rasterize()
+
+r
+
+```
+

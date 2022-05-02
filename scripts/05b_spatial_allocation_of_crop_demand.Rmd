@@ -113,11 +113,9 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
     
     this_country_production_raster <- this_global_production_raster*this_country_raster
     
-    this_demand_production_ratio <- this_demand_quantity/sum(terra::values(this_country_production_raster), na.rm = TRUE)
-    
-    #
-    
-    if
+    this_demand_production_ratio <-
+      min(1, this_demand_quantity/sum(terra::values(this_country_production_raster), na.rm = TRUE))
+  
     
     this_demand_raster <- this_country_area_raster*this_demand_production_ratio
       
@@ -128,7 +126,6 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
 
 mclapply(X = ingredient_per_country_per_diet, FUN = AllocateSpatialCropDemand, mc.cores = detectCores()-2)
 
-top_10_producers |> filter(item == "Rapeseed")
 
 ```
 

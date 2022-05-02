@@ -46,9 +46,9 @@ mclapply(X = crop_countries, FUN =  \(this_country){
   
   if(!file.exists(this_country_filepath)){
     
-    this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3)) |>  st_transform(crs = equal_area_gp_proj)
+    this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3))
     
-    this_country_raster <- rasterize(x = vect(this_country_map), y = base_raster_ea, )
+    this_country_raster <- rasterize(x = vect(this_country_map), y = base_raster_ea)
     
     writeRaster(x = this_country_raster, filename = here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)), overwrite=TRUE)
     
