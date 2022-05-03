@@ -53,43 +53,94 @@ terrestrial_mammals <- list.files(file.path(iucn_dir, "spp_rasters/MAMMALS_TERRE
 ag_threat_index <- which(as.double(gsub("spp_", "", basename(tools::file_path_sans_ext(terrestrial_mammals)))) %in% current_severe_threats_of_interest$id_no, TRUE)
 vuln_terrestrial_mammals <- terrestrial_mammals[ag_threat_index]
 
+#select amphibians currently threatened by AG, aquaculture or fisheries
+amphibians <- list.files(file.path(iucn_dir, "spp_rasters/ANURA"), full.names = TRUE)
+ag_threat_index <- which(as.double(gsub("spp_", "", basename(tools::file_path_sans_ext(amphibians)))) %in% current_severe_threats_of_interest$id_no, TRUE)
+vuln_amphibians <- amphibians[ag_threat_index]
 
-#soy protein concentrate
+
+#soy protein concentrate raster spatial layers - select top 3 to start with
 spc_files <- list.files(here("data/spatial/balanced_diet_1"), pattern = "soy protein concentrate_AllTech_", full.names = TRUE)
-
 spc_files_top_3 <- spc_files[grepl("USA|BRA|CHN", spc_files)]
 
 
-map(spc_files_top_3, \(this_country){
+mammals_aoh <- map(spc_files_top_3, \(this_country){
   
-  this_country_spc_raster <- terra::rast(spc_files_short[[1]]) |> raster()
+  this_countryname <- gsub(pattern = "soy protein concentrate_AllTech_", replacement = "", basename(tools::file_path_sans_ext(this_country)))
   
-  this_country_spc_dt<- rasterToPoints(this_country_spc_raster) |> lazy_dt() |> rename(spc_area = 3) |> mutate(cell_area = 100)
+  message("processing mammals impacts in ", this_countryname)
+  
+  
+  this_country_spc_raster <- terra::rast(this_country) |> raster()
+  
+  this_country_spc_dt<- rasterToPoints(this_country_spc_raster) |> lazy_dt() |> rename(crop_area = 3) |> mutate(cell_area = 100)
   
   overlap_list <- mclapply(X = vuln_terrestrial_mammals, FUN = \(this_mammal){
+    
+    #isolate species
+    #this spp id
+    this_species <- as.numeric(gsub("spp_", "", basename(tools::file_path_sans_ext(this_mammal))))
+    
+    #import raster
+    this_spp_raster <- rast(this_mammal) |> raster()
+    #convert raster layer to species id
+    values(this_spp_raster)[!is.na(values(this_spp_raster))] <- this_species
+    #get the xyz file
+    this_spp_dt <- rasterToPoints(this_spp_raster) |> lazy_dt() |> rename(spp_id = layer)
+    
+    #inner join species and crop files so we know if they overlap and summarise the crop portion of spp habitat
+    spp_crop_overlap <-  this_spp_dt |> 
+      inner_join(this_country_spc_dt, by = c("x", "y")) |> 
+      group_by(spp_id) |> 
+      summarise(aoh = sum(crop_area)/sum(cell_area)) |> 
+      as.data.table()
+    
+  },
+  mc.cores = detectCores()-2)
   
-  #isolate species
-  #this spp id
-  this_species <- as.numeric(gsub("spp_", "", basename(tools::file_path_sans_ext(this_mammal))))
+  return(rbindlist(overlap_list) |> mutate(country = this_countryname) |> as_tibble)
   
-  #import raster
-  this_spp_raster <- rast(this_mammal) |> raster()
-  #convert raster layer to species id
-  values(this_spp_raster)[!is.na(values(this_spp_raster))] <- this_species
-  #get the xyz file
-  this_spp_dt <- rasterToPoints(this_spp_raster) |> lazy_dt() |> rename(spp_id = layer)
+})
+
+
+write_csv(x = map_df(mammals_aoh, as_tibble), file = here("explore/spc_mammals_aoh_balanced_diet_1.csv"))
+
+
+amphibs_aoh <- map(spc_files_top_3, \(this_country){
   
-  #inner join species and crop files so we know if they overlap and summarise the crop portion of spp habitat
-  spp_crop_overlap <-  this_spp_dt |> 
-    inner_join(this_country_spc_dt, by = c("x", "y")) |> 
-    group_by(spp_id) |> 
-    summarise(aoh = sum(spc_area)/sum(cell_area)) |> 
-    as.data.table()
+  this_countryname <- gsub(pattern = "soy protein concentrate_AllTech_", replacement = "", basename(tools::file_path_sans_ext(this_country)))
   
-  return(rbindlist(overlap_list))
+  message("processing amphibians impacts in ", this_countryname)
   
-},
-mc.cores = detectCores()-2)
+  
+  this_country_spc_raster <- terra::rast(this_country) |> raster()
+  
+  this_country_spc_dt<- rasterToPoints(this_country_spc_raster) |> lazy_dt() |> rename(crop_area = 3) |> mutate(cell_area = 100)
+  
+  overlap_list <- mclapply(X = vuln_terrestrial_mammals, FUN = \(this_mammal){
+    
+    #isolate species
+    #this spp id
+    this_species <- as.numeric(gsub("spp_", "", basename(tools::file_path_sans_ext(this_mammal))))
+    
+    #import raster
+    this_spp_raster <- rast(this_mammal) |> raster()
+    #convert raster layer to species id
+    values(this_spp_raster)[!is.na(values(this_spp_raster))] <- this_species
+    #get the xyz file
+    this_spp_dt <- rasterToPoints(this_spp_raster) |> lazy_dt() |> rename(spp_id = layer)
+    
+    #inner join species and crop files so we know if they overlap and summarise the crop portion of spp habitat
+    spp_crop_overlap <-  this_spp_dt |> 
+      inner_join(this_country_spc_dt, by = c("x", "y")) |> 
+      group_by(spp_id) |> 
+      summarise(aoh = sum(crop_area)/sum(cell_area)) |> 
+      as.data.table()
+    
+  },
+  mc.cores = detectCores()-2)
+  
+   return(rbindlist(overlap_list) |> mutate(country = this_countryname))
   
 })
 
@@ -103,42 +154,6 @@ mc.cores = detectCores()-2)
 
 
 
-
-
-
-
-terra::as.points(r, na.rm = FALSE, crs = equal_area_gp_proj)
-
-as.matrix(as.points(rast())) |> as.data.frame()
-
-rast(type = "xyz")
-
-plot(r)
-
-plot(rast(here("data/spatial/00-country-rasters/BRA.tif")))
-
-
-
-terr_mammals <- (list.files(file.path(iucn_dir, "spp_rasters/MAMMALS_TERRESTRIAL_ONLY"), full.names = TRUE, pattern = "\\.tif$"))
-
-extent(r)
-terra::ext(base_raster_ea)
-
-test <- st_read(dsn = "/mnt/rdsi/raw_data/iucn/spp_shapefiles/MANGROVES/MANGROVES.shp", layer = "MANGROVES")
-
-test_1 <- test |> filter(id_no == )
-
-rast2 <- rasterize(vect(test_1), y = base_raster_ea, touches = TRUE) |> raster()
-plot(rast2)
-
-test2 <- test_1 |> st_transform(crs = equal_area_gp_proj)
-
-plot(rast2)
-rast2 |> raster()
-
-terra::rasterize()
-
-r
 
 ```
 
