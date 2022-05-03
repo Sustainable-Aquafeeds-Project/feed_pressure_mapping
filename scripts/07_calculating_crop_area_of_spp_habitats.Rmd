@@ -42,29 +42,65 @@ current_severe_threats_of_interest |> filter(result_timing == "Ongoing") |> nrow
 
 ```
 
-
-
 Import area of soy production using the balanced diet 1 as an example.
 ```{r}
 
 base_raster_layer <- base_raster_ea |> raster()
 base_df <- rasterToPoints(base_raster_layer) |> lazy_dt() |> select(x, y)
 
-soy <-  rast(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = "_A_SOYB_A", full.names = TRUE)) |> raster()
+#seclect the mammals currently threatened by AG, Aquaculture or fisheries
+terrestrial_mammals <- list.files(file.path(iucn_dir, "spp_rasters/MAMMALS_TERRESTRIAL_ONLY"), full.names = TRUE)
+ag_threat_index <- which(as.double(gsub("spp_", "", basename(tools::file_path_sans_ext(terrestrial_mammals)))) %in% current_severe_threats_of_interest$id_no, TRUE)
+vuln_terrestrial_mammals <- terrestrial_mammals[ag_threat_index]
 
+
+#soy protein concentrate
 spc_files <- list.files(here("data/spatial/balanced_diet_1"), pattern = "soy protein concentrate_AllTech_", full.names = TRUE)
 
-spc_files_short <- spc_files[grepl("USA|BRA|CHN", spc_files)]
-
-country_files <- list.files(here("data/spatial/00-country-rasters"), full.names = TRUE)
-country_files_short <- country_files[grepl("USA|BRA|CHN", country_files)]
+spc_files_top_3 <- spc_files[grepl("USA|BRA|CHN", spc_files)]
 
 
-r <- terra::rast(spc_files_short[[1]]) |> raster()
+map(spc_files_top_3, \(this_country){
+  
+  this_country_spc_raster <- terra::rast(spc_files_short[[1]]) |> raster()
+  
+  this_country_spc_dt<- rasterToPoints(this_country_spc_raster) |> lazy_dt() |> rename(spc_area = 3) |> mutate(cell_area = 100)
+  
+  overlap_list <- mclapply(X = vuln_terrestrial_mammals, FUN = \(this_mammal){
+  
+  #isolate species
+  #this spp id
+  this_species <- as.numeric(gsub("spp_", "", basename(tools::file_path_sans_ext(this_mammal))))
+  
+  #import raster
+  this_spp_raster <- rast(this_mammal) |> raster()
+  #convert raster layer to species id
+  values(this_spp_raster)[!is.na(values(this_spp_raster))] <- this_species
+  #get the xyz file
+  this_spp_dt <- rasterToPoints(this_spp_raster) |> lazy_dt() |> rename(spp_id = layer)
+  
+  #inner join species and crop files so we know if they overlap and summarise the crop portion of spp habitat
+  spp_crop_overlap <-  this_spp_dt |> 
+    inner_join(this_country_spc_dt, by = c("x", "y")) |> 
+    group_by(spp_id) |> 
+    summarise(aoh = sum(spc_area)/sum(cell_area)) |> 
+    as.data.table()
+  
+  return(rbindlist(overlap_list))
+  
+},
+mc.cores = detectCores()-2)
+  
+})
 
-c <- terra::rast(country_files_short[[1]]) |> raster()
 
-d <- rasterToPoints(r) |> lazy_dt() |> rename(z = soy.protein.concentrate_AllTech_BRA)
+
+
+
+
+
+
+
 
 
 
