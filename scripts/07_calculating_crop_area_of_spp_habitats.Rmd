@@ -106,6 +106,7 @@ mammals_aoh <- map(spc_files_top_3, \(this_country){
 write_csv(x = map_df(mammals_aoh, as_tibble), file = here("explore/spc_mammals_aoh_balanced_diet_1.csv"))
 
 
+#AMPHIBIANS
 amphibs_aoh <- map(spc_files_top_3, \(this_country){
   
   this_countryname <- gsub(pattern = "soy protein concentrate_AllTech_", replacement = "", basename(tools::file_path_sans_ext(this_country)))
@@ -145,7 +146,7 @@ amphibs_aoh <- map(spc_files_top_3, \(this_country){
 })
 
 
-
+write_csv(x = map_df(amphibs_aoh, as_tibble), file = here("explore/spc_amphibs_aoh_balanced_diet_1.csv"))
 
 
 
