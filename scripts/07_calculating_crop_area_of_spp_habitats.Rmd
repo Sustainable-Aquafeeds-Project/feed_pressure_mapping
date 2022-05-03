@@ -186,7 +186,7 @@ brazil_shp <- countries_shp |> filter(geounit %in% c("Brazil", "Peru", "Ecuador"
   scale_fill_gradientn(colors = RColorBrewer::brewer.pal(n=9, name = "BuPu"))+
   theme_bw()+
     theme(title = element_text(size=7))+
-    labs(fill = "Soy production\n(km2)", title = "Myrmecophaga tridactyla (Giant anteater)\nDasypus hybridus (Southern long-nosed armadillo)"))
+    labs(fill = "Soy production\n(km2)", title = "Myrmecophaga tridactyla (Giant anteater) - green\nDasypus hybridus (Southern long-nosed armadillo) - blue"))
 
 ggsave(filename = here("explore/explore_brazil_species_impacts.jpg"), device = "jpg", dpi=300, height = 20, width = 12, units =  "cm")
 
