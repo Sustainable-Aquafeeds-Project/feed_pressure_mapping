@@ -190,9 +190,13 @@ brazil_shp <- countries_shp |> filter(geounit %in% c("Brazil", "Peru", "Ecuador"
 
 ggsave(filename = here("explore/explore_brazil_species_impacts.jpg"), device = "jpg", dpi=300, height = 20, width = 15, units =  "cm")
 
+
+
+#try an example from china
+
 ```
 
-Compare countries for mammal impacts
+Compare countries for mammal impacts example for SPC
 
 ```{r}
 my_pal <- rcartocolor::carto_pal(n = , name = "Bold")[c(1, 7, 2)]
@@ -216,4 +220,85 @@ ggplot(mammals_impacts2,
 ggsave(filename = here("explore/comparison of mammal impacts for countries - spc .jpg"), device = "jpg", dpi = 300, width = 15, height = 12, units = "cm")
 
 ```
+
+Create plot for method example
+
+```{r}
+
+#country shapefile for brazil versus china example
+countries_shp <- ne_countries(scale = 110, returnclass = "sf") %>% st_transform(crs = equal_area_gp_proj)
+
+brazil_shp <- countries_shp |> filter(geounit %in% c("Brazil"))
+china_shp <- countries_shp |> filter(geounit %in% c("China"))
+
+
+
+#plot brazil soy demand  marine diet 1 for sbm
+
+sbm_rasters_marine <- list.files(here("data/spatial/marine_diet_1"), pattern = "soybean meal_AllTech_", full.names = TRUE)
+brazil_sbm_raster_marine <- rast(sbm_rasters_marine[grepl("BRA", sbm_rasters_marine)]) |> raster()
+
+brazil_sbm_raster_marine_df <- brazil_sbm_raster_marine %>% as("SpatialPointsDataFrame") %>% as.data.frame() %>% 
+  filter(spam2010V2r0_global_A_SOYB_A>0)
+
+ggplot()+
+  geom_sf(data = brazil_shp)+
+  geom_tile(data = brazil_sbm_raster_marine_df, aes(x=x, y=y, fill = spam2010V2r0_global_A_SOYB_A))+
+  theme_bw()+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n=9, "BuPu"))
+
+ggsave(filename = here("explore/sbm_brazil_marinediet.jpg"), device = "jpg", dpi = 300, width = 12, height = 18, units = "cm")
+
+#plot china soy demand  marine diet 1 for sbm
+china_sbm_raster_marine <- rast(sbm_rasters_marine[grepl("CHN", sbm_rasters_marine)]) |> raster()
+
+china_sbm_raster_marine_df <- china_sbm_raster_marine %>% as("SpatialPointsDataFrame") %>% as.data.frame() %>% filter(spam2010V2r0_global_A_SOYB_A >0)
+
+ggplot()+
+  geom_sf(data = china_shp)+
+  geom_tile(data = china_sbm_raster_marine_df, aes(x=x, y=y, fill = spam2010V2r0_global_A_SOYB_A))+
+  theme_bw()+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n=9, "BuPu"))
+
+
+ggsave(filename = here("explore/sbm_china_marinediet.jpg"), device = "jpg", dpi = 300, width = 12, height = 18, units = "cm")
+
+
+#plot brazil soy demand  balanced diet 1 for spc
+spc_rasters_bal <- list.files(here("data/spatial/balanced_diet_1"), pattern = "soy protein concentrate_AllTech_", full.names = TRUE)
+brazil_spc_raster_bal <- rast(spc_rasters_bal[grepl("BRA", spc_rasters_bal)]) |> raster()
+
+brazil_spc_raster_bal_df <- brazil_spc_raster_bal %>% as("SpatialPointsDataFrame") %>% as.data.frame() 
+
+
+ggplot()+
+  geom_sf(data = brazil_shp)+
+  geom_tile(data = brazil_spc_raster_bal_df, aes(x=x, y=y, fill = spam2010V2r0_global_A_SOYB_A))+
+  theme_bw()+
+  guides(fill = "none")
+
+ggsave(filename = here("explore/spc_brazil_baldiet.jpg"), device = "jpg", dpi = 300, width = 12, height = 18, units = "cm")
+
+
+#plot china soy demand  balanced diet 1 for spc
+
+china_spc_raster_bal <- rast(spc_rasters_bal[grepl("CHN", spc_rasters_bal)]) |> raster()
+
+china_spc_raster_bal_df <- china_spc_raster_bal %>% as("SpatialPointsDataFrame") %>% as.data.frame() 
+
+
+ggplot()+
+  geom_sf(data = china_shp)+
+  geom_tile(data = china_spc_raster_bal_df, aes(x=x, y=y, fill = spam2010V2r0_global_A_SOYB_A))+
+  theme_bw()+
+  guides(fill = "none")
+
+ggsave(filename = here("explore/spc_china_baldiet.jpg"), device = "jpg", dpi = 300, width = 12, height = 18, units = "cm")
+
+
+
+```
+
 
