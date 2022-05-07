@@ -58,7 +58,10 @@ botw %>%
 
 
 
-Create all shapefiles for each taxon
+Create all rasters for each taxon.
+
+
+This chunk processes only the IUCN taxa. Birds of the world have different fields so are generated in the chunk below and we do not include freshwater species
 ```{r}
 
 taxon_list <- list.files(file.path(iucn_dir, "spp_shapefiles"))[-grep(pattern = "BOTW|hybas_table|FW_", list.files(file.path(iucn_dir, "spp_shapefiles")))] #excluding birds of the world and hybas tables and fw species. Botw has a different format which means iteration fails; hybas tables are needed to intersect the range maps; the range of some fw species is smaller than one pixel so rast() fails 
