@@ -53,7 +53,7 @@ mc.cores = detectCores()-2
 ```
 
 
-We're intetrested in the impacts of different diets depending on their make-up and where they are sourced from so probably organise the spatial outputs by diet but also the source country and the ingredient (rather than the crop as we want impacts to be associated per ingredient).
+We're interested in the impacts of different diets depending on their make-up and where they are sourced from so probably organise the spatial outputs by diet but also the source country and the ingredient (rather than the crop as we want impacts to be associated per ingredient).
 ```{r}
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
