@@ -60,7 +60,7 @@ We're interested in the impacts of different diets depending on their make-up an
 ```{r}
 
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> 
-  filter(grepl("marine_diet_1|plant_diet_2", diet))
+  filter(grepl("marine_diet_1|plant_diet_1", diet))
 
 #check that demand for each rawe material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive).
 
@@ -134,7 +134,7 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   
     this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
       
-    raster::writeRaster( x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
+    terra::writeRaster( x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
     
   }
 }
