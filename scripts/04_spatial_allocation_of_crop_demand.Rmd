@@ -28,6 +28,7 @@ this_code <- crop_list[[1]]
 this_filepath <- these_crop_files[[1]]
 
 mclapply(X=crop_list, FUN = \(this_code){
+  
   #identify all files for each crop
   these_crop_files <- list.files(file.path(mapspam_dir, "new-extents"), pattern = sprintf("_%s_", toupper(this_code)), full.names = TRUE)
   
@@ -54,29 +55,45 @@ mc.cores = detectCores()-2
 
 
 We're interested in the impacts of different diets depending on their make-up and where they are sourced from so probably organise the spatial outputs by diet but also the source country and the ingredient (rather than the crop as we want impacts to be associated per ingredient).
-```{r}
-crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
-#check that demand for each rawe material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive)
+
+```{r}
+
+crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> 
+  filter(grepl("marine_diet_1|plant_diet_2", diet))
+
+#check that demand for each rawe material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive).
 
 top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
   mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola_camelina oil", false = ingredient))
 
+
+
 (demand_production_compare <- 
-  crop_demand |> 
-  left_join(top_10_producers |> 
-              select(-c(cf, X7)) , 
+  crop_demand |> group_split(ingredients, diet) |> map_df(\(df){ df |> slice(1:3)}) |> 
+  left_join(top_10_producers |> group_split(ingredient) |> map_df(\(df){ df |> slice(1:3)}) |> 
+              select(-c(cf, X7)), 
             by = c("ingredients"="ingredient", "FAOSTAT_name"="item", "source_country" = "area")) |> 
     mutate(demand_production_ratio = total_crop_demand/mean_value,
-           check = demand_production_ratio>1))
+           check = demand_production_ratio>1) |> 
+    filter(grepl("marine_diet_1|plant_diet_1", diet))
+    
+    )
 
-#demand exceeds average production in 12% of instances 
+
+
+
+#demand exceeds average production between
 (countries_crops_demand_greaterthan_production <- demand_production_compare |> filter(check==TRUE) |> arrange(-demand_production_ratio))
 
-ingredient_per_country_per_diet <- crop_demand |> 
+ingredient_per_country_per_diet <- 
+  crop_demand |> group_split(ingredients, diet) |> map_df(\(df){ df |> slice(1:3)}) |> 
+  left_join(top_10_producers |> group_split(ingredient) |> map_df(\(df){ df |> slice(1:3)}) |> 
+              select(-c(cf, X7, iso3c)), 
+            by = c("ingredients"="ingredient", "FAOSTAT_name"="item", "source_country" = "area")) |> 
   group_split(diet, ingredients, source_country)
 
-#should be 15 diets * 16 ingredients * 10 top source countries
+#should be 2 diets * 16 ingredients * 3 top source countries
 length(ingredient_per_country_per_diet)
 
 this_ingredient_source <- ingredient_per_country_per_diet[[1]]
@@ -95,29 +112,27 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   
   this_demand_quantity <- unique(this_ingredient_source$total_crop_demand)
   
+  this_current_production <- unique(this_ingredient_source$mean_value)
+  
   #the file_name of interest for this diet, ingredient, and country
   this_demand_raster_filename <- here(sprintf("data/spatial/%s/%s_AllTech_%s.tif", this_diet, this_ingredient, this_country))
   
   #if the file name doesn't exist, create it
   if(file.exists(this_demand_raster_filename)){
     
-    #spatial adjustments of area data by demand
+    #spatial adjustments of production data by current production
     this_country_raster <- rast(here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
-    
-    #using all technologies at present - may want to disaggregate by rainfed or irrigated
-    this_global_area_raster <- rast(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = sprintf("_A_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
     
     this_global_production_raster <- rast(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
     
-    this_country_area_raster <- this_global_area_raster*this_country_raster
-    
     this_country_production_raster <- this_global_production_raster*this_country_raster
     
-    this_demand_production_ratio <-
-      min(1, this_demand_quantity/sum(terra::values(this_country_production_raster), na.rm = TRUE))
-  
+    this_updated_country_production_raster <-  this_country_production_raster* this_current_production/sum(terra::values(this_country_production_raster), na.rm=TRUE)
     
-    this_demand_raster <- this_country_area_raster*this_demand_production_ratio
+    this_demand_production_ratio <-
+      min(1, this_demand_quantity/this_current_production)
+  
+    this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
       
     raster::writeRaster( x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
     
