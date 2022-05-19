@@ -27,3 +27,8 @@ fishstat_dir <- "/mnt/rdsi/raw_data/fao/FAO_fishstat_2019"
 #Rich local machine
 iucn_rich_local_dir <- "/Users/rsc2/Dropbox/Data/IUCN Red List"
 
+
+
+#Rich Personal Dropbox
+
+dropbox_dir <- "/Users/rsc2/Dropbox/Data"
