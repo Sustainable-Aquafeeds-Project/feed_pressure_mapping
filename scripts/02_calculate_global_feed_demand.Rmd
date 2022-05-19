@@ -47,7 +47,7 @@ aquaculture %>% filter(country %in% top_producers$country) %>% filter(grepl("sal
 ```
 
 
-Import the feed conversion ratios and join to production. Where country information from tacon and metian is not available use global average for that country. And get absolute feed demand. To do this we use the min eFCR given the Tacon and Metian data is old and there is a general upward trend in feed efficiency through time.
+Import the feed conversion ratios and join to production. Where country information from tacon and metian is not available use global average for that country. And get absolute feed demand. To do this we use the min eFCR given the Tacon and Metian data is old and there is a general upward trend in feed efficiency through time. However, for countries where no specific fcr data is provided, give the mean Global FCR.
 ```{r}
 
 fcrs <- read_csv(here("data/raw_data/FCR.csv"))
