@@ -24,39 +24,39 @@ crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 crop_list <- unique(crop_demand$map_spam_code)
 
+crop_production_files <- list.files(file.path(mapspam_dir, "new-extents"), full.names = TRUE)[grep(pattern = "_P_", list.files(file.path(mapspam_dir, "new-extents"), full.names = TRUE))] 
+
+these_crop_production_files <- crop_production_files[grepl("MAIZ_A|OPUL_A|WHEA_A|RAPE_A|OOIL_A|SOYB_A|SUNF_A", crop_production_files)]
+
+
 #for testing the below function
-# this_code <- crop_list[[1]]
-# this_filepath <- these_crop_files[[1]]
+this_code <- crop_list[[1]]
+this_filepath <- these_crop_production_files[[5]]
 
 
-#this runs fine (i.e. raster files are reprojected and produced) but introducing terra spat rasters instead of raster::rasters created an error "Error in x@ptr$nrow() : external pointer is not valid" when printing the raster
+#NOTE::: the function below runs fine (i.e. raster files are reprojected and produced) but introducing terra spat rasters instead of raster::rasters created an error "Error in x@ptr$nrow() : external pointer is not valid" when printing the raster. Still searching for solutions
 
-map(.x=crop_list, .f = \(this_code){
+mclapply(X = these_crop_production_files, FUN = \(this_filepath){
   
-  message("Processing crop code ", this_code)
-  
-  #identify files for each crop across irrigated, rainfed high inputs, rainfed low input - assuming that subsistence does not enter global feed supply chains 
-  these_crop_files <- list.files(file.path(mapspam_dir, "new-extents"), pattern = sprintf("_P_%s_I|_P_%s_H|_P_%s_L|_P_%s_S", toupper(this_code), toupper(this_code), toupper(this_code), toupper(this_code)), full.names = TRUE)
-    
-  mclapply(X = these_crop_files, FUN = \(this_filepath){
-  
-    this_file <- basename(this_filepath)
-    
+  this_file <- basename(this_filepath)
+      
     #import the raster
     imported_file <- rast(this_filepath)
     
-    #this code is need for the physical area layers stuff in the biodiversity paper so leaving in for now. 
+    #reproject the file
+    reprojected_file <-  project(x=imported_file, y= base_raster_ea)
+    
+    #write the original and the reprojected to this project
+    writeRaster(imported_file, filename = paste0(here("data/spatial/01-crop-layers-raw/"), this_file), overwrite = TRUE)
+    writeRaster(reprojected_file, filename = paste0(here("data/spatial/02-crop-layers-reprojected/"), this_file), overwrite=TRUE)
+  
+  
+}, mc.cores = detectCores()-2)
+  
+
+#this code is need for the physical area layers stuff in the biodiversity paper so leaving in for now. 
     #imported_file <- imported_file*0.01 #converts the imported raster to km2 from ha 
     
-    reprojected_file <-  project(x=imported_file, y= base_raster_ea)
-    #reprojected_file <- (reprojected_file) 
-    
-    writeRaster(imported_file, filename = paste0(here("data/spatial/01-crop-layers-raw/"), this_file), overwrite=TRUE)
-    writeRaster(reprojected_file, filename = paste0(here("data/spatial/02-crop-layers-reprojected/"), this_file), overwrite=TRUE)
-  }, 
-  mc.cores = detectCores()-2)
-})
-
 
 ```
 
@@ -84,8 +84,6 @@ top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_produ
            check = demand_production_ratio>1)
     
     )
-
-
 
 
 #demand exceeds average production between
