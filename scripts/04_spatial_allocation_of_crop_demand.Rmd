@@ -34,9 +34,9 @@ this_code <- crop_list[[1]]
 this_filepath <- these_crop_production_files[[5]]
 
 
-#NOTE::: the function below runs fine (i.e. raster files are reprojected and produced) but introducing terra spat rasters instead of raster::rasters created an error "Error in x@ptr$nrow() : external pointer is not valid" when printing the raster. Still searching for solutions
+#NOTE::: the function below runs fine (i.e. raster files are reprojected and produced) but introducing terra spat rasters instead of raster::rasters created an error "Error in x@ptr$nrow() : external pointer is not valid" when printing the raster. Still searching for solutions. It is to do with parallelisng SpatRaster see - https://github.com/rspatial/terra/issues/166 . So have switched to lapply to make sure code runs.
 
-mclapply(X = these_crop_production_files, FUN = \(this_filepath){
+lapply(X = these_crop_production_files, FUN = \(this_filepath){
   
   this_file <- basename(this_filepath)
       
@@ -51,7 +51,7 @@ mclapply(X = these_crop_production_files, FUN = \(this_filepath){
     writeRaster(reprojected_file, filename = paste0(here("data/spatial/02-crop-layers-reprojected/"), this_file), overwrite=TRUE)
   
   
-}, mc.cores = detectCores()-2)
+})
   
 
 #this code is need for the physical area layers stuff in the biodiversity paper so leaving in for now. 
@@ -65,14 +65,12 @@ We're interested in the impacts of different diets depending on their make-up an
 
 
 ```{r}
-
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 #check that demand for each rawe material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive).
 
 top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
   mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola_camelina oil", false = ingredient))
-
 
 
 (demand_production_compare <- 
@@ -85,18 +83,39 @@ top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_produ
     
     )
 
+#Demand only exceeds production for the top 3 producers for guar (only India can support this demand from global salmon. But this isn't bad given we only have footprint information for India)
 
-#demand exceeds average production between
-(countries_crops_demand_greaterthan_production <- demand_production_compare |> filter(check==TRUE) |> arrange(-demand_production_ratio))
+demand_production_compare |> 
+  group_by(ingredients, diet) |> 
+  mutate(producer_order = 1:10) |> 
+  filter(check != TRUE)
+```
+
+Make some decisions about which countries to include. The idea is to deliberately select countries that have variable environmental midpoints to illustrate the relative contribution of source and diet. Import the agrifootprint data.
+
+```{r}
+
+
+
+```
+
+
+
+
+```{r}
+#BREAK up the main producers by the top 3
+
 
 ingredient_per_country_per_diet <- 
-  crop_demand |> 
-  left_join(top_10_producers |> 
+  crop_demand |> group_split(diet, ingredients) |> map_df(\(df){df |> slice(1:3)}) |> 
+  left_join(top_10_producers |> group_split( ingredient) |> map_df(\(df){df |> slice(1:3)}) |> 
               select(-c(cf, X7, iso3c)), 
             by = c("ingredients"="ingredient", "FAOSTAT_name"="item", "source_country" = "area")) |> 
+  filter(!(ingredients == "guar meal" & source_iso3c %in% c("KEN", "ETH"))) |> #filter guar by only including INdia
+  filter(total_ingredient_demand != 0) |> 
   group_split(diet, ingredients, source_country)
 
-#should be 2 diets * 16 ingredients * 3 top source countries
+
 length(ingredient_per_country_per_diet)
 
 this_ingredient_source <- ingredient_per_country_per_diet[[1]]

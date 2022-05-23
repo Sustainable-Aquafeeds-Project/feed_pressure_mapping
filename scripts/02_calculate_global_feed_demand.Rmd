@@ -84,12 +84,13 @@ saveRDS(object=diet_summaries, file = here("data/tidy_data/diets/diet_summaries.
 
 both_diets_list <- 
   both_diets %>% 
-  filter(!grepl("totals", groups)) %>% 
-  filter(groups != "Totals") %>% 
+  filter(!grepl("totals", groups)) |> 
+  filter(groups != "Totals") |>  
+  drop_na(ingredients) |> 
   set_names(~str_replace_all(., pattern = "_1", replacement = "")) |> 
-  pivot_longer(names_to = "diet", values_to = "prop", -c(groups, ingredients)) %>% 
-  arrange(diet) %>% 
-  mutate(prop = prop/100) %>% 
+  pivot_longer(names_to = "diet", values_to = "prop", -c(groups, ingredients)) |> 
+  arrange(diet) |>  
+  mutate(prop = prop/100) |> 
   group_split(diet)
   
 
