@@ -60,9 +60,7 @@ lapply(X = these_crop_production_files, FUN = \(this_filepath){
 
 ```
 
-
-We're interested in the impacts of different diets depending on their make-up and where they are sourced from so probably organise the spatial outputs by diet but also the source country and the ingredient (rather than the crop as we want impacts to be associated per ingredient).
-
+We're now interested from where the different crop ingredients could be sourced across the top producing nations. Need to check whether the demand from the global salmon industry
 
 ```{r}
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
@@ -94,7 +92,16 @@ demand_production_compare |>
 Make some decisions about which countries to include. The idea is to deliberately select countries that have variable environmental midpoints to illustrate the relative contribution of source and diet. Import the agrifootprint data.
 
 ```{r}
+#import the crop lca data
+all_crop_pressures <-  readRDS(file = here("data/tidy_data/LCA/crop_lca.rds"))
 
+unique(all_crop_pressures$impact_category)
+
+#filter for the pressures of interest
+crop_main_pressures <- all_crop_pressures |> filter(impact_category %in% c("Global warming", "Water use", "Eutrophication, freshwater", "Eutrophication, marine", "Land use"))
+
+
+#match up country-specific pressure data with
 
 
 ```

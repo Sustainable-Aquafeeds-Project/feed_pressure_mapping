@@ -258,3 +258,25 @@ write_csv(x = current_severe_threats_of_interest, file = here("data/tidy_data/iu
 
 ```
 
+Tidying crop LCA files to include as a single file
+
+```{r}
+
+lca_all_crops <- 
+  list.files(here("data/raw_data/LCA"), full.names = TRUE) |> 
+  map_df(\(each_file){
+    this_file <- read_csv(each_file) |> rename_at(vars(1:3), make_clean_names)
+    this_long_file <- this_file |> 
+      pivot_longer( names_to = "iso2c", values_to = "value" , cols = -c(raw_material, impact_category, unit)) |> 
+      mutate(iso3c = countrycode(sourcevar = iso2c, origin = "iso2c", destination = "iso3c", warn = TRUE)) |> 
+      mutate(iso3c = case_when(iso2c == "UK" ~ "GBR",
+                               grepl("US-", iso2c) ~ "USA",
+                               TRUE ~ iso3c))
+    })
+
+saveRDS(object = lca_all_crops, file = here("data/tidy_data/LCA/crop_lca.rds"))
+
+
+
+```
+

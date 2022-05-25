@@ -1,0 +1,19 @@
+﻿raw_material,Impact category,Unit,AU,DE,PL
+Lupins,Global warming,kg CO2 eq,0.750932462,1.454367149,0.940208129
+Lupins,Stratospheric ozone depletion,kg CFC11 eq,5.42528E-06,9.96878E-06,1.06423E-05
+Lupins,Ionizing radiation,kBq Co-60 eq,0.035341792,0.041458158,0.038520621
+Lupins,"Ozone formation, Human health",kg NOx eq,0.000958592,0.001428009,0.001066048
+Lupins,Fine particulate matter formation,kg PM2.5 eq,0.000806015,0.002121709,0.001711305
+Lupins,"Ozone formation, Terrestrial ecosystems",kg NOx eq,0.000965474,0.001438164,0.001073399
+Lupins,Terrestrial acidification,kg SO2 eq,0.003691242,0.013667312,0.010795591
+Lupins,Freshwater eutrophication,kg P eq,0.000577923,0.000960685,0.000256638
+Lupins,Marine eutrophication,kg N eq,0.002161044,0.003781671,0.003698034
+Lupins,Terrestrial ecotoxicity,"kg 1,4-DCB",3.549801408,3.865860959,3.425472593
+Lupins,Freshwater ecotoxicity,"kg 1,4-DCB",0.052739458,0.094244483,0.086579949
+Lupins,Marine ecotoxicity,"kg 1,4-DCB",0.059506123,0.072545347,0.06724538
+Lupins,Human carcinogenic toxicity,"kg 1,4-DCB",0.002272319,0.002037594,0.001677991
+Lupins,Human non-carcinogenic toxicity,"kg 1,4-DCB",1.327390841,10.26311886,4.588337413
+Lupins,Land use,m2a crop eq,8.373828794,7.235183573,6.906997951
+Lupins,Mineral resource scarcity,kg Cu eq,0.002052183,0.002369452,0.000497748
+Lupins,Fossil resource scarcity,kg oil eq,0.114408561,0.155858115,0.133223881
+Lupins,Water consumption,m3,0.002632958,0.004546774,0.004239528

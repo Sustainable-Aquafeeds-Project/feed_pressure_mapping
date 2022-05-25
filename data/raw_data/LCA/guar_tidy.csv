@@ -1,0 +1,19 @@
+﻿raw_material,Impact category,Unit,IN
+Guar seed,Global warming,kg CO2 eq,2.121322363
+Guar seed,Stratospheric ozone depletion,kg CFC11 eq,1.9007E-05
+Guar seed,Ionizing radiation,kBq Co-60 eq,0.022372037
+Guar seed,"Ozone formation, Human health",kg NOx eq,0.005984869
+Guar seed,Fine particulate matter formation,kg PM2.5 eq,0.004478857
+Guar seed,"Ozone formation, Terrestrial ecosystems",kg NOx eq,0.006094112
+Guar seed,Terrestrial acidification,kg SO2 eq,0.021793083
+Guar seed,Freshwater eutrophication,kg P eq,0.001181168
+Guar seed,Marine eutrophication,kg N eq,0.006452259
+Guar seed,Terrestrial ecotoxicity,"kg 1,4-DCB",2.873722121
+Guar seed,Freshwater ecotoxicity,"kg 1,4-DCB",0.043312609
+Guar seed,Marine ecotoxicity,"kg 1,4-DCB",0.039766856
+Guar seed,Human carcinogenic toxicity,"kg 1,4-DCB",0.0368572
+Guar seed,Human non-carcinogenic toxicity,"kg 1,4-DCB",1.4442193
+Guar seed,Land use,m2a crop eq,25.93656713
+Guar seed,Mineral resource scarcity,kg Cu eq,0.009336318
+Guar seed,Fossil resource scarcity,kg oil eq,0.223932091
+Guar seed,Water consumption,m3,0.485917007
