@@ -71,22 +71,28 @@ top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_produ
   mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola_camelina oil", false = ingredient))
 
 
-(demand_production_compare <- 
+(crop_demand_production_compare <- 
   crop_demand |> 
   left_join(top_10_producers |> 
               select(-c(cf, X7)), 
             by = c("ingredients"="ingredient", "FAOSTAT_name"="item", "source_country" = "area")) |> 
     mutate(demand_production_ratio = total_crop_demand/mean_value,
-           check = demand_production_ratio>1)
+           check = demand_production_ratio>1) %>% 
+    rename(national_production = mean_value)
     
     )
 
 #Demand only exceeds production for the top 3 producers for guar (only India can support this demand from global salmon. But this isn't bad given we only have footprint information for India)
 
-demand_production_compare |> 
+crop_demand_production_compare |> 
   group_by(ingredients, diet) |> 
   mutate(producer_order = 1:10) |> 
   filter(check != TRUE)
+
+
+saveRDS(object = crop_demand_production_compare, file = here("data/tidy_data/demand/crop_demand_production_compare.rds"))
+
+
 ```
 
 Make some decisions about which countries to include. The idea is to deliberately select countries that have variable environmental midpoints to illustrate the relative contribution of source and diet. Import the agrifootprint data.
@@ -101,8 +107,11 @@ unique(all_crop_pressures$impact_category)
 crop_main_pressures <- all_crop_pressures |> filter(impact_category %in% c("Global warming", "Water use", "Eutrophication, freshwater", "Eutrophication, marine", "Land use"))
 
 
-#match up country-specific pressure data with
+#match up country-specific pressure data with country production/demand data. Want to constrain the ocujntries used for LCA variability by those that can plausibly source demand
 
+(plausible_crop_sourcing_list <- crop_demand_production_compare |> select(ingredients, diet, FAOSTAT_name, source_iso3c, total_crop_demand, national_production, demand_production_ratio, check) |>  filter(check == FALSE & ingredients!= "guar meal") |> group_split(ingredients) |> unique())
+
+which_crop_countries
 
 ```
 

@@ -272,11 +272,19 @@ lca_all_crops <-
       mutate(iso3c = case_when(iso2c == "UK" ~ "GBR",
                                grepl("US-", iso2c) ~ "USA",
                                TRUE ~ iso3c))
-    })
+    }) %>% 
+  mutate(FAOSTAT_name = case_when(raw_material == "Broad bean" ~ "Broad beans, horse beans, dry",
+                                  raw_material == "Guar seed" ~ "Pulses nes - Guar",
+                                  raw_material == "Lupins" ~ "Pulses nes - Lupins",
+                                  raw_material == "Peas" ~ "Peas, dry",
+                                  raw_material == "Wheat grain" ~ "Wheat",
+                                  TRUE ~ raw_material))
+  
+  
 
 saveRDS(object = lca_all_crops, file = here("data/tidy_data/LCA/crop_lca.rds"))
 
 
-
+unique(lca_all_crops$raw_material)
 ```
 
