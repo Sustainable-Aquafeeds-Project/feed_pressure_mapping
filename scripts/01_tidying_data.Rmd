@@ -274,7 +274,7 @@ lca_all_crops <-
                                TRUE ~ iso3c))
     }) %>% 
   mutate(FAOSTAT_name = case_when(raw_material == "Broad bean" ~ "Broad beans, horse beans, dry",
-                                  raw_material == "Guar seed" ~ "Pulses nes - Guar",
+                                  raw_material == "Guar seed" ~ "Pulses nes",
                                   raw_material == "Lupins" ~ "Pulses nes - Lupins",
                                   raw_material == "Peas" ~ "Peas, dry",
                                   raw_material == "Wheat grain" ~ "Wheat",
