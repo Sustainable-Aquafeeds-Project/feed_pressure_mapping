@@ -185,7 +185,6 @@ ingredient_per_country_per_diet_all <-
   crop_demand_production_compare |>  filter(total_ingredient_demand != 0) |> group_split(diet, ingredients, FAOSTAT_name)
 
 
-
 #filter each combo of diet, ingredient and raw-material by the source countries decided above
 ingredient_per_country_per_diet <- 
   
@@ -218,11 +217,13 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   
   this_country_production <- unique(this_ingredient_source$national_production)
   
+  this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio)
+  
   #the file_name of interest for this diet, ingredient, and country
   this_demand_raster_filename <- here(sprintf("data/spatial/%s/%s_AllTech_%s.tif", this_diet, this_ingredient, this_country))
   
   #if the file name doesn't exist, create it
-  if(file.exists(this_demand_raster_filename)){
+  if(!file.exists(this_demand_raster_filename)){
     
     #spatial adjustments of production data by current production
     this_country_raster <- rast(here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
@@ -231,10 +232,8 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
     
     this_country_production_raster <- this_global_production_raster*this_country_raster
     
-    this_updated_country_production_raster <-  this_country_production_raster* this_current_production/sum(terra::values(this_country_production_raster), na.rm=TRUE)
-    
-    this_demand_production_ratio <-
-      min(1, this_demand_quantity/this_current_production)
+    this_updated_country_production_raster <-  this_country_production_raster* this_country_production/sum(terra::values(this_country_production_raster), na.rm=TRUE)
+
   
     this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
       
