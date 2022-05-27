@@ -1,0 +1,56 @@
+﻿Country,Common name,Scientific name,Landings,Fishmeal,Fish oil
+Peru,Peruvian anchovy,Engraulis ringens,7200000.00,1700000.00,270000.00
+Peru,Chilean jack mackerel,Trachurus murphyi,274000.00,,
+Peru,Chub mackerel,Scomber japonicus,87000.00,,
+Chile,Peruvian anchovy,Engraulis ringens,1268000.00,773000.00,157000.00
+Chile,Chilean jack mackerel,Trachurus murphyi,1475000.00,,
+Chile,Chub mackerel,Scomber japonicus,418000.00,,
+China,Chilean jack mackerel,Trachurus murphyi,121000.00,769000.00,0.00
+China,Chub mackerel,Scomber japonicus,442000.00,,
+China,Japanese anchovy,Engraulis japonicus,1142000.00,,
+China,Japanese jack mackerel,Trachurus japonicus,109000.00,,
+China,Japanese sardine,Sardinops melanostictus,182000.00,,
+China,Pacific herring,Clupea pallasii,46000.00,,
+Thaïland,Sardinellas,Sardinella spp.,128000.00,499000.00,0.00
+Thaïland,Indian mackerel,Rastrelliger kanagurta,155000.00,,
+Thaïland,Indian mackerel nei,Rastrelliger spp.,37000.00,,
+Thaïland,Anchovies nei,Engraulidae,155500.00,,
+Norway,Capelin,Mallotus villosus,229000.00,203000.00,47500.00
+Norway,Norway pout,Trisopterus esmarkii,15000.00,,
+Norway,Blue whiting,Micromesistius poutassou,720000.00,,
+Norway,Sandeels,Ammodytes spp,92000.00,,
+Norway,European sprat,Sprattus sprattus,5000.00,,
+United States of America,Gulf menhaden,Brevoortia patronus,479000.00,258000.00,88000.00
+United States of America,Atlantic Menhaden,Brevoortia tyrannus,212000.00,,
+United States of America,Atlantic herring,Clupea harengus,96000.00,,
+United States of America,Pacific herring,Clupea pallasii,37000.00,,
+United States of America,California sardine,Sardinops sagax caerulea,85000.00,,
+Iceland,Capelin,Mallotus villosus,665000.00,221000.00,74000.00
+Iceland,Blue whiting,Micromesistius poutassou,359000.00,,
+Iceland,Atlantic herring,Clupea harengus,238000.00,,
+Japan,Chub mackerel,Scomber japonicus,432500.00,226000.00,66000.00
+Japan,Japanese anchovy,Engraulis japonicus,425000.00,,
+Japan,Japanese jack mackerel,Trachurus japonicus,211000.00,,
+Japan,Japanese sardine,Sardinops melanostictus,68500.00,,
+Japan,Pacific herring,Clupea pallasii,4000.00,,
+Denmark,Atlantic herring,Clupea harengus,135500.00,327000.00,106000.00
+Denmark,Norway pout,Trisopterus esmarkii,36000.00,,
+Denmark,Blue whiting,Micromesistius poutassou,65000.00,,
+Denmark,Sandeels,Ammodytes spp,387500.00,,
+Denmark,European sprat,Sprattus sprattus,257500.00,,
+South Africa,S. African anchovy,Engraulis encrasicolus,228000.00,109000.00,2500.00
+South Africa,Cape horse mackerel,Trachurus capensis,26000.00,,
+South Africa,S. African sardine,Sardinops sagax,263000.00,,
+Mexico,California sardine,Sardinops sagax caerulea,471000.00,68000.00,14000.00
+Mexico,Chub mackerel,Scomber Japonicus,24000.00,,
+Faeroe Islands,Capelin,Mallotus villosus,36500.00,43500.00,11000.00
+Faeroe Islands,Norway pout,Trisopterus esmarkii,1500.00,,
+Faeroe Islands,Blue whiting,Micromesistius poutassou,254500.00,,
+Faeroe Islands,Sandeels,Ammodytes spp,7000.00,,
+Morocco,European anchovy,Engraulis encrasicolus,18500.00,31000.00,15000.00
+Morocco,European sardine,Sardina pilchardus,639000.00,,
+Canada,Atlantic herring,Clupea harengus,187000.00,28000.00,6000.00
+Canada,Pacific herring,Clupea pallasii,24000.00,,
+Canada,Capelin,Mallotus villosus,28000.00,,
+Total14,All,All,20702000.00,5272500.00,862000.00
+Total world,All,All,29500000.00,6300000.00,950000.00
