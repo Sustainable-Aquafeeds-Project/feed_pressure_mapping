@@ -105,7 +105,6 @@ map(.x = both_diets_list,  .f = \(this_diet){
 
 ```
 
-
 Now calculate ingredient demand per diet and for each salmon producing country. While we are not really interested in this project in the country-specific data, overall demand is affected by the among country differences in FCR.
 
 ```{r}
@@ -247,7 +246,18 @@ saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/to
   
 ```
 
-  
+
+FORAGE FISH INGREDIENTS
+
+Now we need
+
+
+```{r}
+
+```
+
+
+
   
   
 

@@ -244,11 +244,5 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
 
 mclapply(X = ingredient_per_country_per_diet, FUN = AllocateSpatialCropDemand, mc.cores = detectCores()-2)
 
-
-
-this_ingredient_source <- ingredient_per_country_per_diet[[1]]
-
-bind_rows(ingredient_per_country_per_diet)
-
 ```
 
