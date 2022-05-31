@@ -94,7 +94,7 @@ both_diets_list <-
   arrange(diet) |>  
   mutate(prop = prop/100) |> 
   group_split(diet)
-  
+   
 
 map(.x = both_diets_list,  .f = \(this_diet){ 
   this_file_name <- unique(this_diet$diet); 
@@ -249,29 +249,27 @@ saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/to
 
 FORAGE FISH INGREDIENTS
 
-Now we need to work out how the ingredient demand converts to forage fish biomass. This will depend on species which depends on geographic region. So we need different conversions from different species.
+Now we need to work out how the ingredient demand converts to forage fish biomass. This will depend on species which depends on geographic region. So we need different conversions from different species. First bring in the demand data and the data from Kok et al re embodied fisg depending on species. This also requires the species list for forage fish.
 
 
 ```{r}
-#bring in total ingredient demand data
+#bring in total ingredient demand data and isolate fishmeal and oil demand
 
 total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
+
 
 fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 
 
-(fishmeal_conversions_by_species <- read_csv(here("data/raw_data/fishmeal_conversion_by_species.csv")) |> 
-  clean_names() |> 
-  mutate(fm_cf = landings/fishmeal,
-         fo_cf = landings/fish_oil))
+#bring in species lists from FAO
 
 
 
+```
 
-(fishmeal_conversion_by_country <- read_csv(here("data/raw_data/fishmeal_conversion_by_country.csv")) |> clean_names()
 
-)
-
+```{r}
+fisheries_catch <- fread(here("data/raw_data/watson_2015_fisheries_catch.csv")) |> clean_names()
 
 ```
 
