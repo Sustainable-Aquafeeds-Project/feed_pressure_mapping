@@ -11,6 +11,9 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(countrycode)
+library(Hmisc)
+library(data.table)
+library(dtplyr)
 
 source(here("src/directories.R"))
 
@@ -40,9 +43,6 @@ salmon_aquaculture <- aquaculture %>% filter(species == "Atlantic salmon" & year
     
     
     )
-
-
-read_csv("")
 
 
 ```
@@ -257,21 +257,29 @@ Now we need to work out how the ingredient demand converts to forage fish biomas
 
 total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
 
-
 fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 
+embodied_fish_ratios <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> 
+  mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", `Ecosystem d`) ~ "North Atlantic",
+                                        `Ecosystem d` == "HC" ~ "Humboldt",
+                                        `Ecosystem d` == "GM" ~ "Gulf of Mexico", 
+                                        `Ecosystem d` == "SO" ~ "Southern Ocean",
+                                        `Ecosystem d` == "GA" ~ "Other")) |> 
+  select(common_name, sci_name, ecosystem_combined, Ingredient, `2020`)
 
-#bring in species lists from FAO
+
+forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
+
+forage_catch_summary <- forage_catch |> 
+  group_by(TaxonName, CommonName) |> 
+  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
+  arrange(-total_catch) |> 
+  left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> rename(fishmeal=`2020`), by = c("TaxonName" = "sci_name"))
 
 
 
 ```
 
-
-```{r}
-fisheries_catch <- fread(here("data/raw_data/watson_2015_fisheries_catch.csv")) |> clean_names()
-
-```
 
 
 

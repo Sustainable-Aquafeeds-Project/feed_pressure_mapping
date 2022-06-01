@@ -22,6 +22,86 @@ source(here("src/spatial.R"))
 ```
 
 
+Create a base raster
+```{r}
+
+base_raster <- rast()
+values(base_raster) <- 1:ncell(base_raster)
+base_raster_ea <- project(base_raster, equal_area_gp_proj)
+res(base_raster_ea) <- 10000
+values(base_raster_ea) <- 1:ncell(base_raster_ea) 
+
+writeRaster(x = base_raster_ea, file = here("data/spatial/base_raster_gall_peters.tif"), overwrite=TRUE)
+
+
+
+
+```
+
+
+#AQUACULTURE DATA
+
+Tidy global aquaculture production data
+
+```{r}
+
+(aqua_prod_raw <- 
+   read_csv(file.path(fishstat_dir, "aqua-prod-raw.csv")) %>% 
+  clean_names() %>% 
+  rename(country= country_name,
+         species = asfis_species_name,
+         area = fao_major_fishing_area_name,
+         environment = environment_name) %>% 
+   dplyr::select(-unit_name) %>% 
+   filter(!country %in% c("Totals - Tonnes - live weight", "FAO. 2021. Fishery and Aquaculture Statistics. Global aquaculture production 1950-2019 (FishstatJ). In: FAO Fisheries Division [online]. Rome. Updated 2021. www.fao.org/fishery/statistics/software/fishstatj/en"))
+)
+
+
+flags <- aqua_prod_raw %>% 
+  dplyr::select(-starts_with("x")) %>% 
+  pivot_longer(names_to = "flag", values_to = "symbol", -c(country, species, area, environment, unit)) %>% 
+  mutate(flag = case_when(symbol == "..." ~ "No data",
+                           symbol == " " ~ "Data not separately available",
+                           symbol == "-" ~ "Nil or zero",
+                           symbol == "0 0" ~ "0<x<0.5",
+                           symbol == "E" ~ "estimate",
+                           is.na(symbol) ~ "Reported")) %>% 
+  dplyr::select(-symbol)
+
+
+#sorts country coding to deal with non-UTF characters that country code depends on
+Encoding(aqua_prod_raw$country) <- "latin1" #deals with the non-UTF
+aqua_prod_raw$country <- iconv(aqua_prod_raw$country, "latin1", "UTF-8",sub='')
+
+
+
+aquaculture_prod <- 
+  
+  bind_cols(
+    aqua_prod_raw %>%
+      dplyr::select(-c(starts_with("s_"), s)) %>% 
+      pivot_longer(names_to = "year", values_to = "value", cols = -c(country, species, area, environment, unit)) %>% 
+      mutate(iso_3c = countrycode(country, origin = "country.name", destination = "iso3c", warn = TRUE)) %>%
+      mutate(iso_3c = case_when(country == "Zanzibar" ~ "TZA",
+                                TRUE ~ iso_3c)) %>%
+      mutate(year = gsub("x", "", year) %>% 
+               as.numeric),
+    
+    flags %>% dplyr::select(flag)
+  ) %>% 
+  drop_na(iso_3c)
+
+
+
+saveRDS(object = aquaculture_prod, file = here("data", "tidy_data", "aquaculture_production_tidy.rds"))
+
+
+
+```
+
+#AGRICULTURE DATA
+
+
 This is the code to unzip and adjust the extents of the mapspam rasters (-180, 180, -90, 90) - DO NOT RUN IN PROJECT - here as a backup to scripts in the raw data files
 
 ```{r}
@@ -93,64 +173,6 @@ lapply(X = glw_zip_files, FUN = unzip_raw_data)
 ```
 
 
-Tidy global aquaculture production data
-
-```{r}
-
-(aqua_prod_raw <- 
-   read_csv(file.path(fishstat_dir, "aqua-prod-raw.csv")) %>% 
-  clean_names() %>% 
-  rename(country= country_name,
-         species = asfis_species_name,
-         area = fao_major_fishing_area_name,
-         environment = environment_name) %>% 
-   dplyr::select(-unit_name) %>% 
-   filter(!country %in% c("Totals - Tonnes - live weight", "FAO. 2021. Fishery and Aquaculture Statistics. Global aquaculture production 1950-2019 (FishstatJ). In: FAO Fisheries Division [online]. Rome. Updated 2021. www.fao.org/fishery/statistics/software/fishstatj/en"))
-)
-
-
-flags <- aqua_prod_raw %>% 
-  dplyr::select(-starts_with("x")) %>% 
-  pivot_longer(names_to = "flag", values_to = "symbol", -c(country, species, area, environment, unit)) %>% 
-  mutate(flag = case_when(symbol == "..." ~ "No data",
-                           symbol == " " ~ "Data not separately available",
-                           symbol == "-" ~ "Nil or zero",
-                           symbol == "0 0" ~ "0<x<0.5",
-                           symbol == "E" ~ "estimate",
-                           is.na(symbol) ~ "Reported")) %>% 
-  dplyr::select(-symbol)
-
-
-#sorts country coding to deal with non-UTF characters that country code depends on
-Encoding(aqua_prod_raw$country) <- "latin1" #deals with the non-UTF
-aqua_prod_raw$country <- iconv(aqua_prod_raw$country, "latin1", "UTF-8",sub='')
-
-
-
-aquaculture_prod <- 
-  
-  bind_cols(
-    aqua_prod_raw %>%
-      dplyr::select(-c(starts_with("s_"), s)) %>% 
-      pivot_longer(names_to = "year", values_to = "value", cols = -c(country, species, area, environment, unit)) %>% 
-      mutate(iso_3c = countrycode(country, origin = "country.name", destination = "iso3c", warn = TRUE)) %>%
-      mutate(iso_3c = case_when(country == "Zanzibar" ~ "TZA",
-                                TRUE ~ iso_3c)) %>%
-      mutate(year = gsub("x", "", year) %>% 
-               as.numeric),
-    
-    flags %>% dplyr::select(flag)
-  ) %>% 
-  drop_na(iso_3c)
-
-
-
-saveRDS(object = aquaculture_prod, file = here("data", "tidy_data", "aquaculture_production_tidy.rds"))
-
-
-
-```
-
 Unzip FAOSTAT Production data
 ```{r}
 unzip(list.files(path=file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"), pattern = "Production_Crops", full.names = TRUE), exdir = file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"))
@@ -190,75 +212,6 @@ map(.x = production_sector_list, .f = function(this_element){
 
 
 ```
-Create a base raster
-```{r}
-
-base_raster <- rast()
-values(base_raster) <- 1:ncell(base_raster)
-base_raster_ea <- project(base_raster, equal_area_gp_proj)
-res(base_raster_ea) <- 10000
-values(base_raster_ea) <- 1:ncell(base_raster_ea) 
-
-writeRaster(x = base_raster_ea, file = here("data/spatial/base_raster_gall_peters.tif"), overwrite=TRUE)
-
-
-
-
-```
-
-IUCN threats of interest to feeds
-
-```{r}
-
-threats <- readRDS(file.path(iucn_dir, "threat_info/1_all_threats.rds")) |> 
-  drop_na(id) |>
-  janitor::clean_names()
-
-unique(threats$result_timing)
-
-current_severe_threats <- 
-  threats |> 
-  filter(result_timing %in% c("Ongoing", "Past, Likely to Return", "Past, Unlikely to Return", "Future") &
-        result_severity %in% c( "Rapid Declines", "Slow, Significant Declines", "Causing/Could cause fluctuations", "Very Rapid Declines"))
-
-threats_reduced <- 
-  current_severe_threats |> 
-  filter(!grepl("Invasive|invasive|Named species|named species|Problematic", result_title)) |> 
-  pull(result_title) |> 
-  unique()
-
-
-threats_of_interest <- current_severe_threats |> 
-  filter(result_title %in% threats_reduced) |> 
-  filter(result_title %in% c("Fishing & harvesting aquatic resources",
-  "Annual & perennial non-timber crops" ,
-  "Agro-industry farming",
-  "Livestock farming & ranching",
-  "Agro-industry grazing, ranching or farming" ,
-  "Agricultural & forestry effluents",
-  "Herbicides and pesticides",
-  "Nutrient loads",
-  "Herbicides and pesticides",
-  "Shifting agriculture",
-  "Small-holder farming",
-  "Small-holder grazing, ranching or farming",
-  "Abstraction of ground water (agricultural use)",
-  "Abstraction of surface water (agricultural use)",
-  "Agro-industry plantations",
-  "Small-holder plantations",
-  "Marine & freshwater aquaculture",
-  "Subsistence/artisinal aquaculture",
-  "Industrial aquaculture")) |> pull(result_title) |>  
-  unique() 
-
-current_severe_threats_of_interest <- 
-  current_severe_threats |> 
-  filter(result_title %in% threats_of_interest)
-
-write_csv(x = current_severe_threats_of_interest, file = here("data/tidy_data/iucn/current_severe_threats_of_interest.csv"))
-
-
-```
 
 Tidying crop LCA files to include as a single file
 
@@ -291,7 +244,11 @@ unique(lca_all_crops$raw_material)
 ```
 
 
-Pulling together the spatial fisheries data and save it to the project.
+
+#FISHERIES DATA 
+
+
+Pulling together the spatial industrial fisheries data and save to rdsi storage. We assume only industrial fisheries are used for fishmeal production.
 
 ```{r}
 
@@ -330,17 +287,75 @@ fwrite(catch_index_join, file.path(watson_dir, "watson_2015_fisheries_catch.csv"
 
 ```
 
-Filter FAO Species lists
+Filter FAO Species lists for forage fish spp
 
 ```{r}
-
 fao_list <- read_csv(file.path(fao_dir, "species_lists/CL_FI_SPECIES_GROUPS.csv"))
 
 unique(fao_list$ISSCAAP_Group)
 
 forage_list <- fao_list |> filter(ISSCAAP_Group == "Herrings, sardines, anchovies" )
 
-write_csv(forage_list, here("data/raw_data/fisheries/forage_fish_spp_list.csv"))
+write_csv(forage_list, here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv"))
+```
+
+
+Tidy data for forage fish species from Kok et al
+```{r}
+kok_etal_data <- read_csv(here("data/raw_data/fisheries/embodied_fish_kok_et_al.csv")) |> 
+  mutate(Species = substring(Species, 1, nchar(Species)-1)) |> 
+  mutate(common_name = case_when(grepl("Sandeels|Capelin|Boarfish", Species) ~ word(Species, start = 1, end = 1),
+                                 grepl("South American pilchard", Species) ~ word(Species, start = 1, end = 3),
+                                 TRUE ~ word(Species, start = 1, end = 2))) |> 
+  mutate(common_name = case_when(grepl("bnchovy", common_name)~ "Peruvian anchovy",
+                                TRUE ~ common_name)) |> 
+  mutate(sci_name = c(unlist(str_extract_all(Species,  "(?<=\\().+?(?=\\))")), rep(NA, times = 2))) |> 
+  mutate(sci_name = case_when(sci_name == "C. harengus" ~ "Clupea harengus",
+                              sci_name == "M. villosus" ~ "Mallotus villosus",
+                              TRUE~sci_name)) |> 
+  select(-Species) |> 
+  relocate(c(common_name, sci_name), .before = `Ecosystem d`)
+
+write_csv(kok_etal_data, file = here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv"))
+
+```
+
+
+
+Filter Watson spatialised catch data for forage fish species so it can be stored in the project
+
+```{r}
+
+#145 unique species and species groups in the FAO data
+forage_spp_fao <- read_csv(here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv")) |> select(Name_en, Scientific_Name) |> distinct() |> rename(common_name = Name_en, sci_name = Scientific_Name) 
+
+
+#forage_spp_fao_common <- read_csv(here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv")) |> pull(Name_en) |> unique() 
+
+forage_spp_koketal <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  select(common_name, sci_name) |> distinct()
+# forage_spp_koketal_common <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  pull(common_name) |> unique()
+
+#combine data from different sources and store for future reference
+
+
+forage_spp_list <- bind_rows(forage_spp_fao, forage_spp_koketal) |> distinct()
+
+write_csv(forage_spp_list, here("data/raw_data/fisheries/forage_fish_list_final.csv"))
+
+
+#filter the fisheries catch by the forage spp listed by FAO and Kok et al
+
+fisheries_catch <- fread(file.path(watson_dir, "watson_2015_fisheries_catch.csv"))
+
+sort(unique(fisheries_catch$TaxonName))
+
+(forage_catch <- fisheries_catch |> lazy_dt() |> filter(TaxonName %in% forage_spp_list$sci_name | CommonName %in% forage_spp_list$common_name ) |> as_tibble())
+
+#check how many of the 154 are represented - only 31 species representing over 20 million tonnes but species from the embodied fish are also missing. Might be worth filtering by relevant genus as even binomials can differ
+unique(forage_catch$TaxonName)
+sum(forage_catch$total_catch)
+
+saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
 
 ```
 
