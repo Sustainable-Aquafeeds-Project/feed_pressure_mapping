@@ -263,6 +263,8 @@ total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_
 
 fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 
+rm(total_ingredient_demand)
+
 (embodied_fish_ratios <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> 
   mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", `Ecosystem d`) ~ "North Atlantic",
                                         `Ecosystem d` == "HC" ~ "Humboldt",
@@ -278,15 +280,14 @@ globalav_embodiedfish_fm <- embodied_fish_ratios |> filter(common_name == "Globa
 globalav_embodiedfish_fo <- embodied_fish_ratios |> filter(common_name == "Global average" & Ingredient == "Fish oil") |> pull(`2020`)
 
 
-
-forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
+forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2015.rds")) |> filter(!grepl("krill", CommonName))
 
 (forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
   summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
   arrange(-total_catch) |> 
-  left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fishmeal=`2020`), by = c("TaxonName" = "sci_name")) |> 
-    left_join(embodied_fish_ratios |> filter(Ingredient == "Fish oil") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fish_oil=`2020`), by = c("TaxonName" = "sci_name", "common_name", "ecosystem_combined"))
+  left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fishmeal_cf =`2020`), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(Ingredient == "Fish oil") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fish_oil_cf =`2020`), by = c("TaxonName" = "sci_name", "common_name"))
 )
 
 
@@ -302,7 +303,7 @@ plot(log10(total_forage_raster+1))
 
 #CROP THE FISHING REGIONS BY FAO AREA
 
-fao_areas <- c(77, 87, 31, 27, 34, 51, 61) #these fao areas broadly correspond with the area of most interest above
+fao_areas <- c(77, 67, 87, 21, 31, 41, 27, 37, 34, 51,57, 61, 71) #these fao areas broadly correspond with the area of most interest above
 
 #read in the fao area shapefiles from the FAO json
 FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> mutate(F_AREA = as.numeric(F_AREA))
@@ -340,7 +341,7 @@ ggplot()+
   geom_sf(data = forage_regions_shp |> mutate(f_area = factor(F_AREA)), aes(fill = NAME_EN), colour=NA)+
   geom_sf(data = world_shp, size=NA, fill="grey60")+
   labs(fill = "")+
-  scale_fill_manual(values = RColorBrewer::brewer.pal(7, name = "Blues"))+
+  scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(7, name = "Blues"))(length(fao_areas)))+
    theme_void()+
   theme(
         panel.background = element_rect(fill= "white", colour = NA),
@@ -358,21 +359,29 @@ ggplot()+
         panel.background = element_rect(fill= "white", colour=NA),
         plot.background = element_rect(fill= "white", colour = NA),
         axis.title = element_blank(),
-        legend.text = element_text(size=6),
-        legend.title = element_text(size=6),
-        legend.key.size = unit(0.3, "cm"))
+        legend.text = element_text(size=4),
+        legend.title = element_text(size=4),
+        legend.key.size = unit(0.2, "cm"))
   
   
 ggsave(filename = here("figures/supplementary/fao_regions_catch.jpeg"), device = "jpg", dpi = 300, width = 13, height = 5, units = "cm")
 
 
 #join FAO area xyz of interest to catch data and  embodied fish factors to get the potential fmfo provisioning by each area
-FMFO_potential_frm_catch <- forage_catch |> 
+source_production_potential <- 
+  forage_catch |> 
   left_join(fao_xyz_of_interest |> rename(fao_area_code = layer, fao_area_name = area_name), 
             by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
   drop_na(fao_area_name) |>
-  group_by(fao_area_code, fao_area_name, TaxonName, CommonName) |> 
-  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
+  mutate(source_code = case_when(fao_area_name == "Pacific, Southeast" ~ "HB",
+                            fao_area_name == "Atlantic, Northeast" ~ "NA",
+                            TRUE ~ "OT")) |> 
+  group_by(source_code) |> 
+  summarise(total_catch = sum(total_catch, na.rm=TRUE)) 
+  
+  
+  
+  |> 
   arrange(fao_area_name, -total_catch) |> 
   group_by(fao_area_code) |> 
   nest() |> 
@@ -394,7 +403,8 @@ FMFO_potential_frm_catch <- forage_catch |>
 supply_vs_demand_byarea <- 
   FMFO_potential_frm_catch |> 
   group_by(fao_area_name, fao_area_code) |> 
-  summarise(total_fm_supply = sum(fm_potential),
+  summarise(total_catch = sum(total_catch),
+            total_fm_supply = sum(fm_potential),
             total_fo_supply = sum(fo_potential)) |> 
   mutate(marine_diet_fm_demand = fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand), 
          plant_diet_fm_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand)) |> 
@@ -405,26 +415,48 @@ supply_vs_demand_byarea <-
 
 #now add source regions (Humboldt, North Atlantic, and "other")
 
-FMFO_potential_frm_catch |> 
+source_region_supply_props <- 
+  FMFO_potential_frm_catch |> 
+  ungroup() |> 
+  select(-prop_region_catch) |> 
   mutate(source_code = case_when(fao_area_name == "Pacific, Southeast" ~ "HB",
                             fao_area_name == "Atlantic, Northeast" ~ "NA",
                             TRUE ~ "OT")) |> 
-  #demand for fish meal from marine and plant diets
+  group_by(source_code) |> 
+  nest() |> 
+  mutate(total_source_fm_potential = map(data, ~sum(.$)),
+         total_source_fo_potential = map(data, ~sum(.$fo_potential))) |> 
+  unnest(cols = c(data, total_source_fm_potential, total_source_fo_potential))
+
+
+    prop_regional_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
+  unnest(cols = c(data, prop_regional_catch)) |>
+  ungroup() #
+
+
+
+diets <- c("marine_diet", "plant_diet")
+
+map_df(.x = diets, .f = \(this_diet){
+  this_diet_supply_demand <- 
+    source_region_supply_props |> 
+    mutate(diet = this_diet,
+           total_fm_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
+           total_fo_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)) |> 
+    mutate(spp_fm_demand = total_fm_demand*prop_fm_potential,
+           spp_fo_demand = total_fo_demand*prop_fo_potential,
+           spp_fm_demand = )
+})
+  
+  
+  
+  
+   #demand for fish meal from marine and plant diets
   mutate(marine_diet_fm_demand = fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand), 
          plant_diet_fm_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
   #demand for fish oil from marine and plant diets
   marine_diet_fo_demand = fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand), 
-         plant_diet_fo_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)) |> 
-  group_by(source_code) |> 
-  nest() |> 
-  mutate(marine_fm_prop_area_supply = map(data, ~(.$marine_diet_fm_demand/sum(.$fm_potential))),
-         plant_fm_prop_area_supply = map(data, ~(.$plant_diet_fm_demand/sum(.$fm_potential))),
-         marine_fo_prop_area_supply = map(data, ~(.$marine_diet_fo_demand/sum(.$fo_potential))),
-         plant_fo_prop_area_supply = map(data, ~(.$plant_diet_fo_demand/sum(.$fo_potential)))) |> 
-  unnest(cols = c(data,marine_fm_prop_area_supply, plant_fm_prop_area_supply,marine_fo_prop_area_supply, plant_fo_prop_area_supply))
-  
-  
-
+         plant_diet_fo_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)) 
 
   group_by(source_code, marine_diet_fm_demand, plant_diet_fm_demand, marine_diet_fo_demand, plant_diet_fo_demand) |> 
   summarise(total_fm_supply = sum(total_fm_supply), total_fo_supply = sum(total_fo_supply)) |> 
@@ -441,6 +473,15 @@ forage_catch |>
                             TRUE ~ "OT"))
 
 
+#marine diet
+(fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fm)+
+  (fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fo)
+
+#plant diet 
+(fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fm)+
+  (fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fo)
+  
+  
 ```
 
 

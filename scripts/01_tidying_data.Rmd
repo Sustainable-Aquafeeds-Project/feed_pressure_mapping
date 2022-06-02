@@ -357,5 +357,8 @@ sum(forage_catch$total_catch)
 
 saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
 
+
+read_csv(here("data/raw_data/fisheries/forage_fish_list_final.csv"))
+
 ```
 
