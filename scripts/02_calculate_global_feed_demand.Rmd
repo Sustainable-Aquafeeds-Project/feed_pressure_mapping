@@ -14,6 +14,7 @@ library(countrycode)
 library(Hmisc)
 library(data.table)
 library(dtplyr)
+library(raster)
 
 source(here("src/directories.R"))
 
@@ -259,23 +260,44 @@ total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_
 
 fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 
-embodied_fish_ratios <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> 
+(embodied_fish_ratios <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> 
   mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", `Ecosystem d`) ~ "North Atlantic",
                                         `Ecosystem d` == "HC" ~ "Humboldt",
                                         `Ecosystem d` == "GM" ~ "Gulf of Mexico", 
                                         `Ecosystem d` == "SO" ~ "Southern Ocean",
                                         `Ecosystem d` == "GA" ~ "Other")) |> 
-  select(common_name, sci_name, ecosystem_combined, Ingredient, `2020`)
+  select(common_name, sci_name, ecosystem_combined, Ingredient, `2020`) |> 
+  mutate(sci_name = case_when(sci_name == "Brevoorti patronus" ~ "Brevoortia patronus",
+                              TRUE ~ sci_name)) |> distinct() )
 
 
 forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
 
-forage_catch_summary <- forage_catch |> 
+(forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
   summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
   arrange(-total_catch) |> 
-  left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> rename(fishmeal=`2020`), by = c("TaxonName" = "sci_name"))
+  left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-Ingredient) |> rename(fishmeal=`2020`), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(Ingredient == "Fish oil") |> select(-Ingredient) |> rename(fish_oil=`2020`), by = c("TaxonName" = "sci_name", "common_name", "ecosystem_combined"))
+)
 
+
+#plot forage catch to identify main regions
+forage_xyz <- forage_catch |> 
+  select(LonCentre, LatCentre, total_catch) |> 
+  rename(x=LonCentre, y= LatCentre, z = total_catch) 
+
+plot(log10(raster::rasterFromXYZ(forage_xyz)))
+
+
+
+missing_regions_factors <- forage_catch_summary |> 
+  filter(is.na(common_name))
+
+forage_catch |> filter(CommonName %in% missing_regions_factors$CommonName) |> select(CommonName, `FAO name`) |> count(CommonName, `FAO name`) |> mutate(region = countrycode(sourcevar = `FAO name`, origin = "country.name", destination = "un.regionsub.name", warn=TRUE))
+  
+
+f
 
 
 ```
