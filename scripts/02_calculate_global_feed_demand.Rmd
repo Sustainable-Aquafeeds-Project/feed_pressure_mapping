@@ -17,6 +17,7 @@ library(raster)
 library(terra)
 library(sf)
 library(jsonlite)
+library(ggnewscale)
 
 source(here("src/directories.R"))
 
@@ -309,7 +310,6 @@ ggplot()+
 
 #get the xyz file for each fao region sand create one data frame to join to the forage catch data by coordinates
 
-
 fao_xyz_of_interest <- map_df(.x = fao_areas, .f = \(this_area){
   
   this_area_shp <- FAO_regions_shp |> filter(F_AREA == this_area)
@@ -321,6 +321,25 @@ fao_xyz_of_interest <- map_df(.x = fao_areas, .f = \(this_area){
   return(this_area_xyz)
   
 })
+
+#check the regions
+fao_areas_of_interest <- unique(fao_xyz_of_interest$area_name)
+
+#plot the FAO regions used for a supplementary figure
+forage_regions_shp <- FAO_regions_shp |> filter(F_AREA %in% fao_areas)
+world_shp <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
+catch_raster <- total_forage_raster |> raster::raster() |> as("SpatialPointsDataFrame") |> as.data.frame()
+
+
+ggplot()+
+  geom_sf(data = forage_regions_shp |> mutate(f_area = factor(F_AREA)), aes(fill = NAME_EN))+
+  geom_sf(data = world_shp, size=NA, fill="grey60")+
+  labs(fill = "")+
+  scale_fill_manual(values = RColorBrewer::brewer.pal(5, name = ))
+  new_scale_fill()+
+  geom_tile(data = catch_raster, aes(x = x, y = y, fill=log10(z)))+
+  theme_bw()
+  
 
 
 
