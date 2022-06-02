@@ -11,10 +11,12 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(countrycode)
-library(Hmisc)
 library(data.table)
 library(dtplyr)
 library(raster)
+library(terra)
+library(sf)
+library(jsonlite)
 
 source(here("src/directories.R"))
 
@@ -282,22 +284,51 @@ forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2015.
 )
 
 
-#plot forage catch to identify main regions
+#plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, and the east asia regions
 forage_xyz <- forage_catch |> 
   select(LonCentre, LatCentre, total_catch) |> 
   rename(x=LonCentre, y= LatCentre, z = total_catch) 
 
-plot(log10(raster::rasterFromXYZ(forage_xyz)))
+total_forage_raster <- rast(forage_xyz, type="xyz")
+
+plot(log10(total_forage_raster+1))
+
+
+#CROP THE FISHING REGIONS BY FAO AREA
+
+fao_areas <- c(87, 31, 27, 34, 61) #these fao areas broadly correspond with the area of most interest above
+
+#read in the fao area shapefiles from the FAO json
+FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> mutate(F_AREA = as.numeric(F_AREA))
+
+#check FAO shapefile appears correctly
+ggplot()+
+  geom_sf(data = FAO_regions_shp_1, 
+          aes(fill = F_AREA))
+
+
+#get the xyz file for each fao region sand create one data frame to join to the forage catch data by coordinates
+
+
+fao_xyz_of_interest <- map_df(.x = fao_areas, .f = \(this_area){
+  
+  this_area_shp <- FAO_regions_shp |> filter(F_AREA == this_area)
+  
+  this_area_raster <- terra::rasterize(x = vect(this_area_shp), y = total_forage_raster, field = this_area_shp$F_AREA)
+  
+  this_area_xyz <- terra::as.data.frame(x = this_area_raster, xy = TRUE)  |> mutate(area_name = this_area_shp$NAME_EN)
+  
+  return(this_area_xyz)
+  
+})
 
 
 
-missing_regions_factors <- forage_catch_summary |> 
-  filter(is.na(common_name))
+
 
 forage_catch |> filter(CommonName %in% missing_regions_factors$CommonName) |> select(CommonName, `FAO name`) |> count(CommonName, `FAO name`) |> mutate(region = countrycode(sourcevar = `FAO name`, origin = "country.name", destination = "un.regionsub.name", warn=TRUE))
   
 
-f
 
 
 ```
