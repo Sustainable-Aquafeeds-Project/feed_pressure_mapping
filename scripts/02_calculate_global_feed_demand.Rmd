@@ -303,14 +303,14 @@ plot(log10(total_forage_raster+1))
 
 #CROP THE FISHING REGIONS BY FAO AREA
 
-fao_areas <- c(77, 67, 87, 21, 31, 41, 27, 37, 34, 51,57, 61, 71) #these fao areas broadly correspond with the area of most interest above
+fao_areas <- c(77, 67, 87, 21, 31, 41, 27, 37, 34, 47, 51,57, 61, 71, 81) #these fao areas broadly correspond with the area of most interest above
 
 #read in the fao area shapefiles from the FAO json
-FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> mutate(F_AREA = as.numeric(F_AREA))
+FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> mutate(F_AREA = as.numeric(F_AREA))
 
 #check FAO shapefile appears correctly
 ggplot()+
-  geom_sf(data = FAO_regions_shp_1, 
+  geom_sf(data = FAO_regions_shp, 
           aes(fill = F_AREA))
 
 
@@ -368,36 +368,147 @@ ggsave(filename = here("figures/supplementary/fao_regions_catch.jpeg"), device =
 
 
 #join FAO area xyz of interest to catch data and  embodied fish factors to get the potential fmfo provisioning by each area
-source_production_potential <- 
+fao_area_production_potential <- 
   forage_catch |> 
   left_join(fao_xyz_of_interest |> rename(fao_area_code = layer, fao_area_name = area_name), 
             by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
   drop_na(fao_area_name) |>
-  mutate(source_code = case_when(fao_area_name == "Pacific, Southeast" ~ "HB",
-                            fao_area_name == "Atlantic, Northeast" ~ "NA",
-                            TRUE ~ "OT")) |> 
+  group_by(fao_area_name) |> 
+  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
+  mutate(all_catch = sum(total_catch)) |>  # from this Atlantic Northeast, Eastern Pacific (all regions), and "Other" seem like the best options
+  mutate(source_code = case_when(fao_area_name == "Atlantic, Northeast" ~ "NAT",
+                                 fao_area_name %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+                                                      TRUE ~ "OTH")) |> 
+  ungroup()
+
+
+#the new umbrella groups - these catch levels are about as even as they can be
+source_production_potential <- 
+  fao_area_production_potential |> 
+  group_by(source_code, all_catch) |> 
+  summarise(total_catch = sum(total_catch))
+
+
+
+#now distribute fishmeal and oil demand by the proportion of catch the species make up in each source region
+forage_catch_w_prop_supply <- 
+  forage_catch |> 
+  left_join(fao_xyz_of_interest |> rename(fao_area_code = layer, fao_area_name = area_name), 
+            by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
+  drop_na(fao_area_name) |>
+  mutate(source_code = case_when(fao_area_name == "Atlantic, Northeast" ~ "NAT",
+                                 fao_area_name %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+                                                      TRUE ~ "OTH")) |> 
   group_by(source_code) |> 
-  summarise(total_catch = sum(total_catch, na.rm=TRUE)) 
-  
-  
-  
-  |> 
-  arrange(fao_area_name, -total_catch) |> 
-  group_by(fao_area_code) |> 
   nest() |> 
-  mutate(prop_region_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
-  unnest(cols = c(data, prop_region_catch)) |> 
+  mutate(prop_source_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
+  unnest(cols = c(data, prop_source_catch)) |> 
+  ungroup() |> 
   left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fishmeal_cf=`2020`), by = c("TaxonName" = "sci_name")) |> 
     left_join(embodied_fish_ratios |> filter(Ingredient == "Fish oil") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fish_oil_cf=`2020`), by = c("TaxonName" = "sci_name", "common_name")) |> 
   mutate(fishmeal_cf = case_when(is.na(common_name) ~ globalav_embodiedfish_fm,
                                  TRUE ~ fishmeal_cf),
          fish_oil_cf = case_when(is.na(common_name) ~ globalav_embodiedfish_fo,
                                  TRUE ~ fish_oil_cf)) |> 
-  select(-common_name) |> 
-  mutate(fm_potential = total_catch/fishmeal_cf,
-         fo_potential = total_catch/fish_oil_cf)
-  
+  select(-common_name) 
+ 
 
+
+#use the proportions for each region to divide the demand up and work out how the spp_based demand converts to embodied fish
+
+forage_supply_demand_by_diet <- 
+  map_df(.x =  c("marine_diet", "plant_diet"), .f = \(this_diet){
+    
+    this_df <- forage_catch_w_prop_supply |> 
+      mutate(diet = this_diet,
+             fm_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
+             fo_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand),
+             spp_fm_demand = fm_demand * prop_source_catch,
+             spp_fo_demand = fo_demand * prop_source_catch,
+             fm_embodied_fish = spp_fm_demand * fishmeal_cf,
+             fo_embodied_fish = spp_fo_demand * fish_oil_cf,
+             total_embodied_fish = fm_embodied_fish+fo_embodied_fish) |> 
+      mutate(demand_vs_supply = total_embodied_fish/total_catch) |> 
+      relocate(diet, .before = source_code)
+    
+  })
+```
+
+
+Now do some checks on if demand and supply match up per record i.e. by per cell-species-gear combinations. 
+
+```{r}
+#check the demand vs supply match up - are there cells where supply is outstripped by demand? 
+forage_supply_demand_by_diet |> filter(demand_vs_supply>1) #lots of rows where demand exceeds supply - likely due to global average conversions, but by how much typically?
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 4% of catch records demand exceed catch in 2015
+forage_supply_demand_by_diet |> filter(demand_vs_supply>1) |> pull(demand_vs_supply) |> unique() #nothing exceeding 1.16 of catch. How much does this matter- i.e. what does that equate to in tonnes and is that within a range of variation for that cell?
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1.1))/nrow(forage_supply_demand_by_diet) #only in 2% of catch records was demand over 10% higher than supply
+
+#look at what quantities and proportion demand exceeded supply by
+exceedance_check <- forage_supply_demand_by_diet |> 
+        mutate(exceedance = case_when(demand_vs_supply>1 ~ (demand_vs_supply-1)*total_embodied_fish,
+                                      TRUE ~ total_embodied_fish-total_catch)) |>
+   mutate(prop_exceedance = case_when(exceedance>0 ~ exceedance/total_catch,
+                                      TRUE ~ 0))
+
+#what is the maximum exceedance in tonnage?
+max_exceedance <- exceedance_check |> pull(exceedance) |> max() #2826 tonnes - might not be so bad depending on the cell
+#but what does the catch look like when max absolute exceedance occurs?
+exceedance_check |> filter(exceedance == max_exceedance) # catch is 17000 tonnes when demand exceeds catch by as much as 2800 tonnes
+#what is the maximum proportional exceedance?
+max_prop_exceedance <- exceedance_check |> pull(prop_exceedance) |> max() #19% this is kinda high for a cell.
+#hat is the catch when proportional exceedance is this high?
+exceedance_check |> filter(prop_exceedance == max_prop_exceedance) # catch is tiny when proportional exceedance is maximised 
+ 
+#plot it out to chekc the pattern
+exceedance_only_df <- 
+  exceedance_check |> filter(demand_vs_supply>1)
+
+#no real pattern to the relationshoip between size and prop of exceedance  so will have redistribute
+ggplot(data = exceedance_only_df)+
+  aes(x=prop_exceedance, y = exceedance+1)+
+  geom_point(alpha=0.3)+
+  scale_y_continuous(trans = "log10")
+
+
+
+
+
+#redistribute the demand in cells where it is greater than supply across other cells. Do this independently for each diet-source combo though, so need to split the data.
+forage_supply_demand_list <- forage_supply_demand_by_diet |> 
+  relocate(diet, .before = source_code) |> 
+  group_split(diet, source_code)
+
+this_df <- forage_supply_demand_list[[1]]
+
+
+# forage_supply_demand_redistributed <- 
+  map(.x = forage_supply_demand_list, .f = \(this_df){
+    
+    exceed_supply <- this_df |> filter(demand_vs_supply>1)
+    below_supply <- this_df |> filter(demand_vs_supply<=1)
+    
+    if(nrow(exceed_supply)>0){
+    exceed_supply2 <-  exceed_supply |>
+        mutate(exceedance = (demand_vs_supply-1)*total_embodied_fish)
+      
+    below_supply2 <- below_supply |> 
+        mutate(exceedance = total_embodied_fish-total_catch)
+    
+    total_exceedance <- sum(exceed_supply2$exceedance)
+
+
+      
+      
+    #}
+    
+    
+  })
+
+```
+
+
+```{r}
 #Which regions can meet demand? This will decide the sourcing regions.
 #Pacific Southeast and Atlantic Northeast can reach demand as regions alone. All other regions can be grouped. 
 supply_vs_demand_byarea <- 
