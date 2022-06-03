@@ -306,7 +306,11 @@ plot(log10(total_forage_raster+1))
 fao_areas <- c(77, 67, 87, 21, 31, 41, 27, 37, 34, 47, 51,57, 61, 71, 81) #these fao areas broadly correspond with the area of most interest above
 
 #read in the fao area shapefiles from the FAO json
-FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> mutate(F_AREA = as.numeric(F_AREA))
+FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+  mutate(F_AREA = as.numeric(F_AREA)) |> 
+  mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
+                                 NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+                                                      TRUE ~ "OTH"))
 
 #check FAO shapefile appears correctly
 ggplot()+
@@ -473,37 +477,98 @@ ggplot(data = exceedance_only_df)+
 
 
 
+```
 
-#redistribute the demand in cells where it is greater than supply across other cells. Do this independently for each diet-source combo though, so need to split the data.
+Redistribute the demand in cells where it is greater than supply across other cells where there is availale deficit. How to allocate can be scaled by the proportion that cell accounts for in terms of the total deficit.  Do this independently for each diet-source combo though, so need to split the data.
+
+```{r}
+
+#data list by source and diet
 forage_supply_demand_list <- forage_supply_demand_by_diet |> 
   relocate(diet, .before = source_code) |> 
   group_split(diet, source_code)
 
-this_df <- forage_supply_demand_list[[1]]
 
-
-# forage_supply_demand_redistributed <- 
-  map(.x = forage_supply_demand_list, .f = \(this_df){
+forage_supply_demand_redistributed <- 
+  map_df(.x = forage_supply_demand_list, .f = \(this_df){
     
     exceed_supply <- this_df |> filter(demand_vs_supply>1)
     below_supply <- this_df |> filter(demand_vs_supply<=1)
     
+    this_diet_source <-  paste0( unique(this_df$diet),"_",unique(this_df$source_code))
+    
     if(nrow(exceed_supply)>0){
-    exceed_supply2 <-  exceed_supply |>
+      
+      message(this_diet_source)
+      
+      exceed_supply2 <-  exceed_supply |>
         mutate(exceedance = (demand_vs_supply-1)*total_embodied_fish)
       
-    below_supply2 <- below_supply |> 
-        mutate(exceedance = total_embodied_fish-total_catch)
-    
-    total_exceedance <- sum(exceed_supply2$exceedance)
-
-
+      total_exceedance <- sum(exceed_supply2$exceedance)
+      total_deficit <- below_supply |> mutate(exceedance = total_embodied_fish-total_catch) |> pull(exceedance) |> sum()
+      
+      message("Total deficit is greater than total exceedance? ", abs(total_deficit)>total_exceedance)
+      
+      below_supply2 <- below_supply |> 
+        mutate(exceedance = total_embodied_fish-total_catch) |> 
+        mutate(prop_exceedance = exceedance/sum(exceedance)) |> 
+        mutate(added_embodied_fish = prop_exceedance * total_exceedance) |> 
+        mutate(adj_embodied_fish = total_embodied_fish+added_embodied_fish)
+      
+      message("Total biomass from exceedance cells is equal to that added to deficit cells = ", sum(below_supply2$added_embodied_fish)==total_exceedance)
+      
+      exceed_supply3 <-  exceed_supply2 |> 
+        mutate(prop_exceedance = NA) |> 
+        mutate(added_embodied_fish = NA) |> 
+        mutate(adj_embodied_fish = total_embodied_fish-exceedance)
+      
+      diff_after_adjustment <- sum(exceed_supply3$total_embodied_fish)-sum(exceed_supply3$adj_embodied_fish)
+      
+      message("Total biomass removed from exceedance cells is equal to the difference between the original and adjusted embodied fish = ", round(diff_after_adjustment, digits = 3)==round(total_exceedance, digits = 3))
       
       
-    #}
+      message("Returns same number of rows as original df? ",  (nrow(exceed_supply3)+nrow(below_supply2))==nrow(this_df))
+      
+      this_df_adj <- bind_rows(below_supply2, exceed_supply3)
+      
+      return(this_df_adj)
+      
+    } else{
+      
+        this_df <- this_df |> 
+        mutate(exceedance = 0) |> 
+        mutate(prop_exceedance = 0) |> 
+        mutate(added_embodied_fish = 0) |> 
+        mutate(adj_embodied_fish = total_embodied_fish)
+      
+    return(this_df)
+      
+    }
+
+  })
+
+#check same number of rows as the input file and that totals are the same in combination and by diet
+
+nrow(forage_supply_demand_by_diet)==nrow(forage_supply_demand_redistributed)
+
+sum(forage_supply_demand_by_diet$total_embodied_fish) == sum(forage_supply_demand_redistributed$adj_embodied_fish, na.rm = TRUE)
+
+#check marine diet - yep total embodied fish is a match between the original and redistributed sets
+forage_supply_demand_by_diet |> filter(diet=="marine_diet") |> pull(total_embodied_fish) |> sum() == forage_supply_demand_redistributed |> filter(diet=="marine_diet") |> pull(adj_embodied_fish) |> sum()
+
+#check marine diet - yep total embodied fish is a match between the original and redistributed sets
+forage_supply_demand_by_diet |> filter(diet=="plant_diet") |> pull(total_embodied_fish) |> sum() == forage_supply_demand_redistributed |> filter(diet=="plant_diet") |> pull(adj_embodied_fish) |> sum()
+
+
+embodied_fish_demand_by_diet_source <- forage_supply_demand_redistributed |> 
+  group_split(diet, source_code) |> 
+  map_df(\(this_df){
     
+    return(tibble(diet = unique(this_df$diet), source_code = unique(this_df$source_code), embodied_fish_demand = sum(this_df$adj_embodied_fish)))
     
   })
+
+saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
 
 ```
 
