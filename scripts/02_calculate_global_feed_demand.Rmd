@@ -572,94 +572,16 @@ saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_dat
 
 ```
 
+Write rasters for the forage fish demand for each diet and source and gear type
 
 ```{r}
-#Which regions can meet demand? This will decide the sourcing regions.
-#Pacific Southeast and Atlantic Northeast can reach demand as regions alone. All other regions can be grouped. 
-supply_vs_demand_byarea <- 
-  FMFO_potential_frm_catch |> 
-  group_by(fao_area_name, fao_area_code) |> 
-  summarise(total_catch = sum(total_catch),
-            total_fm_supply = sum(fm_potential),
-            total_fo_supply = sum(fo_potential)) |> 
-  mutate(marine_diet_fm_demand = fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand), 
-         plant_diet_fm_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand)) |> 
-  relocate(c(marine_diet_fm_demand, plant_diet_fm_demand), .before = total_fo_supply) |> 
-  mutate(marine_diet_fo_demand = fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand), 
-         plant_diet_fo_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand))
+
+forage_supply_demand_redistributed |> 
+  group_split(diet, source_code)
 
 
-#now add source regions (Humboldt, North Atlantic, and "other")
-
-source_region_supply_props <- 
-  FMFO_potential_frm_catch |> 
-  ungroup() |> 
-  select(-prop_region_catch) |> 
-  mutate(source_code = case_when(fao_area_name == "Pacific, Southeast" ~ "HB",
-                            fao_area_name == "Atlantic, Northeast" ~ "NA",
-                            TRUE ~ "OT")) |> 
-  group_by(source_code) |> 
-  nest() |> 
-  mutate(total_source_fm_potential = map(data, ~sum(.$)),
-         total_source_fo_potential = map(data, ~sum(.$fo_potential))) |> 
-  unnest(cols = c(data, total_source_fm_potential, total_source_fo_potential))
-
-
-    prop_regional_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
-  unnest(cols = c(data, prop_regional_catch)) |>
-  ungroup() #
-
-
-
-diets <- c("marine_diet", "plant_diet")
-
-map_df(.x = diets, .f = \(this_diet){
-  this_diet_supply_demand <- 
-    source_region_supply_props |> 
-    mutate(diet = this_diet,
-           total_fm_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
-           total_fo_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)) |> 
-    mutate(spp_fm_demand = total_fm_demand*prop_fm_potential,
-           spp_fo_demand = total_fo_demand*prop_fo_potential,
-           spp_fm_demand = )
-})
-  
-  
-  
-  
-   #demand for fish meal from marine and plant diets
-  mutate(marine_diet_fm_demand = fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand), 
-         plant_diet_fm_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
-  #demand for fish oil from marine and plant diets
-  marine_diet_fo_demand = fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand), 
-         plant_diet_fo_demand = fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)) 
-
-  group_by(source_code, marine_diet_fm_demand, plant_diet_fm_demand, marine_diet_fo_demand, plant_diet_fo_demand) |> 
-  summarise(total_fm_supply = sum(total_fm_supply), total_fo_supply = sum(total_fo_supply)) |> 
-  mutate(marine_diet_fm_catch_ratio = )
-
-
-
-forage_catch |> 
-  left_join(fao_xyz_of_interest |> rename(fao_area_code = layer, fao_area_name = area_name), 
-            by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
-  drop_na(fao_area_name) |> 
-  mutate(source_code = case_when(fao_area_name == "Pacific, Southeast" ~ "HB",
-                            fao_area_name == "Atlantic, Northeast" ~ "NA",
-                            TRUE ~ "OT"))
-
-
-#marine diet
-(fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fm)+
-  (fmfo_demand |> filter(diet == "marine_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fo)
-
-#plant diet 
-(fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fm)+
-  (fmfo_demand |> filter(diet == "plant_diet" & ingredients == "fish oil-wild") |> pull(total_ingredient_demand)* globalav_embodiedfish_fo)
-  
-  
+unique(forage_supply_demand_redistributed$FleetGearName)
 ```
-
 
 
 
