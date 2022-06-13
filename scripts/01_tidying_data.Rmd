@@ -252,38 +252,62 @@ Pulling together the spatial industrial fisheries data and save to rdsi storage.
 
 ```{r}
 
-catch_2015 <- fread(file.path(watson_dir, "CatchInd2015_2015.csv")) |> lazy_dt()
+#THE v5 DATA
 
-codes_cell <- fread(file.path(watson_dir, "codes_cell.csv")) |> lazy_dt()
+catch <- fread(file.path(watson_dir, "v5.0/Catch2015_2019.csv")) |> lazy_dt() |> filter(IYear == 2017)
 
-codes_country <- fread(file.path(watson_dir, "codes_country.csv"))|> lazy_dt()
+codes_cell <- fread(file.path(watson_dir, "v5.0/Codes_cells.csv")) |> lazy_dt()
 
-codes_gear <- fread(file.path(watson_dir, "codes_gear.csv")) |> lazy_dt()
+codes_country <- fread(file.path(watson_dir, "v5.0/Codes_country.csv"))|> lazy_dt()
 
-codes_taxa <- fread(file.path(watson_dir, "codes_taxa.csv")) |> lazy_dt()
+codes_gear <- fread(file.path(watson_dir, "v5.0/Codes_gear.csv")) |> select(Gear, FleetGearName) |> distinct() |> lazy_dt()
 
-IndexInd <- fread(file.path(watson_dir, "IndexInd.csv")) |> lazy_dt()
-
-
-catch_coords_2015 <- catch_2015 |> 
-  left_join(codes_cell, by = "Cell") 
-
-index_2015 <- 
-  IndexInd |> 
-  filter(IYear == 2015) |> 
-  left_join(codes_taxa, by = c("Taxonkey" = "TaxonKey")) |> 
-  left_join(codes_gear |> select(-c(VBCode, FAOGearName, FAOGearCode)) |> distinct(), by = c("Gear", "FGearCode")) |> 
-  left_join(codes_country, by = c("CNumber" = "Country")) |> 
-  select(-c(NumCells, Reported, IUUTotal, Discards))
-  
- 
-catch_index_join <- catch_coords_2015 |> 
-  left_join(index_2015) |> 
-  mutate(total_catch = Reported + IUU) |> 
-  as.data.table() 
+codes_taxa <- fread(file.path(watson_dir, "v5.0/Codes_taxa.csv")) |> lazy_dt()
 
 
-fwrite(catch_index_join, file.path(watson_dir, "watson_2015_fisheries_catch.csv"))
+
+catch_joined<- catch |>
+  left_join(codes_cell, by = "Cell") |>
+  left_join(codes_country, by = c("CNumber" = "Cnumber")) |>
+  left_join(codes_gear, by = c("Gear")) |>
+  left_join(codes_taxa, by = "Taxonkey") |>
+  rename(CountryName = `FAO name`) |> as.data.table()
+
+fwrite(catch_joined, file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv"))
+
+
+# THE V4 DATA
+
+# catch <- fread(file.path(watson_dir, "v4/Catch2015_2019.csv")) |> lazy_dt() |> filter(IYear == 2017)
+# 
+# codes_cell <- fread(file.path(watson_dir, "v4/codes_cells.csv")) |> lazy_dt()
+# 
+# codes_country <- fread(file.path(watson_dir, "v4/codes_country.csv"))|> lazy_dt()
+# 
+# codes_gear <- fread(file.path(watson_dir, "v4/codes_gear.csv")) |> select(Gear, FleetGearName) |> distinct() |> lazy_dt()
+# 
+# codes_taxa <- fread(file.path(watson_dir, "v4/codes_taxa.csv")) |> lazy_dt()
+# 
+# IndexInd <- fread(file.path(watson_dir, "v4/IndexInd.csv")) |> lazy_dt()
+# 
+
+# index_2015 <- 
+#   IndexInd |> 
+#   filter(IYear == 2015) |> 
+#   left_join(codes_taxa, by = c("Taxonkey" = "TaxonKey")) |> 
+#   left_join(codes_gear |> select(-c(VBCode, FAOGearName, FAOGearCode)) |> distinct(), by = c("Gear", "FGearCode")) |> 
+#   left_join(codes_country, by = c("CNumber" = "Country")) |> 
+#   select(-c(NumCells, Reported, IUUTotal, Discards))
+#   
+#  
+# catch_index_join <- catch_coords_2015 |> 
+#   left_join(index_2015) |> 
+#   mutate(total_catch = Reported + IUU) |> 
+#   as.data.table() 
+
+
+#fwrite(catch_index_join, file.path(watson_dir, "watson_2015_fisheries_catch.csv"))
+
 
 ```
 
@@ -300,7 +324,7 @@ write_csv(forage_list, here("data/raw_data/fisheries/fao_forage_fish_spp_list.cs
 ```
 
 
-Tidy data for forage fish species from Kok et al
+Tidy embodied fish data from FMFO for different forage fish species from Kok et al
 ```{r}
 kok_etal_data <- read_csv(here("data/raw_data/fisheries/embodied_fish_kok_et_al.csv")) |> 
   mutate(Species = substring(Species, 1, nchar(Species)-1)) |> 
@@ -326,39 +350,45 @@ Filter Watson spatialised catch data for forage fish species so it can be stored
 
 ```{r}
 
-#145 unique species and species groups in the FAO data
+#THE V5 DATA
+
+catch <- fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv"))
+
+ #145 unique species and species groups in the FAO data
 forage_spp_fao <- read_csv(here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv")) |> select(Name_en, Scientific_Name) |> distinct() |> rename(common_name = Name_en, sci_name = Scientific_Name) 
 
-
-#forage_spp_fao_common <- read_csv(here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv")) |> pull(Name_en) |> unique() 
-
+#13 species in Kok et al - some not in the FAO data
 forage_spp_koketal <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  select(common_name, sci_name) |> distinct()
-# forage_spp_koketal_common <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  pull(common_name) |> unique()
+#forage_spp_koketal_common <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  pull(common_name) |> unique()
 
-#combine data from different sources and store for future reference
-
-
+#bind the two sources and save - 155 species considered in total
 forage_spp_list <- bind_rows(forage_spp_fao, forage_spp_koketal) |> distinct()
-
 write_csv(forage_spp_list, here("data/raw_data/fisheries/forage_fish_list_final.csv"))
 
+forage_catch <- catch |> lazy_dt() |> filter(TaxonName %in% forage_spp_list$sci_name | CommonName %in% forage_spp_list$common_name ) |> mutate(total_catch = ReportedIND+IUUIND+ReportedNIND+IUUNIND, total_ind = ReportedIND+IUUIND, total_nind =ReportedNIND+IUUNIND) |> as_tibble()
 
-#filter the fisheries catch by the forage spp listed by FAO and Kok et al
+#23 million tonnes, represented by 46 species across industrial and non industrial sources
+sum(forage_catch$TotalCatch)
+sum(forage_catch$TotalIndustrial) #22.5 mill is from industrial
+sum(forage_catch$TotalNIndustrial) #1.3 mill is from non-industrial
+unique(forage_catch$TaxonName) 
 
-fisheries_catch <- fread(file.path(watson_dir, "watson_2015_fisheries_catch.csv"))
-
-sort(unique(fisheries_catch$TaxonName))
-
-(forage_catch <- fisheries_catch |> lazy_dt() |> filter(TaxonName %in% forage_spp_list$sci_name | CommonName %in% forage_spp_list$common_name ) |> as_tibble())
-
-#check how many of the 154 are represented - only 31 species representing over 20 million tonnes but species from the embodied fish are also missing. Might be worth filtering by relevant genus as even binomials can differ
-unique(forage_catch$TaxonName)
-sum(forage_catch$total_catch)
-
-saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
+saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2017.rds"))
 
 
-read_csv(here("data/raw_data/fisheries/forage_fish_list_final.csv"))
+
+
+
+
+#THE V4 DATA
+
+# #check how many of the 154 are represented - only 31 species representing over 20 million tonnes but species from the embodied fish are also missing. Might be worth filtering by relevant genus as even binomials can differ
+# unique(forage_catch$TaxonName)
+# sum(forage_catch$total_catch)
+# 
+# saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
+# 
+
 
 ```
 

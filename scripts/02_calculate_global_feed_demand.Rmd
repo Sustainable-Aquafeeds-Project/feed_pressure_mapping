@@ -280,7 +280,7 @@ globalav_embodiedfish_fm <- embodied_fish_ratios |> filter(common_name == "Globa
 globalav_embodiedfish_fo <- embodied_fish_ratios |> filter(common_name == "Global average" & Ingredient == "Fish oil") |> pull(`2020`)
 
 
-forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2015.rds")) |> filter(!grepl("krill", CommonName))
+forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName))
 
 (forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
@@ -292,14 +292,16 @@ forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2015.
 
 
 #plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
-forage_xyz <- forage_catch |> 
-  select(LonCentre, LatCentre, total_catch) |> 
+forage_xyz <- forage_catch |> group_by(LonCentre, LatCentre) |> 
+  summarise(total_catch = sum(total_catch)) |> 
+  #select(LonCentre, LatCentre, total_catch) |> 
   rename(x=LonCentre, y= LatCentre, z = total_catch) 
 
 total_forage_raster <- rast(forage_xyz, type="xyz")
 
 plot(log10(total_forage_raster+1))
 
+sum(values(total_forage_raster), na.rm = TRUE)
 
 #CROP THE FISHING REGIONS BY FAO AREA
 
@@ -386,7 +388,7 @@ fao_area_production_potential <-
   ungroup()
 
 
-#the new umbrella groups - these catch levels are about as even as they can be
+#the new umbrella groups - these catch levels are relatively even as they can be
 source_production_potential <- 
   fao_area_production_potential |> 
   group_by(source_code, all_catch) |> 
@@ -444,9 +446,9 @@ Now do some checks on if demand and supply match up per record i.e. by per cell-
 ```{r}
 #check the demand vs supply match up - are there cells where supply is outstripped by demand? 
 forage_supply_demand_by_diet |> filter(demand_vs_supply>1) #lots of rows where demand exceeds supply - likely due to global average conversions, but by how much typically?
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 4% of catch records demand exceed catch in 2015
-forage_supply_demand_by_diet |> filter(demand_vs_supply>1) |> pull(demand_vs_supply) |> unique() #nothing exceeding 1.16 of catch. How much does this matter- i.e. what does that equate to in tonnes and is that within a range of variation for that cell?
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1.1))/nrow(forage_supply_demand_by_diet) #only in 2% of catch records was demand over 10% higher than supply
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 2.8% of catch records demand exceed catch in 2017
+forage_supply_demand_by_diet |> filter(demand_vs_supply>1) |> pull(demand_vs_supply) |> unique() #nothing exceeding 1.11 of catch. How much does this matter- i.e. what does that equate to in tonnes and is that within a range of variation for that cell?
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1.1))/nrow(forage_supply_demand_by_diet) # the same 2.8% of records because this is the only value
 
 #look at what quantities and proportion demand exceeded supply by
 exceedance_check <- forage_supply_demand_by_diet |> 
@@ -456,19 +458,19 @@ exceedance_check <- forage_supply_demand_by_diet |>
                                       TRUE ~ 0))
 
 #what is the maximum exceedance in tonnage?
-max_exceedance <- exceedance_check |> pull(exceedance) |> max() #2826 tonnes - might not be so bad depending on the cell
+max_exceedance <- exceedance_check |> pull(exceedance) |> max() #7745 tonnes - might not be so bad depending on the cell
 #but what does the catch look like when max absolute exceedance occurs?
-exceedance_check |> filter(exceedance == max_exceedance) # catch is 17000 tonnes when demand exceeds catch by as much as 2800 tonnes
+exceedance_check |> filter(exceedance == max_exceedance) # catch is 64000 tonnes when demand exceeds catch by as much as 2800 tonnes
 #what is the maximum proportional exceedance?
-max_prop_exceedance <- exceedance_check |> pull(prop_exceedance) |> max() #19% this is kinda high for a cell.
-#hat is the catch when proportional exceedance is this high?
+max_prop_exceedance <- exceedance_check |> pull(prop_exceedance) |> max() #11.9% this is so so, but not nothing.
+#what is the catch when proportional exceedance is this high?
 exceedance_check |> filter(prop_exceedance == max_prop_exceedance) # catch is tiny when proportional exceedance is maximised 
  
 #plot it out to chekc the pattern
 exceedance_only_df <- 
   exceedance_check |> filter(demand_vs_supply>1)
 
-#no real pattern to the relationshoip between size and prop of exceedance  so will have redistribute
+#no  pattern to the relationshoip between size and prop of exceedance  so will have redistribute - seems the global value for FMFO embodied fish creates a constant exceedance because the values for the cell are so small and close together the proportional difference in the cell is accruate to several dp?
 ggplot(data = exceedance_only_df)+
   aes(x=prop_exceedance, y = exceedance+1)+
   geom_point(alpha=0.3)+
@@ -479,7 +481,7 @@ ggplot(data = exceedance_only_df)+
 
 ```
 
-Redistribute the demand in cells where it is greater than supply across other cells where there is availale deficit. How to allocate can be scaled by the proportion that cell accounts for in terms of the total deficit.  Do this independently for each diet-source combo though, so need to split the data.
+Redistribute the demand in cells where it is greater than supply across other cells where there is available deficit. How to allocate can be scaled by the proportion that cell accounts for in terms of the total deficit.  Do this independently for each diet-source combo though, so need to split the data.
 
 ```{r}
 
@@ -571,20 +573,6 @@ embodied_fish_demand_by_diet_source <- forage_supply_demand_redistributed |>
 saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
 
 ```
-
-Write rasters for the forage fish demand for each diet and source and gear type
-
-```{r}
-
-forage_supply_demand_redistributed |> 
-  group_split(diet, source_code)
-
-
-unique(forage_supply_demand_redistributed$FleetGearName)
-```
-
-
-
   
   
 
