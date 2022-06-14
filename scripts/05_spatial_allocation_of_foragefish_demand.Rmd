@@ -15,7 +15,16 @@ source(here("src/spatial.R"))
 
 ```
 
+
+To get the embodied_fish_by_cell.csv file imported below, you need to run the corresponding code in the fisheries section of 02_calculate_global_feed_demand.Rmd. 
+
 ```{r}
+#this is the embodied demand from each 'area' per diet
+
+forage_demand_totals <- readRDS(here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
+
+forage_demand_bycell <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
+
 
 ```
 
