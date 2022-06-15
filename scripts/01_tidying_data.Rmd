@@ -5,6 +5,9 @@ date: "15/02/2022"
 output: html_document
 ---
 
+This script takes the raw_data from databases and publications (much of which is stored in the rdsi storage at UTAS) and tidies it to be useable for this project. Spatial products are stored here("data/spatial"), some raw_data products which are not modified or summarised but format has been adjusted e.g. wide to long format are here("data/raw_data") and new (non-spatial) data products from this analysis are stored here("data/tidy_data"). There are exceptions, some data products such as the embodied forage fish demand per cell file are not pushed to Github because of their size (see .gitignore) but can be provided on request.
+
+
 ```{r}
 library(tidyverse)
 library(parallel)
@@ -15,6 +18,8 @@ library(rredlist)
 library(terra)
 library(data.table)
 library(dtplyr)
+library(future)
+library(furrr)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
@@ -22,7 +27,7 @@ source(here("src/spatial.R"))
 ```
 
 
-Create a base raster
+Create a base raster to be used throughout the project. Gall Peters projection is used for equal area analysis without the issues of 'falling off the edge that mollweide has'. Can be reporjected for aesthetics at a later point.
 ```{r}
 
 base_raster <- rast()
@@ -173,13 +178,13 @@ lapply(X = glw_zip_files, FUN = unzip_raw_data)
 ```
 
 
-Unzip FAOSTAT Production data
+#Unzip FAOSTAT Production data
 ```{r}
 unzip(list.files(path=file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"), pattern = "Production_Crops", full.names = TRUE), exdir = file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"))
 
 ```
 
-Tidy FAOSTAT Production data
+#Tidy FAOSTAT Production data
 ```{r}
 
 production_raw <- read_csv(file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022/Production_Crops_Livestock_E_All_Data_(Normalized).csv"))
@@ -213,7 +218,7 @@ map(.x = production_sector_list, .f = function(this_element){
 
 ```
 
-Tidying crop LCA files to include as a single file
+#Tidying crop LCA files to include as a single file
 
 ```{r}
 
@@ -311,7 +316,7 @@ fwrite(catch_joined, file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv
 
 ```
 
-Filter FAO Species lists for forage fish spp
+#Filter FAO Species lists for forage fish spp
 
 ```{r}
 fao_list <- read_csv(file.path(fao_dir, "species_lists/CL_FI_SPECIES_GROUPS.csv"))
@@ -324,7 +329,12 @@ write_csv(forage_list, here("data/raw_data/fisheries/fao_forage_fish_spp_list.cs
 ```
 
 
-Tidy embodied fish data from FMFO for different forage fish species from Kok et al
+#Tidy embodied fish data from FMFO for different forage fish species from Kok et al 'Fish as feed: Using economic allocation to quantify the Fish In : Fish Out ratio of major fed aquaculture species' in Aquaculture. 
+
+Data source: https://www.sciencedirect.com/science/article/pii/S0044848620309741 Appendix A Supplementary Data
+
+
+
 ```{r}
 kok_etal_data <- read_csv(here("data/raw_data/fisheries/embodied_fish_kok_et_al.csv")) |> 
   mutate(Species = substring(Species, 1, nchar(Species)-1)) |> 
@@ -346,7 +356,9 @@ write_csv(kok_etal_data, file = here("data/raw_data/fisheries/embodied_fish_rati
 
 
 
-Filter Watson spatialised catch data for forage fish species so it can be stored in the project
+#Filter Watson spatialised catch data for forage fish species so it can be stored in the project. 
+
+Data source: Watson v5.0 provided by request. v4.0 is publicly available through IMAS Research Data Portal https://metadata.imas.utas.edu.au/geonetwork/srv/eng/catalog.search#/metadata/5c4590d3-a45a-4d37-bf8b-ecd145cb356d
 
 ```{r}
 
@@ -377,9 +389,6 @@ saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_
 
 
 
-
-
-
 #THE V4 DATA
 
 # #check how many of the 154 are represented - only 31 species representing over 20 million tonnes but species from the embodied fish are also missing. Might be worth filtering by relevant genus as even binomials can differ
@@ -389,6 +398,59 @@ saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_
 # saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
 # 
 
+
+```
+
+#Tidy Global fishing watch data.
+
+Data source: https://globalfishingwatch.org/data-download/datasets/public-fishing-effort
+Files: fleet-daily-csvs-100-v2-2017.zip, fish-vessels-v2.csv, README-fleet-v2.txt
+
+First we can summarise the efort hours per day and bind it together.
+```{r}
+
+daily_effort_files <- list.files(file.path(gfw_dir, "fleet-daily-csvs-100-v2-2017"), pattern = ".csv", full.names = TRUE)
+
+#summarise effort by day
+
+effort_by_daygearcell <- 
+  map_df(.x = daily_effort_files, .f = \(this_effort_filepath){
+    
+    
+  saveName <-  paste0("summarised_", basename(this_effort_filepath))  
+  
+  this_counter <- which(daily_effort_files == this_effort_filepath)
+
+  this_days_data <- fread(this_effort_filepath) |> lazy_dt()
+  
+  this_days_summarised_data <- 
+    this_days_data |> 
+    group_by(cell_ll_lat, cell_ll_lon, geartype) |> 
+    summarise(total_fishing_hrs = sum(fishing_hours, na.rm = TRUE)) |> 
+    ungroup() |> 
+    mutate(day = this_counter) |> 
+    as.data.table()
+  
+  return(this_days_summarised_data)
+  
+}) 
+
+#summarised annually - seems to be the same number of rows - could be the number of 0s
+effort_by_gearcell2017 <- 
+  effort_by_daygearcell |> 
+  lazy_dt() |> 
+  group_by(cell_ll_lat, cell_ll_lon, geartype) |> 
+  summarise(total_fishing_hrs = sum(total_fishing_hrs)) |> 
+  as.data.table()
+
+
+fwrite(x = effort_by_gearcell2017, file = here("data/tidy_data/pressures/forage-fishing-effort/annual_effort_2017.csv"))
+
+```
+
+
+
+```{r}
 
 ```
 

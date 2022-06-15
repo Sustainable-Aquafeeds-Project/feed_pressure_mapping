@@ -18,7 +18,7 @@ source(here("src/spatial.R"))
 ```
 
 
-To get the embodied_fish_by_cell.csv file imported below, you need to run the corresponding code in the fisheries section of 02_calculate_global_feed_demand.Rmd. 
+To get the embodied_fish_by_cell.csv file imported below, you need to run the corresponding code in the fisheries section of 02_calculate_global_feed_demand.Rmd. Summarise the fisheries
 
 ```{r}
 #this is the embodied demand from each 'area' per diet
