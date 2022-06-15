@@ -421,15 +421,16 @@ effort_by_daygearcell <-
   
   this_counter <- which(daily_effort_files == this_effort_filepath)
 
-  this_days_data <- fread(this_effort_filepath) |> lazy_dt()
+  #this_days_data <- fread(this_effort_filepath) |> lazy_dt()
+  
+  this_days_data <- read_csv(this_effort_filepath, col_types = "Dddccddn")
   
   this_days_summarised_data <- 
     this_days_data |> 
     group_by(cell_ll_lat, cell_ll_lon, geartype) |> 
     summarise(total_fishing_hrs = sum(fishing_hours, na.rm = TRUE)) |> 
     ungroup() |> 
-    mutate(day = this_counter) |> 
-    as.data.table()
+    mutate(day = this_counter) 
   
   return(this_days_summarised_data)
   
@@ -444,13 +445,16 @@ effort_by_gearcell2017 <-
   as.data.table()
 
 
-fwrite(x = effort_by_gearcell2017, file = here("data/tidy_data/pressures/forage-fishing-effort/annual_effort_2017.csv"))
+fwrite(x = effort_by_gearcell2017, file = here("data/tidy_data/pressures/fishing-effort/annual_effort_2017.csv"))
 
 ```
 
-
+Explore the GFW data for gear types partitioning across gears
 
 ```{r}
+
+effort_summary <- fread(here("data/tidy_data/pressures/fishing-effort/annual_effort_2017.csv"))
+
 
 ```
 
