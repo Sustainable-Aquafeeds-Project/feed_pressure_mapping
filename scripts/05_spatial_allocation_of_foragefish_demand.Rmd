@@ -9,6 +9,8 @@ library(tidyverse)
 library(here)
 library(terra)
 library(sf)
+library(data.table)
+library(dtplyr)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
@@ -24,7 +26,12 @@ To get the embodied_fish_by_cell.csv file imported below, you need to run the co
 forage_demand_totals <- readRDS(here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
 
 #this is the embodied demand by cell by gear, species etc 
-forage_demand_bycell <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
+forage_demand_bycell_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  group_by(diet, source_code, LonCentre, LatCentre, FleetGearName) |> 
+  summarise(catch_by_gear = sum(adj_embodied_fish, na.rm = TRUE)) |> 
+  ungroup() |> 
+  as_tibble() |> 
+  group_split(diet, source_code)
 
 
 ```
