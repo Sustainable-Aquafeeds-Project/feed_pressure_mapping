@@ -1,0 +1,155 @@
+---
+title: "Calculate demand for ingredients from global salmon production"
+author: "Rich Cottrell"
+date: "14/03/2022"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(countrycode)
+library(data.table)
+library(dtplyr)
+library(raster)
+library(terra)
+library(sf)
+library(jsonlite)
+library(ggnewscale)
+
+source(here("src/directories.R"))
+
+select <- dplyr::select
+values <- terra::values
+```
+
+
+#AQUACULTURE TRENDS DRIVING FEED DEMAND
+
+Import aquaculture data and isolate Atlantic salmon. The top 10 producers produce 99.9% of global production so we can just go with that as the basis to the biomass drivin feed demand.
+```{r}
+
+aquaculture <- readRDS(here("data/tidy_data/production-data/aquaculture_production_tidy.rds"))
+
+aquaculture_species_groups <- unique(aquaculture$species)
+
+salmon_species <- aquaculture_species_groups[grep("salmon", aquaculture_species_groups)]
+
+salmon_aquaculture <- aquaculture %>% filter(species == "Atlantic salmon" & year==2019)
+
+(top_salmon_producers <- salmon_aquaculture %>% 
+    group_by(country) %>% 
+    summarise(value = sum(value, na.rm = TRUE)) %>% 
+    arrange(-value) %>% 
+    mutate(prop = value/sum(value),
+           cum_prop = cumsum(prop)) %>% 
+    slice(1:10)
+    
+    
+    )
+
+
+```
+
+
+
+Import the feed conversion ratios and join to production. 
+
+Feed conversion ratios were sourced from Tacon and Metian 2008 which has country specific information for salmon feed conversion ratios.
+
+Where country information from tacon and metian is not available use global average for that country. And get absolute feed demand. To do this we use the min eFCR given the Tacon and Metian data is old and there is a general upward trend in feed efficiency through time. However, for countries where no specific fcr data is provided, give the mean Global FCR.
+```{r}
+
+fcrs <- read_csv(here("data/raw_data/FCR.csv"))
+
+feed_demand <- 
+  top_salmon_producers %>% 
+  left_join(fcrs, by = "country") %>% 
+  mutate(eFCR_min = if_else(is.na(eFCR_min), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_min),
+         eFCR_max = if_else(is.na(eFCR_max), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_max),
+         eFCR_mean = if_else(is.na(eFCR_mean), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_mean)) %>% 
+  mutate(feed_demand = value*eFCR_min)
+  
+saveRDS(object = feed_demand, file = here("data/tidy_data/demand/global_feed_demand.rds"))
+
+```
+
+
+Bring in diet data from downloaded from Teams (and stored in raw_data in this repo) and create separate scenario datasets for each diet. Also create a summary for reference for group totals across marine proteins, marine oils, plant proteins, plant oils, and carbohyrdate sources.
+
+```{r}
+
+
+
+#all_diets <- read_csv(here("data/raw_data/diet_formats.csv")) %>% dplyr::select(-Sources)
+both_diets <- read_csv(here("data/raw_data/feed_composition_pressures.csv")) |> select(-X5)
+
+diet_summaries <- 
+  both_diets %>% 
+  filter(grepl("totals", groups)) %>% 
+  dplyr::select(c(groups, !matches('[2-9]+')), -ingredients) %>% 
+  set_names(~str_replace_all(., pattern = "_1", replacement = ""))
+
+saveRDS(object=diet_summaries, file = here("data/tidy_data/diets/diet_summaries.rds"))
+  
+
+both_diets_list <- 
+  both_diets %>% 
+  filter(!grepl("totals", groups)) |> 
+  filter(groups != "Totals") |>  
+  drop_na(ingredients) |> 
+  set_names(~str_replace_all(., pattern = "_1", replacement = "")) |> 
+  pivot_longer(names_to = "diet", values_to = "prop", -c(groups, ingredients)) |> 
+  arrange(diet) |>  
+  mutate(prop = prop/100) |> 
+  group_split(diet)
+   
+
+map(.x = both_diets_list,  .f = \(this_diet){ 
+  this_file_name <- unique(this_diet$diet); 
+  saveRDS(object = this_diet, here(paste0(sprintf("data/tidy_data/diet-scenarios/%s", this_file_name), ".rds")))
+  })
+
+
+
+```
+
+Now calculate ingredient demand per diet and for each salmon producing country. While we are not really interested in this project in the country-specific data, global demand is affected by the among country differences in FCR.
+
+```{r}
+diet_files <- list.files(here("data/tidy_data/diet-scenarios"), full.names = TRUE)
+
+feed_demand_files <- readRDS(here("data/tidy_data/demand/global_feed_demand.rds")) %>% 
+  dplyr::select(country, feed_demand) %>% 
+  group_split(country)
+
+
+#calculate demand for each country individually because of different FCRs
+
+map(feed_demand_files, .f = \(this_country_data){
+  
+  this_country <- unique(this_country_data$country)
+  
+  this_countrys_feed_demand <- unique(this_country_data$feed_demand)
+  
+  map_df(diet_files, readRDS) %>% 
+  mutate(country = this_country,
+         ingredient_demand = this_countrys_feed_demand * prop) %>% 
+  saveRDS(here(sprintf("data/tidy_data/ingredient-demand-by-country/ingredient_demand_%s.rds", this_country)))
+  
+})
+
+#Summarise and store total feed demand per ingredient, summarising all countries data
+
+list.files(here("data/tidy_data/ingredient-demand-by-country"), full.names = TRUE) %>% 
+  map_df(readRDS) %>% 
+  group_by(groups, ingredients, diet) %>% 
+  summarise(total_ingredient_demand = sum(ingredient_demand, na.rm = TRUE)) %>% 
+  saveRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
+
+
+```
+
+

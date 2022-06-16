@@ -562,11 +562,10 @@ In line with the approach from Halpern et al
 
 Overview:
 
-- Each data file provided by Watson was provided by Watson via email, and is held on a server held at NCEAS.
-- After extracting all unique gear types found in the data, a *gear to category* dataset was created (`gear_to_cat.csv`) manually using information from Table S4 in Halpern et al. (2008), and joined to the raw data. This dataset added three new columns to the data; **bycatch** (high or low), **type** (pelagic or demersal), and **destruction** (destructive or nondestructive). 
+- This takes a *gear to category* dataset that was created (`gear_to_cat.csv`) manually using information from Table S4 in Halpern et al. (2008), and joined to the raw data. This dataset added three new columns to the catch data; **bycatch** (high or low), **type** (pelagic or demersal), and **destruction** (destructive or nondestructive). 
 - The Watson v5.0 data has information on **Functional Group** for each species, which was used to assign either *pelagic* or *demersal* to species for the *gear_to_cat.csv* data.
-- Remaining catch records with missing or mismatched information were cleaned by hand which is detailed in this script (there were none).
-- Final output is a dataset, `taxa_gear_types.csv` that assigns each taxa+gear type to the categories used to create the five fishing stressors.
+- No catch records with the forage fish catch data had missing or mismatched information.
+- Final output is the catch dataset, names `spatial_forage_catch_2017_w_cats.csv` that assigns each taxa+gear type to the categories used to create the fishing stressors.
 
 ```{r}
 
@@ -582,8 +581,22 @@ write_csv(x = forage_gears, file = here("data/raw_data/fisheries/forage_gears.cs
 gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv"))
 
 
+forage_gear_cats <- forage_gears |> left_join(gears_to_cat, by = c("Gear", "VBDesc"))
 
+forage_catch_w_cats <- 
+  readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> 
+  left_join(forage_gear_cats, by = c("Gear", "VBDesc")) |> 
+  mutate(type = case_when(grepl("pelagic|krill", Descript) ~ "pelagic",
+                          grepl("benthopelagic|demersal", Descript) ~ "demersal"))
+  
 
+saveRDS(object = forage_catch_w_cats, file = here("data/raw_data/fisheries/spatial_forage_catch_2017_w_cats.rds"))
+
+#some checks
+unique(forage_catch_w_cats$Descript)
+forage_catch_w_cats |> filter(Descript == "krill") |> pull(VBDesc) |> unique()
+forage_catch_w_cats |> filter(is.na(type))
+forage_catch_w_cats |> filter(is.na(bycatch))
 ```
 
 

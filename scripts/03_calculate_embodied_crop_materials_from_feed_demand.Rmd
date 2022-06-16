@@ -1,0 +1,108 @@
+---
+title: "03_calculate_embodied_crop_materials_from_feed_demand"
+output: html_document
+---
+
+Next step is convert ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM) and source. So first, we need to know where the ingredients are largely sourced from. THis may change with information that we gain from Biomar but the idea is eventually to make this flexible enough to select any from the top producing countries. This requires knowing the raw material that supports the ingredient and the major places this raw material is grown.
+
+```{r}
+
+#create the ingredient list to match raw materials with ingredients
+
+ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> pull(ingredients) |> unique()) |> 
+  write_csv(here("data/tidy_data/diets/ingredient_list.csv"))
+
+
+```
+
+
+#CROP INGREDIENTS
+
+Have added codes and FAO_names for plant ingredients in teams so join these to production data. 
+
+```{r}
+
+ingredient_by_raw_material <- 
+  read_csv(here("data/tidy_data/diets/plant_ingredient_codes.csv")) |> 
+  select(-reference) |> 
+  drop_na(ingredient) |> 
+  add_row(ingredient = "pea starch", raw_material = "peas", FAOSTAT_name = "Peas, green", FAO_code = 187, map_spam_code = "opul") |> 
+  mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name)) 
+ 
+
+crop_production_raw <- readRDS(file = here("data/tidy_data/production-data/crops_production_tidy.rds"))
+
+(crop_production <- 
+  crop_production_raw |>
+  filter(element == "Production"  & area!= "China" & item %in% ingredient_by_raw_material$FAOSTAT_name & year %in% seq(from = 2015, to = 2019)) |> 
+  group_by(area, item) |> 
+  summarise(mean_value = mean(value, na.rm = TRUE)) |> 
+    ungroup() |> 
+  mutate(area = case_when(grepl("Ivoire", area) ~ "Cote d'Ivoire",
+                          TRUE ~ area),
+         iso3c = countrycode(sourcevar = area, origin = "country.name", destination = "iso3c", warn = TRUE)) |> 
+  filter(!is.na(iso3c)) |> 
+    arrange(item,-mean_value)
+)
+
+
+#need to decide whether we should pick the top 10 producers for things like guar so countries like pakistan are included for pulses nes
+top_10_crop_producers <- 
+  crop_production |> 
+  group_split(item) |> 
+  map_df(\(.){ 
+    #this takes the top ten producers - unless it is for Guar (Pulses nes) where I used the suggestion that most guar production comes from India, Pakistan and Africa (so subsequently took the top 8 African producers of pulses nes to make up the top 10)
+    
+    if(unique(.$item) == "Pulses nes"){
+      . |> filter(area %in% c("India", "Pakistan", "Kenya", 
+                              "Ethiopia", "United Republic of Tanzania", 
+                              "Sudan", "Sierra Leone", "Nigeria", 
+                              "Guinea",  "Central African Republic"))
+      }else{
+        . |>  slice(1:10)}
+  }
+)
+
+
+write.csv(x = top_10_crop_producers, file = here("data/tidy_data/production-data/top_crop_producers.csv"))
+saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-data/top_crop_producers.rds"))
+
+
+```
+
+
+Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors (yields) from ingredients to  each of these raw materials in different places. This was done separately in the Sustainable Aquafeeds Project Teams interface and subsequently transferred to 'tidy_data' in this project. This can be combined with the global demand for ingredients from the top crop producers to create raw material demands. This needs to be adjusted for economic allocation however. 
+
+```{r}
+
+#import codes that will be compatible with MAPSPAM layers
+
+plant_ingredient_codes <- 
+  read_csv(here("data/tidy_data/diets/plant_ingredient_codes.csv")) |> 
+  select(-reference) |> 
+  drop_na(ingredient) |> 
+  #add_row(ingredient = "pea starch", raw_material = "peas", FAOSTAT_name = "Peas, green", FAO_code = 187, map_spam_code = "opul") |> this row is for if you want pea starch to come from green peas and dried peas - just using dried peas for simplicity
+  mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name))
+
+#join codes to top 10 producers and conversion factors data
+(top_10_crop_w_cf <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
+    select(-X7, -mean_value) |> 
+  left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name"))
+)
+
+
+#join the ingredient demand by diet to the top 10 producer data so for each ingredient there will be an raw material demand per source, and diet scenario. Create new raw_material demand column by dividing total ingredient demand by the conversion factor (i.e. the ingredient extraction rate from the raw material in the first place)
+crop_raw_material_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
+  ungroup() |> 
+  left_join(top_10_crop_w_cf, by = c("ingredients" = "ingredient")) |> 
+  drop_na(item) |> 
+  rename(FAOSTAT_name = item,
+         source_country = area,
+         source_iso3c = iso3c) |> 
+  mutate(total_crop_demand = total_ingredient_demand/cf) |> 
+  mutate(ingredients = if_else(ingredients == "canola/camelina oil", true = "canola_camelina oil", false = ingredients)) #to prevent file_path issues later
+
+#export total crop demand for a woring data source
+saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/total_crop_demand.rds"))
+  
+```
