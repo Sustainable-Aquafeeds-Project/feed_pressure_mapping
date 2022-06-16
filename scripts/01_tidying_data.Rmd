@@ -253,25 +253,25 @@ unique(lca_all_crops$raw_material)
 #FISHERIES DATA 
 
 
-Pulling together the spatial industrial fisheries data and save to rdsi storage. We assume only industrial fisheries are used for fishmeal production.
+Pulling together the spatial industrial fisheries data and save to rdsi storage. 
 
 ```{r}
 
 #THE v5 DATA
 
-catch <- fread(file.path(watson_dir, "v5.0/Catch2015_2019.csv")) |> lazy_dt() |> filter(IYear == 2017)
+catch <- fread(file.path(watson_dir, "v5.0/Catch2015_2019.csv")) |> lazy_dt(immutable = FALSE) |> filter(IYear == 2017) |> as.data.table()
 
-codes_cell <- fread(file.path(watson_dir, "v5.0/Codes_cells.csv")) |> lazy_dt()
+codes_cell <- fread(file.path(watson_dir, "v5.0/Codes_cells.csv")) |> lazy_dt(immutable = FALSE)
 
-codes_country <- fread(file.path(watson_dir, "v5.0/Codes_country.csv"))|> lazy_dt()
+codes_country <- fread(file.path(watson_dir, "v5.0/Codes_country.csv"))|> lazy_dt(immutable = FALSE)
 
-codes_gear <- fread(file.path(watson_dir, "v5.0/Codes_gear.csv")) |> select(Gear, FleetGearName) |> distinct() |> lazy_dt()
+codes_gear <- fread(file.path(watson_dir, "v5.0/Codes_gear.csv")) |> lazy_dt(immutable = FALSE) |> select(Gear, FleetGearName, VBDesc) |> distinct() 
 
-codes_taxa <- fread(file.path(watson_dir, "v5.0/Codes_taxa.csv")) |> lazy_dt()
+codes_taxa <- fread(file.path(watson_dir, "v5.0/Codes_taxa.csv")) |> lazy_dt(immutable = FALSE)
 
 
-
-catch_joined<- catch |>
+catch_joined<- catch |> 
+  lazy_dt(immutable = FALSE) |> 
   left_join(codes_cell, by = "Cell") |>
   left_join(codes_country, by = c("CNumber" = "Cnumber")) |>
   left_join(codes_gear, by = c("Gear")) |>
@@ -377,12 +377,16 @@ forage_spp_koketal <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio
 forage_spp_list <- bind_rows(forage_spp_fao, forage_spp_koketal) |> distinct()
 write_csv(forage_spp_list, here("data/raw_data/fisheries/forage_fish_list_final.csv"))
 
-forage_catch <- catch |> lazy_dt() |> filter(TaxonName %in% forage_spp_list$sci_name | CommonName %in% forage_spp_list$common_name ) |> mutate(total_catch = ReportedIND+IUUIND+ReportedNIND+IUUNIND, total_ind = ReportedIND+IUUIND, total_nind =ReportedNIND+IUUNIND) |> as_tibble()
+forage_catch <- catch |> 
+  lazy_dt(immutable = FALSE) |> 
+  filter(TaxonName %in% forage_spp_list$sci_name | CommonName %in% forage_spp_list$common_name ) |> 
+  mutate(total_catch = ReportedIND+IUUIND+ReportedNIND+IUUNIND, total_ind = ReportedIND+IUUIND, total_nind =ReportedNIND+IUUNIND) |>
+  as_tibble()
 
 #23 million tonnes, represented by 46 species across industrial and non industrial sources
-sum(forage_catch$TotalCatch)
-sum(forage_catch$TotalIndustrial) #22.5 mill is from industrial
-sum(forage_catch$TotalNIndustrial) #1.3 mill is from non-industrial
+sum(forage_catch$total_catch)
+sum(forage_catch$total_ind) #22.5 mill is from industrial
+sum(forage_catch$total_nind) #1.3 mill is from non-industrial
 unique(forage_catch$TaxonName) 
 
 saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2017.rds"))
@@ -421,16 +425,18 @@ effort_by_daygearcell <-
   
   this_counter <- which(daily_effort_files == this_effort_filepath)
 
-  #this_days_data <- fread(this_effort_filepath) |> lazy_dt()
+  this_days_data <- fread(this_effort_filepath) 
   
-  this_days_data <- read_csv(this_effort_filepath, col_types = "Dddccddn")
+  #this_days_data <- read_csv(this_effort_filepath, col_types = "Dddccddn")
   
   this_days_summarised_data <- 
     this_days_data |> 
+    lazy_dt(immutable = FALSE) |> 
     group_by(cell_ll_lat, cell_ll_lon, geartype) |> 
     summarise(total_fishing_hrs = sum(fishing_hours, na.rm = TRUE)) |> 
     ungroup() |> 
-    mutate(day = this_counter) 
+    mutate(day = this_counter) |> 
+    as.data.table()
   
   return(this_days_summarised_data)
   
@@ -439,7 +445,7 @@ effort_by_daygearcell <-
 #summarised annually - seems to be the same number of rows - could be the number of 0s
 effort_by_gearcell2017 <- 
   effort_by_daygearcell |> 
-  lazy_dt() |> 
+  lazy_dt(immutable = FALSE) |> 
   group_by(cell_ll_lat, cell_ll_lon, geartype) |> 
   summarise(total_fishing_hrs = sum(total_fishing_hrs)) |> 
   as.data.table()
@@ -449,12 +455,135 @@ fwrite(x = effort_by_gearcell2017, file = here("data/tidy_data/pressures/fishing
 
 ```
 
-Explore the GFW data for gear types partitioning across gears
+Explore the GFW data for gear types partitioning across gears and output effort rasters for destructive methods for the benthos.
+
+From Mel's script in the OHI_Science/food_systems folder the following gear types are used:
+
+Geartypes:
+- fishing: a combination of vessels of unknown fishing gear
+ - drifting_longlines: drifting longlines
+ - seiners: vessels using seine nets, including potential purse seine vessels
+   targeting tuna and other species, as well as danish and other seines
+     - purse_seines: purse seines, both pelagic and demersal
+        - tuna_purse_seines: large purse seines primarily fishing for tuna.
+        - other_purse_seines: purse seiners fishing for mackerel, anchovies, etc, often smaller and operating nearer the coast than tuna purse seines.
+    - other_seines: danish seines and other seiners not using purse seines.
+ - trawlers: trawlers, all types
+ - pole_and_line: vessel from which people fish with pole and line.
+ - trollers: vessel that tows multiple fishing lines.
+ - fixed_gear: a category that includes potential set longlines, set gillnets,  and pots and traps
+     - pots_and_traps: vessel that deploys pots (small, portable traps) or traps to
+       catch fish
+     - set_longlines: vessel that fishes by setting longlines anchored to the
+       seafloor. These lines have shorter hooked, typically baited, lines hanging
+       from them
+     - set_gillnets: vessel that fishes by setting gillnets anchored to the seafloor.
+ - dredge_fishing: vessel that tows a dredge the scrapes up edible bottom
+   dwellers such as scallops or oysters.
+ - squid_jigger: squid jiggers, mostly large industrial pelagic operating vessels
+
+
+The influence of unknown fishing gears ('fishing' above) was addressed in Halpern et al as a source of small source uncertainty. See issue here https://github.com/OHI-Science/global_food_issues/issues/303
 
 ```{r}
 
 effort_summary <- fread(here("data/tidy_data/pressures/fishing-effort/annual_effort_2017.csv"))
 
+#nearly 50% of all fishing effort is trawling (yikes), another 20% is drifting longlines
+effort_summary |> 
+  lazy_dt(immutable = TRUE) |> 
+  group_by(geartype) |> 
+  summarize(total_fishing_hrs = sum(total_fishing_hrs, na.rm=TRUE)) |> 
+  arrange(-total_fishing_hrs) |> 
+  mutate(prop_hrs = total_fishing_hrs/sum(total_fishing_hrs)) |> 
+  as.data.table() 
+
+
+#create raster of all fishing effort
+total_map <- 
+  effort_summary |> 
+  lazy_dt(immutable = FALSE) |> 
+  group_by(cell_ll_lon, cell_ll_lat) |> 
+  summarize(total_fishing_hrs = sum(total_fishing_hrs, na.rm = TRUE)) |> 
+  rename(lat = cell_ll_lat,
+         lon = cell_ll_lon) |> 
+  select(lon, lat, total_fishing_hrs) |> data.frame()
+  
+total_effort_r <- rast(total_map, type = "xyz", crs = crs(rast()))
+plot(log10(total_effort_r+1))
+
+
+#we are only interested in destructive gears for the benthic elemnt of disturbance so isolate maps for trawling and dredging
+
+#trawling
+
+trawl_map <- 
+  effort_summary |> 
+  lazy_dt(immutable = FALSE) |> 
+  filter(geartype %in% c("trawlers")) |> 
+  group_by(cell_ll_lon, cell_ll_lat) |> 
+  summarize(total_fishing_hrs = sum(total_fishing_hrs, na.rm = TRUE)) |> 
+  rename(lat = cell_ll_lat,
+         lon = cell_ll_lon) |> 
+  select(lon, lat, total_fishing_hrs) |> data.frame()
+  
+trawl_effort_r <- rast(trawl_map, type = "xyz", crs = crs(rast()))
+ext(trawl_effort_r) <- ext(rast())
+plot(log10(trawl_effort_r+1))
+
+writeRaster(x = trawl_effort_r, filename =here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
+
+
+#dredging (much less prevalent)
+
+dredge_map <- 
+  effort_summary |> 
+  lazy_dt(immutable = FALSE) |> 
+  filter(geartype %in% c("dredge_fishing")) |> 
+  group_by(cell_ll_lon, cell_ll_lat) |> 
+  summarize(total_fishing_hrs = sum(total_fishing_hrs, na.rm = TRUE)) |> 
+  rename(lat = cell_ll_lat,
+         lon = cell_ll_lon) |> 
+  select(lon, lat, total_fishing_hrs) |> data.frame()
+  
+dredge_effort_r <- rast(dredge_map, type = "xyz", crs = crs(rast()))
+ext(dredge_effort_r) <- ext(rast())
+plot(log10(dredge_effort_r+1))
+
+writeRaster(x = dredge_effort_r, filename = here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_dredge.tif"))
+
+
 
 ```
+
+Assign gear classifications to forage catch data i.e. demersal or pelagic, destructive or nondestructive, or high or low bycatch.
+
+In line with the approach from Halpern et al 
+
+Overview:
+
+- Each data file provided by Watson was provided by Watson via email, and is held on a server held at NCEAS.
+- After extracting all unique gear types found in the data, a *gear to category* dataset was created (`gear_to_cat.csv`) manually using information from Table S4 in Halpern et al. (2008), and joined to the raw data. This dataset added three new columns to the data; **bycatch** (high or low), **type** (pelagic or demersal), and **destruction** (destructive or nondestructive). 
+- The Watson v5.0 data has information on **Functional Group** for each species, which was used to assign either *pelagic* or *demersal* to species for the *gear_to_cat.csv* data.
+- Remaining catch records with missing or mismatched information were cleaned by hand which is detailed in this script (there were none).
+- Final output is a dataset, `taxa_gear_types.csv` that assigns each taxa+gear type to the categories used to create the five fishing stressors.
+
+```{r}
+
+#create the list of gear relevant to the forage fish catch data
+
+forage_gears <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> 
+  select(Gear, VBDesc) |> distinct()
+
+write_csv(x = forage_gears, file = here("data/raw_data/fisheries/forage_gears.csv"))
+
+#join the categories from Halpern et al to the gears relevant for forage fish only
+
+gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv"))
+
+
+
+
+```
+
 

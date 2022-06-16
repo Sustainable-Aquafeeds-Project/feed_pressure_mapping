@@ -18,7 +18,7 @@ source(here("src/spatial.R"))
 ```
 
 
-To get the embodied_fish_by_cell.csv file imported below, you need to run the corresponding code in the fisheries section of 02_calculate_global_feed_demand.Rmd. Summarise the fisheries
+To get the embodied_fish_by_cell.csv file imported below, you need to run the corresponding code in the fisheries section of 02_calculate_global_feed_demand.Rmd. Summarise the embodied fish demand data by cell and gear type that GHG and Disturbance can be assigned to.
 
 ```{r}
 #this is the embodied demand from each 'area' per diet
@@ -27,6 +27,7 @@ forage_demand_totals <- readRDS(here("data/tidy_data/demand/embodied_fish_demand
 
 #this is the embodied demand by cell by gear, species etc 
 forage_demand_bycell_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
   group_by(diet, source_code, LonCentre, LatCentre, FleetGearName) |> 
   summarise(catch_by_gear = sum(adj_embodied_fish, na.rm = TRUE)) |> 
   ungroup() |> 
