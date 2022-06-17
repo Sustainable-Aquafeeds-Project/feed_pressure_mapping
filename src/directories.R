@@ -2,6 +2,8 @@
 
 rdsi_dir <- "/mnt/rdsi"
 
+rdsi_raw_data_dir <- "/mnt/rdsi/raw_data"
+
 
 #from NCEAS food-systems project
 food_systems_dir <- "/mnt/rdsi/github/food_systems"

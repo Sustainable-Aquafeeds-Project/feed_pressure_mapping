@@ -3,17 +3,30 @@ title: "03_calculate_embodied_crop_materials_from_feed_demand"
 output: html_document
 ---
 
-Next step is convert ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM) and source. So first, we need to know where the ingredients are largely sourced from. THis may change with information that we gain from Biomar but the idea is eventually to make this flexible enough to select any from the top producing countries. This requires knowing the raw material that supports the ingredient and the major places this raw material is grown.
+Next step is convert crop ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM) and source. So first, we need to know where the ingredients are largely sourced from. THis may change with information that we gain from Biomar but the idea is eventually to make this flexible enough to select any from the top producing countries. This requires knowing the raw material that supports the ingredient and the major places this raw material is grown.
+
+
+
 
 ```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(countrycode)
+library(data.table)
+library(dtplyr)
+library(raster)
+library(terra)
+library(sf)
+library(jsonlite)
+library(ggnewscale)
 
-#create the ingredient list to match raw materials with ingredients
+source(here("src/directories.R"))
 
-ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> pull(ingredients) |> unique()) |> 
-  write_csv(here("data/tidy_data/diets/ingredient_list.csv"))
-
-
+select <- dplyr::select
+values <- terra::values
 ```
+
 
 
 #CROP INGREDIENTS

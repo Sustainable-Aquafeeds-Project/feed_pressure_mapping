@@ -153,3 +153,13 @@ list.files(here("data/tidy_data/ingredient-demand-by-country"), full.names = TRU
 ```
 
 
+
+```{r}
+
+#create the ingredient list to match crop raw materials with ingredients
+
+ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> pull(ingredients) |> unique()) |> 
+  write_csv(here("data/tidy_data/diets/ingredient_list.csv"))
+
+
+```

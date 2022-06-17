@@ -1,0 +1,31 @@
+---
+title: "Spatial Allocation of Forage fish demand from each diet and source"
+output: html_document
+---
+  
+```{r}
+
+library(tidyverse)
+library(here)
+library(terra)
+library(sf)
+library(data.table)
+library(dtplyr)
+
+source(here("src/directories.R"))
+source(here("src/spatial.R"))
+
+```
+
+
+We now have effort rasters for all fishing for destructive gears (trawling and dredge) but we need to know how much of that forage fish represent. To do this we can create rasters for what proportion of trawling or dredging catch forage fish represent in total.
+
+```{r}
+
+
+
+
+```
+
+
+

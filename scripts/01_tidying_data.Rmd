@@ -600,3 +600,13 @@ forage_catch_w_cats |> filter(is.na(bycatch))
 ```
 
 
+#Tidy the global net primary productivity data
+
+```{r}
+
+```
+
+
+
+
+
