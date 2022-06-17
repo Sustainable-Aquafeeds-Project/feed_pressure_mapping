@@ -600,9 +600,74 @@ forage_catch_w_cats |> filter(is.na(bycatch))
 ```
 
 
-#Tidy the global net primary productivity data
+Also assign gear and destruction types to all catch in the watson dataset
 
 ```{r}
+
+total_catch <- fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv"))
+
+gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv")) |> mutate(bycatch = if_else(is.na(bycatch), true = "low", false = bycatch))
+
+total_catch_w_cat <- total_catch |> 
+  lazy_dt(immutable = FALSE) |> 
+  left_join(gears_to_cat, by = c("Gear", "VBDesc"))  |>  
+  mutate(type = case_when(grepl("pelagic|krill", Descript) ~ "pelagic",
+                          grepl("benthopelagic|demersal", Descript) ~ "demersal")) |> 
+  as.data.table()
+  
+fwrite(x = total_catch_w_cat, file =  file.path(watson_dir, "v5.0/watson_2017_fisheries_catch_w_cat.csv"))
+
+#Now create some rasters of the proportion of trawling that is bottom trawling and non-hand dredging to allow us to get a raster of bottom trawling in effort
+
+#First we need to know what the types of trawl and dredge are in teh fisheries data
+trawl_types <- unique(total_catch_w_cat$VBDesc)[grep("trawl", unique(total_catch_w_cat$VBDesc))]
+dredge_types <- unique(total_catch_w_cat$VBDesc)[grep("dredg", unique(total_catch_w_cat$VBDesc))]
+
+
+all_trawl_fishing <- 
+  total_catch |>
+  lazy_dt(immutable = FALSE) |> 
+  filter(VBDesc %in% trawl_types) |> 
+  group_by(LonCentre, LatCentre) |> 
+  summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
+  drop_na(LonCentre, LatCentre) |> 
+  as.data.table()
+
+
+bottom_trawl_fishing <- 
+   total_catch |>
+  lazy_dt(immutable = FALSE) |> 
+  filter(VBDesc == "bottom trawls") |> 
+  group_by(LonCentre, LatCentre) |> 
+  summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
+  drop_na(LonCentre, LatCentre) |> 
+  as.data.table()
+  
+
+all_trawl_r <- rast(all_trawl_fishing, type="xyz")
+bottom_trawl_r <- rast(bottom_trawl_fishing, type="xyz")
+plot(all_trawl_r)  
+plot(bottom_trawl_r) 
+
+prop_bottom_trawl_r <-  bottom_trawl_r/all_trawl_r
+plot(prop_bottom_trawl_r)
+
+```
+
+
+
+
+#Import the global net primary productivity data
+
+The NPP data was taken from the Cumulative Human Impacts Project at NCEAS. Downloaded from the aurora server. 
+
+The raster has been gapfilled to make all the NA values mean porductivity values
+```{r}
+
+npp_r <- rast(file.path(rdsi_raw_data_dir, "food-systems-project/annal_mean_npp_2015_gf_wgs.tif"))
+plot(npp_r)
+writeRaster(x = npp_r, filename = here("data/spatial/annal_mean_npp_2015_gf_wgs.tif"))
+
 
 ```
 
