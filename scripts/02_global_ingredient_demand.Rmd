@@ -44,6 +44,7 @@ salmon_aquaculture <- aquaculture %>% filter(species == "Atlantic salmon" & year
     
     )
 
+ 
 
 ```
 
