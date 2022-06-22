@@ -24,7 +24,7 @@ source(here("src/spatial.R"))
 
 To understand the benthic component of disturbance, we need to know if there are any destrcutive fishing gears associated withe forage fish catch. 
 
-Here we join the gear classification data from Halpern et al of destructive or non destructive/ pelagic or demersal to the catch data.
+Here we also join the gear classification data from Halpern et al of destructive or non destructive/ pelagic or demersal to the catch data which helps with the next step of isolating all trawling and dredging, and the trawling and dredging that forage fish respresent.
 
 ```{r}
 
@@ -62,8 +62,7 @@ forage_catch_w_cats |> filter(is.na(bycatch)) #no na values
 
 We  have effort rasters for all fishing for destructive gears (trawling and dredge) but we need to know how much of that forage fish represent in each cell.  
 
-
-To do this we need to know what proportion of all trawling (the resolution in the GW dataset) bottom trawling for forage fish species represent:
+To do this we need to know what proportion of all trawling (the resolution in the GW dataset) is bottom trawling for forage fish species represent:
 
 - Create catch rasters for all trawling 
 - Create rasters for all bottom trawling and dredging for forage fish species.
@@ -77,14 +76,17 @@ total_catch <- fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv
 
 gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv")) |> mutate(bycatch = if_else(is.na(bycatch), true = "low", false = bycatch))
 
+#join the gear categories to the fisheries catch to isolate trawling
+
 total_catch_w_cat <- total_catch |> 
   lazy_dt(immutable = FALSE) |> 
   left_join(gears_to_cat, by = c("Gear", "VBDesc"))  |>  
   mutate(type = case_when(grepl("pelagic|krill", Descript) ~ "pelagic",
                           grepl("benthopelagic|demersal", Descript) ~ "demersal")) |> 
   as.data.table()
-  
-fwrite(x = total_catch_w_cat, file =  file.path(watson_dir, "v5.0/watson_2017_fisheries_catch_w_cat.csv"))
+
+#this could be useful so save for later  
+#fwrite(x = total_catch_w_cat, file =  file.path(watson_dir, "v5.0/watson_2017_fisheries_catch_w_cat.csv"))
 
 #Now create some rasters of the proportion of trawling that is bottom trawling and non-hand dredging to allow us to get a raster of bottom trawling in effort
 
@@ -93,6 +95,8 @@ trawl_types <- unique(total_catch_w_cat$VBDesc)[grep("trawl", unique(total_catch
 dredge_types <- unique(total_catch_w_cat$VBDesc)[grep("dredg", unique(total_catch_w_cat$VBDesc))]
 
 
+#isolate data for all fish trawling
+
 all_trawl_fishing <- 
   total_catch |>
   lazy_dt(immutable = FALSE) |> 
@@ -100,14 +104,12 @@ all_trawl_fishing <-
   group_by(LonCentre, LatCentre) |> 
   summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
   drop_na(LonCentre, LatCentre) |> 
-  as.data.table()
+  as.data.frame()
 
 
-
-## all bottom trawling for forage fish
+## isolate data for all bottom trawling for forage fish
 
 forage_catch <- readRDS(file = here("data/raw_data/fisheries/spatial_forage_catch_2017_w_cats.rds"))
-
 
 forage_bottom_trawl_fishing <- 
   forage_catch |> 
@@ -115,61 +117,82 @@ forage_bottom_trawl_fishing <-
   lazy_dt(immutable = FALSE) |> 
   filter(VBDesc == "bottom trawls") |> 
   group_by(LonCentre, LatCentre) |> 
-  summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
+  summarise(forage_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
   drop_na(LonCentre, LatCentre) |> 
-  as.data.table()
+  as.data.frame()
   
+#combine the two so they have the same extents and just plot NA when data is irrelevant for a cell
+combine_trawl_df <- all_trawl_fishing |> full_join(forage_bottom_trawl_fishing)
 
-all_trawl_r <- rast(all_trawl_fishing, type="xyz", crs = "EPSG:4326")
-forage_bottom_trawl_r <- rast(forage_bottom_trawl_fishing, type="xyz", crs = "EPSG:4326")
-ext(forage_bottom_trawl_r) <- ext(all_trawl_r)
-test_r <- rast()
-values(test_r) <- 0
+#generate rasters for all trawling and bottom trawling for forage fish
+all_trawl_r <- rast(combine_trawl_df |> select(-forage_catch), type="xyz", crs = "EPSG:4326")
+forage_bottom_trawl_r <- rast(combine_trawl_df |> select(-total_catch), type="xyz", crs = "EPSG:4326")
+
+#plot the rasters - seem fine
 plot(all_trawl_r)  
-plot(bottom_trawl_r) 
+plot(forage_bottom_trawl_r) 
 
-prop_bottom_trawl_r <-  forage_bottom_trawl_r/all_trawl_r
-plot(prop_bottom_trawl_r)
+prop_forage_bottom_trawl_r <-  forage_bottom_trawl_r/all_trawl_r
+plot(prop_forage_bottom_trawl_r)
+
+writeRaster(x = prop_forage_bottom_trawl_r, filename = here("data/spatial/03-fisheries-effort/prop_bottom_trawling_forage.tif"))
 
 
+#now so the same for dredge fishing for forage fish vs all fish
 
-
-#now so the same for dredge fishing
-
-all_trawl_fishing <- 
+all_dredge_fishing <- 
   total_catch |>
   lazy_dt(immutable = FALSE) |> 
-  filter(VBDesc %in% trawl_types) |> 
+  filter(VBDesc == "dredges") |> 
   group_by(LonCentre, LatCentre) |> 
   summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
   drop_na(LonCentre, LatCentre) |> 
-  as.data.table()
+  as.data.frame()
 
-
-bottom_trawl_fishing <- 
-   total_catch |>
+#there is no dredging which catches forage fish so we don't need an effort adjustment raster for dredge. We just don't include.
+forage_dredge_fishing <- 
+  forage_catch |> 
+  as.data.table() |> 
   lazy_dt(immutable = FALSE) |> 
-  filter(VBDesc == "bottom trawls") |> 
+  filter(VBDesc %in% dredge_types) |> 
   group_by(LonCentre, LatCentre) |> 
-  summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
+  summarise(forage_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
   drop_na(LonCentre, LatCentre) |> 
-  as.data.table()
-  
-
-all_trawl_r <- rast(all_trawl_fishing, type="xyz")
-bottom_trawl_r <- rast(bottom_trawl_fishing, type="xyz")
-plot(all_trawl_r)  
-plot(bottom_trawl_r) 
-
-prop_bottom_trawl_r <-  bottom_trawl_r/all_trawl_r
-plot(prop_bottom_trawl_r)
-
-
+  as.data.frame()
 
 
 
 ```
+Now we adjust the trawler effort data using the proportional raster for the amount coming from bottom trawling and forage fish. 
+
+```{r}
+
+#global half degree raster
+base_raster <- rast(res = 0.5)
+
+#bring in effort data in native resolution (0.01 degree)
+gfw_native_r <- rast(here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
+plot(gfw_native_r)
+#gfw_aggregated_df <- terra::as.data.frame(gfw_native_r, xy= TRUE, row.names = FALSE)
+
+#bring in proportional trawl data from catch
+prop_forage_bottom_trawl_r <- rast(here("data/spatial/03-fisheries-effort/prop_bottom_trawling_forage.tif"))
+avg_trawl_correction <- terra::global(prop_forage_bottom_trawl_r, na.rm = TRUE) |> pull(mean)
+prop_forage_bottom_trawl_r[is.na(prop_forage_bottom_trawl_r)] <- avg_trawl_correction 
+plot(prop_forage_bottom_trawl_r)
+
+resample(prop_forage_bottom_trawl_r, gfw_native_r, method = "near",  filename = here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"), overwrite = TRUE)
+
+resampled_forage_bottom_trawl_r <- rast(here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"))
+
+effort_forage_prop_stack <- c(resampled_forage_bottom_trawl_r, gfw_native_r)
+
+lapp(effort_forage_prop_stack, fun =  \(x, y){ x*y}, filename = here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
 
 
+forage_effort <- rast(here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
+plot(log10(forage_effort+1))
+
+```
 
 

@@ -528,10 +528,9 @@ trawl_map <-
   select(lon, lat, total_fishing_hrs) |> data.frame()
   
 trawl_effort_r <- rast(trawl_map, type = "xyz", crs = crs(rast()))
-ext(trawl_effort_r) <- ext(rast())
 plot(log10(trawl_effort_r+1))
 
-writeRaster(x = trawl_effort_r, filename =here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
+writeRaster(x = trawl_effort_r, filename =here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_trawlers.tif"), overwrite=TRUE)
 
 
 #dredging (much less prevalent)
@@ -547,10 +546,9 @@ dredge_map <-
   select(lon, lat, total_fishing_hrs) |> data.frame()
   
 dredge_effort_r <- rast(dredge_map, type = "xyz", crs = crs(rast()))
-ext(dredge_effort_r) <- ext(rast())
 plot(log10(dredge_effort_r+1))
 
-writeRaster(x = dredge_effort_r, filename = here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_dredge.tif"))
+writeRaster(x = dredge_effort_r, filename = here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_dredge.tif"), overwrite=TRUE)
 
 
 
