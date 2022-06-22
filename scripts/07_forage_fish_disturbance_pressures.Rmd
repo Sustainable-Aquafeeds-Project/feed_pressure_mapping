@@ -181,15 +181,19 @@ avg_trawl_correction <- terra::global(prop_forage_bottom_trawl_r, na.rm = TRUE) 
 prop_forage_bottom_trawl_r[is.na(prop_forage_bottom_trawl_r)] <- avg_trawl_correction 
 plot(prop_forage_bottom_trawl_r)
 
+#convert the forage fish tank trawling proportions to the resolution of the effort to combine these layers (as effort patterns are likely closer to reality than catch given remote sensing than otehr way round)
 resample(prop_forage_bottom_trawl_r, gfw_native_r, method = "near",  filename = here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"), overwrite = TRUE)
 
+#bring in the resampled catch proportio 
 resampled_forage_bottom_trawl_r <- rast(here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"))
 
+#stack the resampled 
 effort_forage_prop_stack <- c(resampled_forage_bottom_trawl_r, gfw_native_r)
 
+#mutliply the rasters together and save
 lapp(effort_forage_prop_stack, fun =  \(x, y){ x*y}, filename = here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
 
-
+#check the new forage fish trawling hours
 forage_effort <- rast(here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
 plot(log10(forage_effort+1))
 
