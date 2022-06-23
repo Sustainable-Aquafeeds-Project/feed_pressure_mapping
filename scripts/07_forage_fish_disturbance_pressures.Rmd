@@ -24,7 +24,7 @@ source(here("src/spatial.R"))
 
 To understand the benthic component of disturbance, we need to know if there are any destrcutive fishing gears associated withe forage fish catch. 
 
-Here we also join the gear classification data from Halpern et al of destructive or non destructive/ pelagic or demersal to the catch data which helps with the next step of isolating all trawling and dredging, and the trawling and dredging that forage fish respresent.
+Here we also join the gear classification data from Halpern et al of destructive or non destructive/ pelagic or demersal to the catch data which helps with the next step of isolating all trawling and dredging, and the trawling and dredging that forage fish represent.
 
 ```{r}
 
@@ -42,7 +42,7 @@ gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv"))
 
 forage_gear_cats <- forage_gears |> left_join(gears_to_cat, by = c("Gear", "VBDesc"))
 
-#assign categories to existing classifcation of pelagic
+#assign categories to existing classification of pelagic or demersal
 forage_catch_w_cats <- 
   readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> 
   left_join(forage_gear_cats, by = c("Gear", "VBDesc")) |> 
@@ -60,18 +60,17 @@ forage_catch_w_cats |> filter(is.na(bycatch)) #no na values
 ```
 
 
-We  have effort rasters for all fishing for destructive gears (trawling and dredge) but we need to know how much of that forage fish represent in each cell.  
+We  have effort rasters for all fishing for destructive gears (trawling and dredge) but we need to know how much of that forage fish represent in each cell for each demand scenario in each diet.
 
-To do this we need to know what proportion of all trawling (the resolution in the GW dataset) is bottom trawling for forage fish species represent:
+To do this we need to know what proportion of all trawling (the resolution in the GW dataset) is bottom trawling for forage fish species represented in each diet and sourcing scenario:
 
 - Create catch rasters for all trawling 
 - Create rasters for all bottom trawling and dredging for forage fish species.
 - Multiply the proportion of of bottom trawling or dredging from forage fish species
 
-
+So first lets create catch rasters for all trawling.
 
 ```{r}
-
 total_catch <- fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv"))
 
 gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv")) |> mutate(bycatch = if_else(is.na(bycatch), true = "low", false = bycatch))
@@ -86,7 +85,7 @@ total_catch_w_cat <- total_catch |>
   as.data.table()
 
 #this could be useful so save for later  
-#fwrite(x = total_catch_w_cat, file =  file.path(watson_dir, "v5.0/watson_2017_fisheries_catch_w_cat.csv"))
+fwrite(x = total_catch_w_cat, file =  file.path(watson_dir, "v5.0/watson_2017_fisheries_catch_w_cat.csv"))
 
 #Now create some rasters of the proportion of trawling that is bottom trawling and non-hand dredging to allow us to get a raster of bottom trawling in effort
 
@@ -107,6 +106,72 @@ all_trawl_fishing <-
   as.data.frame()
 
 
+all_trawl_r <- rast(all_trawl_fishing, type = "xyz", crs = "EPSG:4326")
+writeRaster(x = all_trawl_r, filename = here("data/spatial/03-fisheries-effort/all_trawling_catch.tif"))
+
+```
+
+Next step is to understand  what proportion of all trawling the forage catch needed for each deamnd scenario represents so we can convert it into hours of effort for each diet/sourcing combination. So first we can prep the embodied forage fish demand per cell into raster form for the trawling component.
+
+First we'll isolate which gears are destructive for forage fish.
+```{r}
+#create the list of gear relevant to the forage fish catch data
+
+forage_gears <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  select(Gear, VBDesc) |> 
+  distinct() |> 
+  as_tibble()
+
+write_csv(x = forage_gears, file = here("data/raw_data/fisheries/forage_gears.csv"))
+
+#join the categories from Halpern et al to the gears relevant for forage fish only
+
+gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv"))
+
+
+#So for forage fish we are only interested "bottom trawls" as a destrcutive method
+forage_gear_cats <- forage_gears |> left_join(gears_to_cat, by = c("Gear", "VBDesc"))
+
+
+```
+
+For pressures all we are interested is the bottom trawl component so now we isolate the embodied demand (catch) and filter to just bottom trawls and sum catch per cell, and export the rasters.
+
+```{r}
+
+trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  filter(VBDesc == "bottom trawls") |> 
+  as_tibble() |> 
+  group_split(diet, source_code)
+
+map(trawl_forage_catch_list, \(this_df){
+  
+  this_diet <- unique(this_df$diet)
+  
+  this_source <- unique(this_df$source_code)
+  
+  this_summary_df <- 
+    this_df |> 
+    group_by(LonCentre, LatCentre) |> 
+    summarise(forage_catch = sum(adj_embodied_fish, na.rm=TRUE))
+  
+  
+  this_rast <- rast(this_summary_df, type="xyz", crs="EPSG:4326")
+  plot(this_rast)
+  
+  writeRaster(x = this_rast, filename = sprintf(here("data/spatial/03-fisheries-effort/forage_catch_%s_%s.tif"), this_diet, this_source), overwrite=TRUE)
+  
+})
+
+
+
+
+```
+
+
+```{r}
 ## isolate data for all bottom trawling for forage fish
 
 forage_catch <- readRDS(file = here("data/raw_data/fisheries/spatial_forage_catch_2017_w_cats.rds"))
@@ -184,10 +249,10 @@ plot(prop_forage_bottom_trawl_r)
 #convert the forage fish tank trawling proportions to the resolution of the effort to combine these layers (as effort patterns are likely closer to reality than catch given remote sensing than otehr way round)
 resample(prop_forage_bottom_trawl_r, gfw_native_r, method = "near",  filename = here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"), overwrite = TRUE)
 
-#bring in the resampled catch proportio 
+#bring in the resampled catch proportion for forage fish
 resampled_forage_bottom_trawl_r <- rast(here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"))
 
-#stack the resampled 
+#stack the resampled raster withh all trawl effort
 effort_forage_prop_stack <- c(resampled_forage_bottom_trawl_r, gfw_native_r)
 
 #mutliply the rasters together and save
@@ -198,5 +263,49 @@ forage_effort <- rast(here("data/spatial/03-fisheries-effort/_estimated_forage_b
 plot(log10(forage_effort+1))
 
 ```
+Now we need to bring in the effort raster and aggregate 
 
+```{r}
+
+forage_trawl_effort_r <- rast(here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
+new_extent <- ext(-180.005, 179.995, -89.995, 90.005)
+extended_forage_trawl_effort_r <- terra::extend(forage_trawl_effort_r, new_extent)
+
+agg_forage_trawl_effort_r <- terra::aggregate(extended_forage_trawl_effort_r, fact = 50, fun = sum, na.rm = TRUE)
+plot(agg_forage_trawl_effort_r)
+
+#check values still match
+global(extended_forage_trawl_effort_r, fun = "sum", na.rm=TRUE)
+global(agg_forage_trawl_effort_r, fun = "sum", na.rm = TRUE)
+
+adjustment_r <- rast(res=0.5, vals = 0)
+
+adjustment_stack <- c( agg_forage_trawl_effort_r)
+
+lapp(adjustment_stack, fun = \(x,y){x+y}, filename = here("data/spatial/03-fisheries-effort/estimated_forage_bottom_trawl_effort_0.5D_recentred.tif"))
+
+#check new raster
+recentred_forage_trawl_effort_r <- rast(here("data/spatial/03-fisheries-effort/estimated_forage_bottom_trawl_effort_0.5D_recentred.tif"))
+plot(recentred_forage_trawl_effort_r)
+
+plot(cellSize(recentred_forage_trawl_effort_r, unit="km"))
+
+forage_trawl_effort_km2 <- recentred_forage_trawl_effort_r/cellSize(recentred_forage_trawl_effort_r, unit="km")
+plot(forage_trawl_effort_km2)
+
+rescale_value <-  quantile(values(forage_trawl_effort_km2), 0.9999, na.rm=TRUE)
+
+
+rescaled_forage_trawl_effort_km2_r <- forage_trawl_effort_km2 |> 
+  app(fun = \(x){
+  if_else(x<0, true = 0, false = 
+            if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+
+plot(rescaled_forage_trawl_effort_km2_r)
+
+```
+
+```{r}
+
+```
 
