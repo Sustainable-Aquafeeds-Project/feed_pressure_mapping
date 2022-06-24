@@ -136,15 +136,18 @@ forage_gear_cats <- forage_gears |> left_join(gears_to_cat, by = c("Gear", "VBDe
 
 ```
 
-For pressures all we are interested is the bottom trawl component so now we isolate the embodied demand (catch) and filter to just bottom trawls and sum catch per cell, and export the rasters.
+For pressures all we are interested is the bottom trawl component so now we isolate the embodied demand (catch) estimates and filter to just bottom trawls and sum catch per cell, and export the rasters.
 
 ```{r}
 
+#create list of dataframe of trawling for forage fish by diet and sourcing
 trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
   filter(VBDesc == "bottom trawls") |> 
   as_tibble() |> 
   group_split(diet, source_code)
+
+#summarise the data by cell and write to data folder
 
 map(trawl_forage_catch_list, \(this_df){
   
@@ -159,20 +162,111 @@ map(trawl_forage_catch_list, \(this_df){
   
   
   this_rast <- rast(this_summary_df, type="xyz", crs="EPSG:4326")
+  this_rast_resampled <- resample(this_rast, rast(res=0.5))
   plot(this_rast)
   
-  writeRaster(x = this_rast, filename = sprintf(here("data/spatial/03-fisheries-effort/forage_catch_%s_%s.tif"), this_diet, this_source), overwrite=TRUE)
+  writeRaster(x = this_rast_resampled, filename = sprintf(here("data/spatial/03-fisheries-effort/forage_trawl_catch_%s_%s.tif"), this_diet, this_source), overwrite=TRUE)
+  
+})
+
+# now look at dredging - but there is no catch for dredging so we can disregard
+
+trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  filter(VBDesc %in% dredge_types) |> 
+  as_tibble()
+
+
+
+```
+
+Now we need to work out what proportion of all trawling each one of the trawling for forage fish catch rasters represents across diets and sources so we can create a proportional raster to multiply by effort.
+
+```{r}
+forage_catch_r_list <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_catch_", full.names = TRUE)
+
+
+#calculate the proportion of all trawl catch is this diet scenario
+map(.x = forage_catch_r_list, .f = \(this_file){
+  
+  message("processing ", tools::file_path_sans_ext(basename(this_file)))
+  
+  saveName <- paste0(tools::file_path_sans_ext(basename(this_file)), "_prop")
+  
+  this_r <- rast(this_file)
+  
+  all_trawL_r <- rast(here("data/spatial/03-fisheries-effort/all_trawling_catch.tif"))
+  all_trawl_r <- extend(all_trawl_r, ext(rast(res=0.5)))
+  
+  
+  this_stack_r <- c(this_r, all_trawl_r)
+  
+  lapp(x= this_stack_r, fun = \(x,y){x/y}, filename = sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), saveName), overwrite=TRUE)
+  
+  
+})
+
+
+```
+
+With proportions of all forage fish trawling now available for each diet and source, we can now resample the proportional rasters to the res and extent of the effort data and multiply them together to get hours of trawling for forage fish per diet and source.
+
+
+```{r}
+
+#proportional catch raster for forage fish trawling
+prop_raster_files <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "_prop.tif", full.names = TRUE)
+
+# the total trawling effort
+gfw_native_r <- rast(here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
+
+
+#bring in the shapefile for cropping effort rasters by relevant source area
+FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+  mutate(F_AREA = as.numeric(F_AREA)) |> 
+  mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
+                                 NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+                                                      TRUE ~ "OTH")) 
+
+
+map(.x = prop_raster_files, .f = \(this_file){
+  
+  saveName <- gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file)))
+  saveName <- gsub(pattern = "_prop", replacement = "", saveName)
+  
+  this_source <- substr(saveName, nchar(saveName)-3+1, nchar(saveName) )
+  
+  #get the FAO regions shp for masking the raster to the relevant ones
+  this_shp_extent <- FAO_regions_shp |> filter(source_code ==this_source)
+  
+  message("processing ", tools::file_path_sans_ext(basename(this_file)))
+  
+  this_rast <- rast(this_file)
+  
+  #add average value where 
+  avg_trawl_correction <- terra::global(this_rast, na.rm = TRUE) |> pull(mean)
+  
+  this_rast[is.na(this_rast)] <- avg_trawl_correction
+  
+  this_cropped_rast <- terra::mask(this_rast, vect(this_shp_extent))
+   
+  this_resampled_rast <- resample(this_cropped_rast, gfw_native_r)
+  
+  this_stack_r <- c(this_resampled_rast, gfw_native_r) 
+  
+  this_effort_raster <- lapp(this_stack_r, fun = \(x, y){x * y}, filename = sprintf(here("data/spatial/03-fisheries-effort/$.tif"), saveName))
   
 })
 
 
 
 
-```
 
 
-```{r}
-## isolate data for all bottom trawling for forage fish
+
+
+
+
 
 forage_catch <- readRDS(file = here("data/raw_data/fisheries/spatial_forage_catch_2017_w_cats.rds"))
 
