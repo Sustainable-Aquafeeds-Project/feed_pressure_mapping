@@ -16,6 +16,8 @@ library(terra)
 library(sf)
 library(data.table)
 library(dtplyr)
+library(future)
+library(furrr)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
@@ -213,7 +215,6 @@ With proportions of all forage fish trawling now available for each diet and sou
 
 
 ```{r}
-
 #proportional catch raster for forage fish trawling
 prop_raster_files <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "_prop.tif", full.names = TRUE)
 
@@ -227,14 +228,18 @@ FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?serv
   mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
                                  NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
                                                       TRUE ~ "OTH")) 
-
+this_file <- prop_raster_files[[4]]
 
 map(.x = prop_raster_files, .f = \(this_file){
   
-  saveName <- gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file)))
-  saveName <- gsub(pattern = "_prop", replacement = "", saveName)
+  fileName <- gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file)))
+  fileName <- gsub(pattern = "_prop", replacement = "", fileName)
   
-  this_source <- substr(saveName, nchar(saveName)-3+1, nchar(saveName) )
+  saveName <- sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), fileName)
+  
+  if(!file.exists(saveName)){
+    
+  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
   
   #get the FAO regions shp for masking the raster to the relevant ones
   this_shp_extent <- FAO_regions_shp |> filter(source_code ==this_source)
@@ -254,20 +259,17 @@ map(.x = prop_raster_files, .f = \(this_file){
   
   this_stack_r <- c(this_resampled_rast, gfw_native_r) 
   
-  this_effort_raster <- lapp(this_stack_r, fun = \(x, y){x * y}, filename = sprintf(here("data/spatial/03-fisheries-effort/$.tif"), saveName))
+  this_effort_raster <- lapp(this_stack_r, fun = \(x, y){x * y}, filename = saveName , overwrite=TRUE)
+    
+  }
+  
+  
   
 })
+```
 
 
-
-
-
-
-
-
-
-
-
+```{r}
 forage_catch <- readRDS(file = here("data/raw_data/fisheries/spatial_forage_catch_2017_w_cats.rds"))
 
 forage_bottom_trawl_fishing <- 
