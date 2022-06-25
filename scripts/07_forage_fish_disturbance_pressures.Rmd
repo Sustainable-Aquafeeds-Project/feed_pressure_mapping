@@ -228,7 +228,9 @@ FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?serv
   mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
                                  NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
                                                       TRUE ~ "OTH")) 
-this_file <- prop_raster_files[[4]]
+
+
+# now crop each proportional catch raster by the source shapefile and multiply the trawl effort raster 
 
 map(.x = prop_raster_files, .f = \(this_file){
   
@@ -262,104 +264,66 @@ map(.x = prop_raster_files, .f = \(this_file){
   this_effort_raster <- lapp(this_stack_r, fun = \(x, y){x * y}, filename = saveName , overwrite=TRUE)
     
   }
-  
-  
-  
 })
 ```
 
 
-```{r}
-forage_catch <- readRDS(file = here("data/raw_data/fisheries/spatial_forage_catch_2017_w_cats.rds"))
+Now we need to bring in the effort rasters and aggregate to half a degree and adjust to effort per km2.
 
-forage_bottom_trawl_fishing <- 
-  forage_catch |> 
-  as.data.table() |> 
-  lazy_dt(immutable = FALSE) |> 
-  filter(VBDesc == "bottom trawls") |> 
-  group_by(LonCentre, LatCentre) |> 
-  summarise(forage_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
-  drop_na(LonCentre, LatCentre) |> 
-  as.data.frame()
+```{r}
+
+forage_effort_files <- list.files(here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_effort", full.names=TRUE)
+
+this_file <- forage_effort_files[[3]]
+
+#aggregate the effort data to 0;5 degrees and adjust to effort for km2
+
+map(.x = forage_effort_files, .f = \(this_file){
   
-#combine the two so they have the same extents and just plot NA when data is irrelevant for a cell
-combine_trawl_df <- all_trawl_fishing |> full_join(forage_bottom_trawl_fishing)
-
-#generate rasters for all trawling and bottom trawling for forage fish
-all_trawl_r <- rast(combine_trawl_df |> select(-forage_catch), type="xyz", crs = "EPSG:4326")
-forage_bottom_trawl_r <- rast(combine_trawl_df |> select(-total_catch), type="xyz", crs = "EPSG:4326")
-
-#plot the rasters - seem fine
-plot(all_trawl_r)  
-plot(forage_bottom_trawl_r) 
-
-prop_forage_bottom_trawl_r <-  forage_bottom_trawl_r/all_trawl_r
-plot(prop_forage_bottom_trawl_r)
-
-writeRaster(x = prop_forage_bottom_trawl_r, filename = here("data/spatial/03-fisheries-effort/prop_bottom_trawling_forage.tif"))
-
-
-#now so the same for dredge fishing for forage fish vs all fish
-
-all_dredge_fishing <- 
-  total_catch |>
-  lazy_dt(immutable = FALSE) |> 
-  filter(VBDesc == "dredges") |> 
-  group_by(LonCentre, LatCentre) |> 
-  summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
-  drop_na(LonCentre, LatCentre) |> 
-  as.data.frame()
-
-#there is no dredging which catches forage fish so we don't need an effort adjustment raster for dredge. We just don't include.
-forage_dredge_fishing <- 
-  forage_catch |> 
-  as.data.table() |> 
-  lazy_dt(immutable = FALSE) |> 
-  filter(VBDesc %in% dredge_types) |> 
-  group_by(LonCentre, LatCentre) |> 
-  summarise(forage_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
-  drop_na(LonCentre, LatCentre) |> 
-  as.data.frame()
-
-
+  fileName <- paste0(gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file))), "_0.5D_km2")
+  
+  saveName <- sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), fileName)
+  
+  message("Processing ", fileName)
+  
+  if(!file.exists(saveName)){
+    
+    this_r <- rast(this_file)
+    
+    this_aggregate_r <- terra::aggregate(this_r, fact = 50, fun = sum, na.rm = TRUE)
+    
+    this_xy <- terra::as.data.frame(this_aggregate_r, xy = TRUE) |> mutate(x = round((x+0.25)*2)/2-0.25,
+                                                                           y = round((y+0.25)*2)/2-0.25)
+    
+    this_new_r <- rast(this_xy, type = "xyz", crs = "EPSG:4326") |> extend(rast(res=0.5))
+    
+    this_new_km2_r <- this_new_r/cellSize(this_new_r, unit = "km")
+    
+    writeRaster(x = this_new_km2_r, filename = saveName, overwrite = TRUE)
+  }
+})
 
 ```
-Now we adjust the trawler effort data using the proportional raster for the amount coming from bottom trawling and forage fish. 
+
+For the final step, we need to normalise the effort 
 
 ```{r}
 
-#global half degree raster
-base_raster <- rast(res = 0.5)
+forage_effort_km2_files <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "_0.5D_km2", full.names = TRUE)
 
-#bring in effort data in native resolution (0.01 degree)
-gfw_native_r <- rast(here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
-plot(gfw_native_r)
-#gfw_aggregated_df <- terra::as.data.frame(gfw_native_r, xy= TRUE, row.names = FALSE)
+this_file <- forage_effort_km2_files[[1]]
 
-#bring in proportional trawl data from catch
-prop_forage_bottom_trawl_r <- rast(here("data/spatial/03-fisheries-effort/prop_bottom_trawling_forage.tif"))
-avg_trawl_correction <- terra::global(prop_forage_bottom_trawl_r, na.rm = TRUE) |> pull(mean)
-prop_forage_bottom_trawl_r[is.na(prop_forage_bottom_trawl_r)] <- avg_trawl_correction 
-plot(prop_forage_bottom_trawl_r)
-
-#convert the forage fish tank trawling proportions to the resolution of the effort to combine these layers (as effort patterns are likely closer to reality than catch given remote sensing than otehr way round)
-resample(prop_forage_bottom_trawl_r, gfw_native_r, method = "near",  filename = here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"), overwrite = TRUE)
-
-#bring in the resampled catch proportion for forage fish
-resampled_forage_bottom_trawl_r <- rast(here("data/spatial/03-fisheries-effort/resampled_prop_forage_bottom_trawl.tif"))
-
-#stack the resampled raster withh all trawl effort
-effort_forage_prop_stack <- c(resampled_forage_bottom_trawl_r, gfw_native_r)
-
-#mutliply the rasters together and save
-lapp(effort_forage_prop_stack, fun =  \(x, y){ x*y}, filename = here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
-
-#check the new forage fish trawling hours
-forage_effort <- rast(here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
-plot(log10(forage_effort+1))
+map(.x = forage_effort_km2_files, .f = \(this_file){
+  
+  
+  
+  
+})
 
 ```
-Now we need to bring in the effort raster and aggregate 
+
+
+
 
 ```{r}
 
