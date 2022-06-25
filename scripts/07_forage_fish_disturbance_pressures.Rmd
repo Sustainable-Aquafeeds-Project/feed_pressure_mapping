@@ -309,13 +309,26 @@ For the final step, we need to normalise the effort
 
 ```{r}
 
-forage_effort_km2_files <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "_0.5D_km2", full.names = TRUE)
+forage_effort_km2_r_files <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "_0.5D_km2", full.names = TRUE) 
+
+forage_effort_km2_r_list <- rast(forage_effort_km2_r_files)
 
 this_file <- forage_effort_km2_files[[1]]
 
 map(.x = forage_effort_km2_files, .f = \(this_file){
   
+  fileName <- gsub("_0.5D_km2", "", gsub(pattern = "effort", replacement = "rescaled_effort", tools::file_path_sans_ext(basename(this_file))))
   
+  this_diet <- if_else(grepl("marine_diet", fileName), true = "marine_diet", false = "plant_diet")
+  
+  saveName <- sprintf(here("data/spatial/%s/%s.tif"),this_diet, fileName)
+  
+if(!file.exists(saveName){
+  
+  
+  
+  
+})
   
   
 })
