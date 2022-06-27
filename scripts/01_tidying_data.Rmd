@@ -566,7 +566,7 @@ The raster has been gapfilled to make all the NA values mean porductivity values
 
 npp_r <- rast(file.path(rdsi_raw_data_dir, "food-systems-project/annal_mean_npp_2015_gf_wgs.tif"))
 plot(npp_r)
-writeRaster(x = npp_r, filename = here("data/spatial/annal_mean_npp_2015_gf_wgs.tif"))
+writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/annal_mean_npp_2015_gf_wgs.tif"))
 
 
 ```

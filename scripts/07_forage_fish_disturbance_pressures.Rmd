@@ -389,10 +389,15 @@ map(catch_list, \(this_df){
 })
   
   
-#check they look OK 
-list.files(here("data/spatial/fisheries-catch"), full.names = TRUE) |> map(rast) |> map(plot)
+
+catch_r_list <- list.files(here("data/spatial/fisheries-catch"), full.names = TRUE) |> map(rast)
 
 
+# now bring in the npp data
+
+npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
+
+plot(catch_r_list[[1]]/npp)
 
 
 
