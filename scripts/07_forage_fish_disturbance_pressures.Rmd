@@ -382,6 +382,7 @@ map(catch_list, \(this_df){
     this_xy <- this_df |> select(-c(diet, source_code))
   
     this_r <- rast(this_xy, type = "xyz") |> extend(ext(rast(res=0.5)))
+    
   
     writeRaster(x = this_r, filename = saveName, overwrite=TRUE)
     
@@ -389,17 +390,58 @@ map(catch_list, \(this_df){
 })
   
   
+#import npp raster
+npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
 
+#import the catch rasters
 catch_r_list <- list.files(here("data/spatial/fisheries-catch"), full.names = TRUE) |> map(rast)
 
 
-# now bring in the npp data
+#Convert to equal area, adjust by npp and save
+map(catch_r_list, \(this_r){
+  
+  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", sources(this_r))
+  
+  this_ea_r <- this_r/cellSize(this_r, unit = "km")
+  
+  this_ea_npp_r <- this_ea_r/npp
+  
+  writeRaster(this_ea_npp_r, filename = saveName, overwrite=TRUE)
+  
+})
 
-npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
+#bring the npp adjusted catch back in and rescale it
+adjusted_catch_r_list <- list.files(here("data/spatial/fisheries-catch"), pattern = "ea_npp", full.names = TRUE) |> map(rast)
 
-plot(catch_r_list[[1]]/npp)
 
+#rescale and save rescaled rasters for biomass removal
+map(adjusted_catch_r_list, \(this_r){
+  
+  this_diet <- if_else(grepl("marine_diet", sources(this_r)), true = "marine_diet", false = "plant_diet")
+  
+  fileName <- tools::file_path_sans_ext(basename(gsub(pattern = "_ea_npp", replacement = "", sources(this_r))))
+  
+  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName))
+  
+  saveName <- sprintf(here("data/spatial/%s/forage_catch_rescaled_%s_%s.tif"), this_diet, this_diet, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    all_catch_values <- unlist(map(adjusted_catch_r_list, \(this_r){return(c(terra::values(this_r, na.rm=TRUE)))}))
 
+    rescale_value <- quantile(x = all_catch_values, 0.9999)
+    
+    this_rescaled_rast <- 
+      app(x = this_r, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+    
+  }
+  
+})
+  
 
 ```
 
