@@ -305,17 +305,30 @@ map(.x = forage_effort_files, .f = \(this_file){
 
 ```
 
-For the final step, we need to normalise the effort 
+For the final step in the destruction layer of disturbance, we need to normalise the effort between 0 and 1. Have asked Ben why the 99.99th percentile is used. 
 
 ```{r}
 
 forage_effort_km2_r_files <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "_0.5D_km2", full.names = TRUE) 
 
-forage_effort_km2_r_list <- rast(forage_effort_km2_r_files)
+#get all the values for the forage trawl effort rasters
 
-this_file <- forage_effort_km2_files[[1]]
+forage_effort_km2_r_list <- map(forage_effort_km2_r_files, \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_values <- terra::values(this_rast)
+  
+  return(these_values)
+})
 
-map(.x = forage_effort_km2_files, .f = \(this_file){
+#get the 99.99th percentile of possible effort values to rescale all rasters by
+rescale_value <- quantile(unlist(forage_effort_km2_r_list), 0.9999, na.rm=TRUE)
+
+
+#this run returns "Error in (function (x) : attempt to apply non-function" the first time. It is related to this issue with terra https://github.com/rspatial/terra/issues/30. It can be ignored everything runs fine. Also rasters should be there on cloned project.
+
+map(.x = forage_effort_km2_r_files, .f = \(this_file){
   
   fileName <- gsub("_0.5D_km2", "", gsub(pattern = "effort", replacement = "rescaled_effort", tools::file_path_sans_ext(basename(this_file))))
   
@@ -323,60 +336,24 @@ map(.x = forage_effort_km2_files, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/%s/%s.tif"),this_diet, fileName)
   
-if(!file.exists(saveName){
-  
-  
-  
+  if(!file.exists(saveName)){
+    
+    this_rast <- rast(this_file)
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+  }
   
 })
-  
-  
-})
+
 
 ```
 
-
-
-
-```{r}
-
-forage_trawl_effort_r <- rast(here("data/spatial/03-fisheries-effort/_estimated_forage_bottom_trawl_effort.tif"))
-new_extent <- ext(-180.005, 179.995, -89.995, 90.005)
-extended_forage_trawl_effort_r <- terra::extend(forage_trawl_effort_r, new_extent)
-
-agg_forage_trawl_effort_r <- terra::aggregate(extended_forage_trawl_effort_r, fact = 50, fun = sum, na.rm = TRUE)
-plot(agg_forage_trawl_effort_r)
-
-#check values still match
-global(extended_forage_trawl_effort_r, fun = "sum", na.rm=TRUE)
-global(agg_forage_trawl_effort_r, fun = "sum", na.rm = TRUE)
-
-adjustment_r <- rast(res=0.5, vals = 0)
-
-adjustment_stack <- c( agg_forage_trawl_effort_r)
-
-lapp(adjustment_stack, fun = \(x,y){x+y}, filename = here("data/spatial/03-fisheries-effort/estimated_forage_bottom_trawl_effort_0.5D_recentred.tif"))
-
-#check new raster
-recentred_forage_trawl_effort_r <- rast(here("data/spatial/03-fisheries-effort/estimated_forage_bottom_trawl_effort_0.5D_recentred.tif"))
-plot(recentred_forage_trawl_effort_r)
-
-plot(cellSize(recentred_forage_trawl_effort_r, unit="km"))
-
-forage_trawl_effort_km2 <- recentred_forage_trawl_effort_r/cellSize(recentred_forage_trawl_effort_r, unit="km")
-plot(forage_trawl_effort_km2)
-
-rescale_value <-  quantile(values(forage_trawl_effort_km2), 0.9999, na.rm=TRUE)
-
-
-rescaled_forage_trawl_effort_km2_r <- forage_trawl_effort_km2 |> 
-  app(fun = \(x){
-  if_else(x<0, true = 0, false = 
-            if_else(x>rescale_value, true = 1, false = x/rescale_value))})
-
-plot(rescaled_forage_trawl_effort_km2_r)
-
-```
+The next step is understand the biomass removal component of disturbance.
 
 ```{r}
 
