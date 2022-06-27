@@ -1,6 +1,6 @@
 # feed_pressure_mapping
 
-This is the repository for Cottrell et al ' ' looking at the role of ingredient sourcing vs diet composition for the total cumulative pressures from aquafeed diets. This readMe file should be read before trying to reproduce the output from this research project. Below you will find information on the publication associated with this repository, contact information for the lead author, and a description of the repository structure with each section decomposed and explained.
+This is the repository for Cottrell et al ' ' looking at the role of ingredient sourcing vs diet composition for the total cumulative pressures from aquafeed diets. This readMe file should be read before trying to reproduce the output from this research project. Below you will find information on the publication associated with this repository, contact information for the lead author, and a description of the repository structure with each section explained.
 
 
 ## Link to associated publication

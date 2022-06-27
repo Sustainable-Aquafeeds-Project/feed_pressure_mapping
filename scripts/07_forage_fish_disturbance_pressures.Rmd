@@ -353,9 +353,48 @@ map(.x = forage_effort_km2_r_files, .f = \(this_file){
 
 ```
 
-The next step is understand the biomass removal component of disturbance.
+The next step is understand the biomass removal component of disturbance. To do this we will bring in each forage fish catch scenario from each source and diet and adjust the biomass taken by the NPP and then rescale between 0-1.
 
 ```{r}
+
+#Create catch rasters for all diets and sources
+
+#split the embodied fish xy file by diet and source
+catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  group_by(diet, source_code, LonCentre, LatCentre) |> 
+  summarise(catch = sum(adj_embodied_fish, na.rm=TRUE)) |> 
+  as_tibble() |> 
+  group_split(diet, source_code)
+  
+
+#create the rasters
+map(catch_list, \(this_df){
+  
+  this_diet <- unique(this_df$diet)
+  
+  this_source <- unique(this_df$source_code)
+  
+  saveName <- sprintf(here("data/spatial/fisheries-catch/forage_fish_catch_%s_%s.tif"), this_diet, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    this_xy <- this_df |> select(-c(diet, source_code))
+  
+    this_r <- rast(this_xy, type = "xyz") |> extend(ext(rast(res=0.5)))
+  
+    writeRaster(x = this_r, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+  
+  
+#check they look OK 
+list.files(here("data/spatial/fisheries-catch"), full.names = TRUE) |> map(rast) |> map(plot)
+
+
+
+
 
 ```
 
