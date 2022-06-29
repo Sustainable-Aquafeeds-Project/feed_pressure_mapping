@@ -1,0 +1,15 @@
+---
+title: "08_forage_fish_GHG_pressures"
+author: "Rich Cottrell"
+date: "29/06/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(terra)
+library(sf)
+
+
+```
+
