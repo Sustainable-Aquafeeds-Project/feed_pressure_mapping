@@ -9,7 +9,19 @@ output: html_document
 library(tidyverse)
 library(terra)
 library(sf)
+library(data.table)
+library(dtplyr)
 
+
+source(here("src/directories.R"))
+source(here("src/spatial.R"))
+
+
+```
+
+
+
+```{r}
 
 ```
 

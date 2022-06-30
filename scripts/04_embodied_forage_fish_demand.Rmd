@@ -3,6 +3,25 @@ title: "Calculate embodied fish demand in feeds"
 output: html_document
 ---
 
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(countrycode)
+library(data.table)
+library(dtplyr)
+library(raster)
+library(terra)
+library(sf)
+library(jsonlite)
+library(ggnewscale)
+
+source(here("src/directories.R"))
+
+select <- dplyr::select
+values <- terra::values
+```
+
 
 #FORAGE FISH INGREDIENTS
 
@@ -33,7 +52,7 @@ globalav_embodiedfish_fm <- embodied_fish_ratios |> filter(common_name == "Globa
 globalav_embodiedfish_fo <- embodied_fish_ratios |> filter(common_name == "Global average" & Ingredient == "Fish oil") |> pull(`2020`)
 
 
-forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017_w_cats.rds")) |> filter(!grepl("krill", CommonName))
+forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName))
 
 (forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
