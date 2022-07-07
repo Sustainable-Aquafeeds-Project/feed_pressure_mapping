@@ -240,7 +240,7 @@ map(.x = prop_raster_files, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
   
@@ -324,12 +324,12 @@ forage_effort_km2_r_list <- map(forage_effort_km2_r_files, \(this_file){
   return(these_values)
 })
 
-#get the 99.99th percentile of possible effort values to rescale all rasters by
-rescale_value <- quantile(unlist(forage_effort_km2_r_list), 1)
 
 
 #this run returns "Error in (function (x) : attempt to apply non-function" the first time. It is related to this issue with terra https://github.com/rspatial/terra/issues/30. It can be ignored everything runs fine. Also rasters should be there on cloned project.
 
+rescaled_benthic_list <- 
+  
 map(.x = forage_effort_km2_r_files, .f = \(this_file){
   
   fileName <- gsub("_0.5D_km2", "", gsub(pattern = "trawl_effort", replacement = "benthic_destruction_rescaled", tools::file_path_sans_ext(basename(this_file))))
@@ -340,9 +340,11 @@ map(.x = forage_effort_km2_r_files, .f = \(this_file){
   
   if(!file.exists(saveName)){
     
+    all_effort_values <- unlist(forage_effort_km2_r_list)
+    
     this_rast <- rast(this_file)
     
-    rescale_value <- quantile(c(terra::values(this_rast, na.rm=TRUE)), 0.9999)
+    rescale_value <- quantile(all_effort_values, 0.9999, na.rm=TRUE)
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -350,11 +352,14 @@ map(.x = forage_effort_km2_r_files, .f = \(this_file){
     
     
     writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+    
+    return(this_rescaled_rast)
   }
   
 })
 
-
+#check the rasters
+plot(rast(rescaled_benthic_list))
 ```
 
 The next step is understand the biomass removal component of disturbance. To do this we will bring in each forage fish catch scenario from each source and diet and adjust the biomass taken by the NPP and then rescale between 0-1.
@@ -385,7 +390,7 @@ map(catch_list, \(this_df){
     
     this_xy <- this_df |> select(-c(diet, source_code))
   
-    this_r <- rast(this_xy, type = "xyz") |> extend(ext(rast(res=0.5)))
+    this_r <- rast(this_xy, type = "xyz", crs = crs(rast(res=0.5))) |> extend(ext(rast(res=0.5)))
     
     writeRaster(x = this_r, filename = saveName, overwrite=TRUE)
     
@@ -425,7 +430,9 @@ adjusted_catch_r_list <- list.files(here("data/spatial/fisheries-catch"), patter
 
 
 #rescale and save rescaled rasters for biomass removal
-map(adjusted_catch_r_list, \(this_r){
+rescaled_biomass_list <- 
+  
+  map(adjusted_catch_r_list, \(this_r){
   
   this_diet <- if_else(grepl("marine_diet", sources(this_r)), true = "marine_diet", false = "plant_diet")
   
@@ -435,7 +442,7 @@ map(adjusted_catch_r_list, \(this_r){
   
   saveName <- sprintf(here("data/spatial/%s/forage_biomass_removal_rescaled_%s_%s.tif"), this_diet, this_diet, this_source)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     all_catch_values <- unlist(map(adjusted_catch_r_list, \(this_r){return(c(terra::values(this_r, na.rm=TRUE)))}))
 
@@ -448,11 +455,12 @@ map(adjusted_catch_r_list, \(this_r){
     
     writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
     
+    return(this_rescaled_rast)
   }
   
 })
   
-
+plot(rast(rescaled_biomass_list))
 ```
 
 Finally, combine benthic disturbance with biomass removal to get a joint pressure metric.
@@ -460,8 +468,8 @@ Finally, combine benthic disturbance with biomass removal to get a joint pressur
 ```{r}
 
 #marine-diet
-benthic_destruction_md <- list.files(here("data/spatial/marine_diet"), pattern = "benthic", full=TRUE)
-biomass_removal_md <- list.files(here("data/spatial/marine_diet"), pattern = "biomass", full=TRUE)
+benthic_destruction_md <- list.files(here("data/spatial/marine_diet"), pattern = "benthic", full=TRUE) |> map(rast)
+biomass_removal_md <- list.files(here("data/spatial/marine_diet"), pattern = "biomass", full=TRUE) |> map(rast)
 
 combined_raster_list <- 
   map2(.x = benthic_destruction_md, .y = biomass_removal_md, .f = \(this_benthic_file, this_biomass_file){
@@ -473,7 +481,7 @@ combined_raster_list <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
-  writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/marine_diet/forage_fish_disturbance_pressure_marine_diet_%s.tif"), this_source), overwrite=TRUE)
+  writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/marine_diet/pressures/forage_fish_disturbance_pressure_marine_diet_%s.tif"), this_source), overwrite=TRUE)
   
   return(this_combined_r)
   
@@ -483,7 +491,7 @@ combined_raster_list <-
 
 #plant-diet 
 benthic_destruction_pd <- list.files(here("data/spatial/plant_diet"), pattern = "benthic", full=TRUE)
-biomass_removal_pd <- list.files(here("data/spatial/plant_diet"), pattern = "biomass", full=TRUE)
+biomass_removal_pd <- list.files(here("data/spatial/plant_diet"), pattern = "biomass", full=TRUE) 
 
 
 
@@ -498,15 +506,12 @@ combined_raster_list2 <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
- writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/plant_diet/forage_fish_disturbance_pressure_plant_diet_%s.tif"), this_source), overwrite=TRUE)
+ writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/plant_diet/pressures/forage_fish_disturbance_pressure_plant_diet_%s.tif"), this_source), overwrite=TRUE)
   
   
   return(this_combined_r)
   
 })
-
-
-
 
 
 #quick check
