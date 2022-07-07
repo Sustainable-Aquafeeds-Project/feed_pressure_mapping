@@ -11,7 +11,7 @@ library(terra)
 library(sf)
 library(data.table)
 library(dtplyr)
-
+library(here)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
@@ -19,9 +19,50 @@ source(here("src/spatial.R"))
 
 ```
 
+Bringing in the emission intensity data from Halpern et al stored in RDSI and tidy to distinct categories with functional groups associated with the Watson data.
+```{r}
 
+ei_data <- fread(file.path(food_systems_data_dir, "all_catch_emissions_2017.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  select(Taxonkey, Cell, Descript, gear_type, ei_kgco2_kgcatch) |> 
+  distinct() |> 
+  arrange(gear_type)|> 
+  mutate(gear_type = tolower(gear_type)) |> 
+  as_tibble()
+  
+
+```
+
+Now join the embodied fish demand xy data with the emission intensity data.
 
 ```{r}
+
+embodied_fish <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
+
+#take a look at the differences between gears for watson data and the ei data 
+unique(ei_data$gear_type)
+unique(embodied_fish$VBDesc))
+
+#Gear classifications are different. So we need the join file with Parker Data created in Halpern et al food systems project
+parker_gear_join <- read_csv(here("data/raw_data/fisheries/parker_gear_join.csv"))
+
+#now join parker gear data to the embodied fish by the
+embodied_fish_new_gear <- 
+  embodied_fish |> 
+  lazy_dt(immutable = FALSE) |> 
+  left_join(parker_gear_join, by="Gear") |> 
+  left_join(ei_data, by = c("Taxonkey", "Cell", "Descript", "ParkerGearName" = "gear_type")) |> 
+  as_tibble()
+
+
+
+
+  group_by(diet, source_code, LonCentre, LatCentre) |> 
+  summarise(catch = sum(adj_embodied_fish, na.rm=TRUE)) |> 
+  as_tibble() |> 
+  group_split(diet, source_code)
+
+
 
 ```
 

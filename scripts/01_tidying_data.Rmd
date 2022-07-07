@@ -555,6 +555,20 @@ plot(log10(dredge_effort_r+1))
 
 ```
 
+# Bring in rob parker data from rdsi storage in raw_data
+
+
+```{r}
+#importing the join data from downloaded data in RDSI storage
+parker_gear_join <- read_csv(file.path(food_systems_data_dir, "parker_gear_join.csv"))
+
+#alternatively it can be dowloaded from here when the food systems project is published
+#parker_gear_join <- read_csv("https://raw.githubusercontent.com/OHI-Science/food_systems/master/fisheries/marine/ghg/int/gear_index_parker.csv?token=GHSAT0AAAAAABWBCADKLIWM2Y6WTU7X6FXAYWFFRVQ")
+
+
+write_csv(parker_gear_join, file = here("data/raw_data/fisheries/parker_gear_join.csv"))
+
+```
 
 
 #Import the global net primary productivity data

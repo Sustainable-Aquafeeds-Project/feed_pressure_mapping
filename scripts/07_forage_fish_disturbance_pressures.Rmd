@@ -109,7 +109,7 @@ all_trawl_fishing <-
 
 
 all_trawl_r <- rast(all_trawl_fishing, type = "xyz", crs = "EPSG:4326")
-writeRaster(x = all_trawl_r, filename = here("data/spatial/03-fisheries-effort/all_trawling_catch.tif"))
+writeRaster(x = all_trawl_r, filename = here("data/spatial/03-fisheries-effort/all_trawling_catch.tif"), overwrite=TRUE)
 
 ```
 
@@ -143,7 +143,8 @@ For pressures all we are interested is the bottom trawl component so now we isol
 ```{r}
 
 #create list of dataframe of trawling for forage fish by diet and sourcing
-trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+trawl_forage_catch_list <- 
+  fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
   filter(VBDesc == "bottom trawls") |> 
   as_tibble() |> 
@@ -185,8 +186,8 @@ trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_c
 Now we need to work out what proportion of all trawling each one of the trawling for forage fish catch rasters represents across diets and sources so we can create a proportional raster to multiply by effort.
 
 ```{r}
-forage_catch_r_list <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_catch_", full.names = TRUE)
-
+forage_catch_r_list_int <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_catch", full.names = TRUE)
+forage_catch_r_list <- forage_catch_r_list_int[!grepl("_prop", forage_catch_r_list_int)]
 
 #calculate the proportion of all trawl catch is this diet scenario
 map(.x = forage_catch_r_list, .f = \(this_file){
@@ -239,7 +240,7 @@ map(.x = prop_raster_files, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
   
@@ -272,9 +273,10 @@ Now we need to bring in the effort rasters and aggregate to half a degree and ad
 
 ```{r}
 
-forage_effort_files <- list.files(here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_effort", full.names=TRUE)
+forage_effort_files_int <- list.files(here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_effort", full.names=TRUE)
+forage_effort_files <- forage_effort_files_int[!grepl("0.5D_km2", forage_effort_files_int)]
 
-this_file <- forage_effort_files[[3]]
+#this_file <- forage_effort_files[[3]]
 
 #aggregate the effort data to 0;5 degrees and adjust to effort for km2
 
@@ -305,7 +307,7 @@ map(.x = forage_effort_files, .f = \(this_file){
 
 ```
 
-For the final step in the destruction layer of disturbance, we need to normalise the effort between 0 and 1. Have asked Ben why the 99.99th percentile is used. 
+For the final step in the destruction layer of disturbance, we need to normalise the effort between 0 and 1. The 99th percentile is used to rescale to avoid the undue influence of outliers
 
 ```{r}
 
@@ -336,11 +338,11 @@ map(.x = forage_effort_km2_r_files, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/%s/%s.tif"),this_diet, fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rast <- rast(this_file)
     
-    rescale_value <- quantile()
+    rescale_value <- quantile(c(terra::values(this_rast, na.rm=TRUE)), 0.9999)
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -385,7 +387,6 @@ map(catch_list, \(this_df){
   
     this_r <- rast(this_xy, type = "xyz") |> extend(ext(rast(res=0.5)))
     
-  
     writeRaster(x = this_r, filename = saveName, overwrite=TRUE)
     
   }
@@ -396,18 +397,18 @@ map(catch_list, \(this_df){
 npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
 
 #import the catch rasters
-catch_r_list <- list.files(here("data/spatial/fisheries-catch"), full.names = TRUE) |> map(rast)
+catch_r_list_int <- list.files(here("data/spatial/fisheries-catch"), full.names = TRUE)
+catch_r_list <- catch_r_list_int[!grepl("ea_npp", catch_r_list_int)]
 
-
-
-#######THIS NEEDS FIXING SO THE _ea_npp prefix doesn't keep adding to the file extension
 
 #Convert to equal area, adjust by npp and save
-map(catch_r_list, \(this_r){
+map(catch_r_list, \(this_file){
   
-  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", sources(this_r))
+  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", basename(this_file))
   
   if(!file.exists(saveName)){
+    
+  this_r <- rast(this_file)
     
   this_ea_r <- this_r/cellSize(this_r, unit = "km")
   
@@ -472,7 +473,7 @@ combined_raster_list <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
-  writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/marine_diet/forage_fish_disturbance_pressure_marine_diet_%s.tif"), this_source))
+  writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/marine_diet/forage_fish_disturbance_pressure_marine_diet_%s.tif"), this_source), overwrite=TRUE)
   
   return(this_combined_r)
   
@@ -497,7 +498,7 @@ combined_raster_list2 <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
- writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/plant_diet/forage_fish_disturbance_pressure_plant_diet_%s.tif"), this_source))
+ writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/plant_diet/forage_fish_disturbance_pressure_plant_diet_%s.tif"), this_source), overwrite=TRUE)
   
   
   return(this_combined_r)

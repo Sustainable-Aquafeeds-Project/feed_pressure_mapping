@@ -56,7 +56,7 @@ forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.
 
 (forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
-  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
+  summarise(total_catch = sum(total_ind, na.rm=TRUE)) |> 
   arrange(-total_catch) |> 
   left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fishmeal_cf =`2020`), by = c("TaxonName" = "sci_name")) |> 
     left_join(embodied_fish_ratios |> filter(Ingredient == "Fish oil") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fish_oil_cf =`2020`), by = c("TaxonName" = "sci_name", "common_name"))
@@ -65,7 +65,7 @@ forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.
 
 #plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
 forage_xyz <- forage_catch |> group_by(LonCentre, LatCentre) |> 
-  summarise(total_catch = sum(total_catch)) |> 
+  summarise(total_catch = sum(total_ind)) |> 
   #select(LonCentre, LatCentre, total_catch) |> 
   rename(x=LonCentre, y= LatCentre, z = total_catch) 
 
@@ -152,7 +152,7 @@ fao_area_production_potential <-
             by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
   drop_na(fao_area_name) |>
   group_by(fao_area_name) |> 
-  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
+  summarise(total_catch = sum(total_ind, na.rm=TRUE)) |> 
   mutate(all_catch = sum(total_catch)) |>  # from this Atlantic Northeast, Eastern Pacific (all regions), and "Other" seem like the best options
   mutate(source_code = case_when(fao_area_name == "Atlantic, Northeast" ~ "NAT",
                                  fao_area_name %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
@@ -179,7 +179,7 @@ forage_catch_w_prop_supply <-
                                                       TRUE ~ "OTH")) |> 
   group_by(source_code) |> 
   nest() |> 
-  mutate(prop_source_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
+  mutate(prop_source_catch = map(data, ~(.$total_ind/sum(.$total_ind)))) |> 
   unnest(cols = c(data, prop_source_catch)) |> 
   ungroup() |> 
   left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fishmeal_cf=`2020`), by = c("TaxonName" = "sci_name")) |> 
