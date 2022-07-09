@@ -18,6 +18,7 @@ library(data.table)
 library(dtplyr)
 library(future)
 library(furrr)
+library(doParallel)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
@@ -109,7 +110,7 @@ all_trawl_fishing <-
 
 
 all_trawl_r <- rast(all_trawl_fishing, type = "xyz", crs = "EPSG:4326")
-writeRaster(x = all_trawl_r, filename = here("data/spatial/03-fisheries-effort/all_trawling_catch.tif"), overwrite=TRUE)
+writeRaster(x = all_trawl_r, filename = here("data/spatial/fisheries-effort/all_trawling_catch.tif"), overwrite=TRUE)
 
 ```
 
@@ -152,6 +153,10 @@ trawl_forage_catch_list <-
 
 #summarise the data by cell and write to data folder
 
+#test
+this_df <- trawl_forage_catch_list[[6]]
+
+
 map(trawl_forage_catch_list, \(this_df){
   
   this_diet <- unique(this_df$diet)
@@ -166,9 +171,8 @@ map(trawl_forage_catch_list, \(this_df){
   
   this_rast <- rast(this_summary_df, type="xyz", crs="EPSG:4326")
   this_rast_resampled <- resample(this_rast, rast(res=0.5))
-  plot(this_rast)
   
-  writeRaster(x = this_rast_resampled, filename = sprintf(here("data/spatial/03-fisheries-effort/forage_trawl_catch_%s_%s.tif"), this_diet, this_source), overwrite=TRUE)
+  writeRaster(x = this_rast_resampled, filename = sprintf(here("data/spatial/%s/int/forage_trawl_catch_%s_%s.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
   
 })
 
@@ -186,11 +190,45 @@ trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_c
 Now we need to work out what proportion of all trawling each one of the trawling for forage fish catch rasters represents across diets and sources so we can create a proportional raster to multiply by effort.
 
 ```{r}
-forage_catch_r_list_int <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_catch", full.names = TRUE)
-forage_catch_r_list <- forage_catch_r_list_int[!grepl("_prop", forage_catch_r_list_int)]
+
+#marine diets 
+
+forage_catch_r_list_int_md <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "forage_trawl_catch", full.names = TRUE)
+forage_catch_r_list_md <- forage_catch_r_list_int_md[!grepl("_prop", forage_catch_r_list_int_md)]
+
+#test
+this_file <- forage_catch_r_list_md[[3]]
 
 #calculate the proportion of all trawl catch is this diet scenario
-map(.x = forage_catch_r_list, .f = \(this_file){
+map(.x = forage_catch_r_list_md, .f = \(this_file){
+  
+  message("processing ", tools::file_path_sans_ext(basename(this_file)))
+  
+  saveName <- paste0(tools::file_path_sans_ext(basename(this_file)), "_prop")
+  
+  this_r <- rast(this_file) 
+  
+  all_trawL_r <- rast(here("data/spatial/fisheries-effort/all_trawling_catch.tif")) |>  extend(rast(res=0.5))
+  
+  this_stack_r <- c(this_r, all_trawl_r)
+  
+  this_combined_r <- lapp(x= this_stack_r, fun = \(x,y){
+      this_combo <- x/y
+      this_combo[this_combo >1 ] <- 1
+      return(this_combo)
+      }, 
+      filename = sprintf(here("data/spatial/marine_diet/int/%s.tif"), saveName), overwrite=TRUE)
+})
+
+#plant diets 
+
+forage_catch_r_list_int_pd <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "forage_trawl_catch", full.names = TRUE)
+forage_catch_r_list_pd <- forage_catch_r_list_int_pd[!grepl("_prop", forage_catch_r_list_int_pd)]
+
+#test
+
+#calculate the proportion of all trawl catch is this diet scenario
+map(.x = forage_catch_r_list_pd, .f = \(this_file){
   
   message("processing ", tools::file_path_sans_ext(basename(this_file)))
   
@@ -198,17 +236,17 @@ map(.x = forage_catch_r_list, .f = \(this_file){
   
   this_r <- rast(this_file)
   
-  all_trawL_r <- rast(here("data/spatial/03-fisheries-effort/all_trawling_catch.tif"))
-  all_trawl_r <- extend(all_trawl_r, ext(rast(res=0.5)))
-  
+  all_trawL_r <- rast(here("data/spatial/fisheries-effort/all_trawling_catch.tif")) |>  extend(rast(res=0.5))
   
   this_stack_r <- c(this_r, all_trawl_r)
   
-  lapp(x= this_stack_r, fun = \(x,y){x/y}, filename = sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), saveName), overwrite=TRUE)
-  
-  
+  this_combined_r <- 
+    lapp(x= this_stack_r, fun = \(x,y){
+      this_combo <- x/y
+      this_combo[this_combo >1 ] <- 1
+      return(this_combo)
+      }, filename = sprintf(here("data/spatial/plant_diet/int/%s.tif"), saveName), overwrite=TRUE)
 })
-
 
 ```
 
@@ -216,11 +254,9 @@ With proportions of all forage fish trawling now available for each diet and sou
 
 
 ```{r}
-#proportional catch raster for forage fish trawling
-prop_raster_files <- list.files(path = here("data/spatial/03-fisheries-effort"), pattern = "_prop.tif", full.names = TRUE)
 
 # the total trawling effort
-gfw_native_r <- rast(here("data/spatial/03-fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
+gfw_native_r <- rast(here("data/spatial/fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
 
 
 #bring in the shapefile for cropping effort rasters by relevant source area
@@ -228,17 +264,23 @@ FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?serv
   mutate(F_AREA = as.numeric(F_AREA)) |> 
   mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
                                  NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
-                                                      TRUE ~ "OTH")) 
+                                                      TRUE ~ "OTH"))
 
+#MARINE DIETS
+
+#proportional catch raster for forage fish trawling
+prop_raster_files_md <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_prop.tif", full.names = TRUE)
+
+this_file <- prop_raster_files_md[[1]]
 
 # now crop each proportional catch raster by the source shapefile and multiply the trawl effort raster 
 
-map(.x = prop_raster_files, .f = \(this_file){
+map(.x = prop_raster_files_md, .f = \(this_file){
   
   fileName <- gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file)))
   fileName <- gsub(pattern = "_prop", replacement = "", fileName)
   
-  saveName <- sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), fileName)
+  saveName <- sprintf(here("data/spatial/marine_diet/int/%s.tif"), fileName)
   
   if(!file.exists(saveName)){
     
@@ -266,6 +308,52 @@ map(.x = prop_raster_files, .f = \(this_file){
     
   }
 })
+
+#PLANT DIETS
+
+#proportional catch raster for forage fish trawling
+prop_raster_files_pd <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_prop.tif", full.names = TRUE)
+
+this_file <- prop_raster_files_pd[[1]]
+
+# now crop each proportional catch raster by the source shapefile and multiply the trawl effort raster 
+
+map(.x = prop_raster_files_pd, .f = \(this_file){
+  
+  fileName <- gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file)))
+  fileName <- gsub(pattern = "_prop", replacement = "", fileName)
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/int/%s.tif"), fileName)
+  
+  if(file.exists(saveName)){
+    
+  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
+  
+  #get the FAO regions shp for masking the raster to the relevant ones
+  this_shp_extent <- FAO_regions_shp |> filter(source_code ==this_source)
+  
+  message("processing ", tools::file_path_sans_ext(basename(this_file)))
+  
+  this_rast <- rast(this_file)
+  
+  #add average value where 
+  avg_trawl_correction <- terra::global(this_rast, na.rm = TRUE) |> pull(mean)
+  
+  this_rast[is.na(this_rast)] <- avg_trawl_correction
+  
+  this_cropped_rast <- terra::mask(this_rast, vect(this_shp_extent))
+   
+  this_resampled_rast <- resample(this_cropped_rast, gfw_native_r)
+  
+  this_stack_r <- c(this_resampled_rast, gfw_native_r) 
+  
+  this_effort_raster <- lapp(this_stack_r, fun = \(x, y){x * y}, filename = saveName , overwrite=TRUE)
+    
+  }
+})
+
+
+
 ```
 
 

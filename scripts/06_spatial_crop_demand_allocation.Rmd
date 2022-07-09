@@ -8,11 +8,13 @@ library(tidyverse)
 library(here)
 library(terra)
 library(parallel)
+library(doParallel)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
 base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
+
 
 select <- dplyr::select
 ```
@@ -44,11 +46,11 @@ lapply(X = these_crop_production_files, FUN = \(this_filepath){
     imported_file <- rast(this_filepath)
     
     #reproject the file
-    reprojected_file <-  project(x=imported_file, y= base_raster_ea)
+    reprojected_file <-  terra::aggregate(imported_file, fact = 6)
     
     #write the original and the reprojected to this project
-    writeRaster(imported_file, filename = paste0(here("data/spatial/01-crop-layers-raw/"), this_file), overwrite = TRUE)
-    writeRaster(reprojected_file, filename = paste0(here("data/spatial/02-crop-layers-reprojected/"), this_file), overwrite=TRUE)
+    writeRaster(imported_file, filename = paste0(here("data/spatial/crop-layers-raw/"), this_file), overwrite = TRUE)
+    writeRaster(reprojected_file, filename = paste0(here("data/spatial/crop-layers-reprojected/"), this_file), overwrite=TRUE)
   
   
 })
@@ -60,7 +62,7 @@ lapply(X = these_crop_production_files, FUN = \(this_filepath){
 
 ```
 
-We're now interested from where the different crop ingredients could be sourced across the top producing nations. Need to check whether the demand from the global salmon industry
+We're now interested from where the different crop ingredients could be sourced across the top producing nations. Need to check whether the demand from the global salmon industry can be met by crop producing countries
 
 ```{r}
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
@@ -115,7 +117,7 @@ crop_main_pressures |>
 
 
 
-#match up country-specific pressure data with country production/demand data. Want to constrain the ocujntries used for LCA variability by those that can plausibly source demand
+#match up country-specific pressure data with country production/demand data. Want to constrain the countries used for LCA variability by those that can plausibly source demand
 
 (plausible_crop_sourcing_list <- crop_demand_production_compare |> select(ingredients, diet, FAOSTAT_name, source_iso3c, total_crop_demand, national_production, demand_production_ratio, check) |>  filter(check == FALSE) |> group_split(ingredients))
 
@@ -199,7 +201,8 @@ ingredient_per_country_per_diet <-
 }) |> 
   group_split(diet, ingredients, FAOSTAT_name, source_iso3c)
 
-
+#for testing the function below
+this_ingredient_source <- ingredient_per_country_per_diet[[1]]
 
 #allocating demand on spatial production layers by diet, ingredient, and source country
 AllocateSpatialCropDemand <- \(this_ingredient_source){
@@ -220,24 +223,24 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio)
   
   #the file_name of interest for this diet, ingredient, and country
-  this_demand_raster_filename <- here(sprintf("data/spatial/%s/%s_AllTech_%s.tif", this_diet, this_ingredient, this_country))
+  this_demand_raster_filename <- here(sprintf("data/spatial/%s/production/%s_AllTech_%s.tif", this_diet, this_ingredient, this_country))
   
-  #if the file name doesn't exist, create it
-  if(!file.exists(this_demand_raster_filename)){
+  #if the file doesn't exist, create it
+  if(file.exists(this_demand_raster_filename)){
     
     #spatial adjustments of production data by current production
-    this_country_raster <- rast(here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)))
+    this_country_raster <- rast(here(sprintf("data/spatial/country-rasters/%s.tif", this_country)))
     
-    this_global_production_raster <- rast(list.files(here("data/spatial/02-crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
+    this_global_production_raster <- rast(list.files(here("data/spatial/crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
     
     this_country_production_raster <- this_global_production_raster*this_country_raster
     
-    this_updated_country_production_raster <-  this_country_production_raster* this_country_production/sum(terra::values(this_country_production_raster), na.rm=TRUE)
+    this_updated_country_production_raster <-  this_country_production_raster* this_country_production/sum(c(terra::values(this_country_production_raster, na.rm=TRUE)))
 
   
     this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
       
-    terra::writeRaster( x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
+    terra::writeRaster(x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
     
   }
 }
