@@ -325,7 +325,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/int/%s.tif"), fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
   
@@ -357,6 +357,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
 ```
 
 
+# START HERE
 Now we need to bring in the effort rasters and aggregate to half a degree and adjust to effort per km2.
 
 ```{r}
