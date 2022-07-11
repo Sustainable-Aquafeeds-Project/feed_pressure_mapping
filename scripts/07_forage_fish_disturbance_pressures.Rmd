@@ -607,5 +607,230 @@ combined_raster_list2 <-
 plot(rast(combined_raster_list))
 plot(rast(combined_raster_list2))
 ```
+Create some disturbance supplementary plots.
+
+```{r}
+
+countries <- rnaturalearth::ne_countries(scale=110, returnclass = "sf") |> 
+
+
+extent <- st_bbox(ext(c(-180, -40, -90, 90)))
+
+forage_catch_md_epc <-  raster::raster(rast(here("data/spatial/fisheries-catch/forage_fish_catch_marine_diet_EPC.tif"))) |> as("SpatialPointsDataFrame") |> as.data.frame()
+
+forage_catch_pd_nat <-  raster::raster(rast(here("data/spatial/fisheries-catch/forage_fish_catch_plant_diet_NAT.tif"))) |> as("SpatialPointsDataFrame") |> as.data.frame()
+
+forage_catch_md_oth <- raster::raster(rast(here("data/spatial/fisheries-catch/forage_fish_catch_marine_diet_OTH.tif"))) |> as("SpatialPointsDataFrame") |> as.data.frame()
+
+
+ggplot()+
+  geom_sf(data = countries |> filter(region_wb %in% c("Latin America & Caribbean" , "North America")), colour = NA, fill = "grey70")+
+  geom_tile(data = forage_catch_md_epc, aes(x = x, y = y, fill = log10(catch+1)))+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Blues"))
+  
+ggsave(filename = here("figures/presos/forage_fish_catch_md_EPC.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+  
+
+europe <- countries |> filter(iso_a3 %in% c("ALB", "AUT", "BEL", "BGR", "BIH", "BLR", "CHE", "CZE", "DEU", "DNK", "ESP", "EST", "FIN", "FRA", "GBR", "GRC", "HRV", "HUN", "IRL", "ISL", "ITA", "LTU", "LUX", "LVA", "MDA", "MKD", "MNE", "NLD", "NOR", "POL", "PRT", "ROU", "SRB", "SVK", "SVN", "SWE", "UKR"))
+unique(europe$iso_a3)
+
+
+extent <- ext(c(xmin = -54.524754, xmax= 40.080789, ymin=  10 ,  ymax = 80.657144))
+
+
+ggplot()+
+  geom_tile(data = forage_catch_pd_nat, aes(x = x, y = y, fill = log10(catch+1)))+
+  geom_sf(data = europe |> st_crop(st_bbox(extent)), colour = NA, fill = "grey70")+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Blues"))
+  
+ggsave(filename = here("figures/presos/forage_fish_catch_pd_NAT.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+ggplot()+
+  geom_tile(data = forage_catch_md_oth, aes(x = x, y = y, fill = log10(catch+1)))+
+  geom_sf(data = countries , colour = NA, fill = "grey70")+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Blues"))
+  
+ggsave(filename = here("figures/presos/forage_fish_catch_md_OTH.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+
+#EPC
+
+disturbance_md <- terra::as.data.frame(x = rast(here("data/spatial/marine_diet/pressures/forage_fish_disturbance_pressure_marine_diet_EPC.tif")), xy = TRUE)
+
+
+ggplot()+
+  geom_sf(data = countries |> filter(region_wb %in% c("Latin America & Caribbean" , "North America")), colour = NA, fill = "grey70")+
+  geom_tile(data = disturbance_md, aes(x = x, y = y, fill = log10(lyr.1+1)))+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "YlOrRd"))
+  
+ggsave(filename = here("figures/presos/forage_fish_distrubance_md_EPC.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+disturbance_pd <- terra::as.data.frame(x = rast(here("data/spatial/plant_diet/pressures/forage_fish_disturbance_pressure_plant_diet_EPC.tif")), xy = TRUE)
+
+ggplot()+
+  geom_sf(data = countries |> filter(region_wb %in% c("Latin America & Caribbean" , "North America")), colour = NA, fill = "grey70")+
+  geom_tile(data = disturbance_pd, aes(x = x, y = y, fill = log10(lyr.1+1)))+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Reds"))
+  
+
+ggsave(filename = here("figures/presos/forage_fish_distrubance_pd_EPC.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+
+ghg_md <- terra::as.data.frame(x = rast(here("data/spatial/marine_diet/int/forage_fish_ghg_raw_marine_diet_EPC.tif")), xy = TRUE)
+
+ggplot()+
+  geom_sf(data = countries |> filter(region_wb %in% c("Latin America & Caribbean" , "North America")), colour = NA, fill = "grey70")+
+  geom_tile(data = ghg, aes(x = x, y = y, fill = log10(total_GWP_km2+1)))+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Purples"))
+  
+ggsave(filename = here("figures/presos/forage_fish_ghg_md_EPC.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+ghg_pd <- terra::as.data.frame(x = rast(here("data/spatial/plant_diet/int/forage_fish_ghg_raw_plant_diet_EPC.tif")), xy = TRUE)
+
+ggplot()+
+  geom_sf(data = countries |> filter(region_wb %in% c("Latin America & Caribbean" , "North America")), colour = NA, fill = "grey70")+
+  geom_tile(data = ghg_pd, aes(x = x, y = y, fill = log10(total_GWP_km2+1)))+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Greens"))
+  
+ggsave(filename = here("figures/presos/forage_fish_ghg_pd_EPC.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+ggplot()+
+  geom_sf(data = countries |> filter(region_wb %in% c("Latin America & Caribbean" , "North America")), colour = NA, fill = "grey70")+
+  geom_tile(data = ghg, aes(x = x, y = y, fill = log10(total_GWP_km2+1)))+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Greens"))
+  
+
+
+#NAT 
+
+
+
+disturbance_md_nat <- terra::as.data.frame(x = rast(here("data/spatial/marine_diet/pressures/forage_fish_disturbance_pressure_marine_diet_NAT.tif")), xy = TRUE)
+
+
+ggplot()+
+  geom_tile(data = disturbance_md_nat, aes(x = x, y = y, fill = log10(lyr.1+1)))+
+  geom_sf(data = europe |> st_crop(st_bbox(extent)), colour = NA, fill = "grey70")+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "YlOrRd"))
+  
+ggsave(filename = here("figures/presos/forage_fish_distrubance_md_NAT.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+disturbance_pd_NAT <- terra::as.data.frame(x = rast(here("data/spatial/plant_diet/pressures/forage_fish_disturbance_pressure_plant_diet_NAT.tif")), xy = TRUE)
+
+ggplot()+
+  
+  geom_tile(data = disturbance_pd_NAT, aes(x = x, y = y, fill = log10(lyr.1+1)))+
+  geom_sf(data = europe |> st_crop(st_bbox(extent)), colour = NA, fill = "grey70")+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Reds"))
+  
+
+ggsave(filename = here("figures/presos/forage_fish_distrubance_pd_NAT.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+
+ghg_md_nat <- terra::as.data.frame(x = rast(here("data/spatial/marine_diet/int/forage_fish_ghg_raw_marine_diet_NAT.tif")), xy = TRUE)
+
+ggplot()+
+  geom_tile(data = ghg_md_nat, aes(x = x, y = y, fill = log10(total_GWP_km2+1)))+
+  geom_sf(data = europe |> st_crop(st_bbox(extent)), colour = NA, fill = "grey70")+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Purples"))
+  
+ggsave(filename = here("figures/presos/forage_fish_ghg_md_NAT.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+ghg_pd_nat <- terra::as.data.frame(x = rast(here("data/spatial/plant_diet/int/forage_fish_ghg_raw_plant_diet_NAT.tif")), xy = TRUE)
+
+ggplot()+
+  geom_tile(data = ghg_pd_nat, aes(x = x, y = y, fill = log10(total_GWP_km2+1)))+
+  geom_sf(data = europe |> st_crop(st_bbox(extent)), colour = NA, fill = "grey70")+
+  theme_bw()+
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  guides(fill = "none")+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(n = 5, name = "Greens"))
+  
+ggsave(filename = here("figures/presos/forage_fish_ghg_pd_NAT.jpg"), device = "jpg", dpi = 600, width = 5, height = 5, units = "cm")
+
+
+
+
+
+
+
+
+```
 
 

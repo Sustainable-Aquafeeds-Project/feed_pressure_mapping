@@ -350,5 +350,27 @@ saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_dat
 
 ```
   
-  
+Create an FMFO embodied fish demand by source and ingredient
+
+```{r}
+embodied_fish_by_dietsource <- readRDS(file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
+
+embodied_fish_by_dietsource |> 
+  ggplot()+
+  aes(x = diet, y = embodied_fish_demand/1000, fill = source_code)+
+  geom_bar(stat= "identity", position = "dodge")+
+  labs(fill = "Source", y = "Embodied fish demand (1000s T)")+
+  scale_fill_manual(values = c("#edf8b1", "#7fcdbb", "#2c7fb8"))+
+  theme_bw()+
+  theme(legend.position = c(0.8, 0.8),
+        legend.background = element_rect(fill="transparent"), 
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(), 
+        text = element_text(size=12),
+        legend.text = element_text(size = 10))
+
+
+ggsave(filename = here("figures/presos/embodied_forage_fish_demand.jpg"), device="jpg", dpi = 600, width = 10, height = 10, units="cm")
+
+```
 
