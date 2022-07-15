@@ -524,7 +524,7 @@ map(catch_list, \(this_df){
   
   this_source <- unique(this_df$source_code)
   
-  saveName <- sprintf(here("data/spatial/%s/forage_fish_catch_%s_%s.tif"), this_diet, this_diet, this_source)
+  saveName <- sprintf(here("data/spatial/%s/production/forage_fish_catch_%s_%s.tif"), this_diet, this_diet, this_source)
   
   if(!file.exists(saveName)){
     
@@ -545,14 +545,14 @@ npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_g
 
 # marine diet
 
-catch_r_list_int_md <- list.files(here("data/spatial/marine_diet"), pattern = "forage_fish_catch", full.names = TRUE)
+catch_r_list_int_md <- list.files(here("data/spatial/marine_diet/production"), pattern = "forage_fish_catch", full.names = TRUE)
 catch_r_list_md <- catch_r_list_int_md[!grepl("ea_npp", catch_r_list_int_md)]
 
 
 #Convert to equal area, adjust by npp and save
 map(catch_r_list_md, \(this_file){
   
-  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file)
+  saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
   if(!file.exists(saveName)){
     
@@ -571,14 +571,14 @@ map(catch_r_list_md, \(this_file){
 
 # plant diet
 
-catch_r_list_int_pd <- list.files(here("data/spatial/plant_diet"), pattern = "forage_fish_catch", full.names = TRUE)
+catch_r_list_int_pd <- list.files(here("data/spatial/plant_diet/production"), pattern = "forage_fish_catch", full.names = TRUE)
 catch_r_list_pd <- catch_r_list_int_pd[!grepl("ea_npp", catch_r_list_int_pd)]
 
 
 #Convert to equal area, adjust by npp and save
 map(catch_r_list_pd, \(this_file){
   
-  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file)
+  saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
   if(!file.exists(saveName)){
     
