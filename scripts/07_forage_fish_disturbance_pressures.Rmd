@@ -3,6 +3,8 @@ title: "Spatial Allocation of Forage fish demand from each diet and source"
 output: html_document
 ---
 
+# Overall approach
+
 The disturbance metric established in Halpern et al is composed of two elements:
 
 - Benthic destruction - hours of fishing effort from bottom trawlers and dredgers to catch forage fish species
@@ -24,6 +26,9 @@ source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
 ```
+
+## Benthic destruction
+
 
 To understand the benthic component of disturbance, we need to know if there are any destrcutive fishing gears associated withe forage fish catch. 
 
@@ -61,6 +66,7 @@ forage_catch_w_cats |> filter(Descript == "krill") |> pull(VBDesc) |> unique()
 forage_catch_w_cats |> filter(is.na(type))# no NA values
 forage_catch_w_cats |> filter(is.na(bycatch)) #no na values
 ```
+
 
 
 We  have effort rasters for all fishing for destructive gears (trawling and dredge) but we need to know how much of that forage fish represent in each cell for each demand scenario in each diet.
@@ -357,23 +363,24 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
 ```
 
 
-# START HERE
 Now we need to bring in the effort rasters and aggregate to half a degree and adjust to effort per km2.
 
 ```{r}
 
-forage_effort_files_int <- list.files(here("data/spatial/03-fisheries-effort"), pattern = "forage_trawl_effort", full.names=TRUE)
-forage_effort_files <- forage_effort_files_int[!grepl("0.5D_km2", forage_effort_files_int)]
+#Marine Diets
+
+forage_effort_files_int_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "forage_trawl_effort", full.names=TRUE)
+forage_effort_files_md <- forage_effort_files_int_md[!grepl("0.5D_km2", forage_effort_files_int_md)]
 
 #this_file <- forage_effort_files[[3]]
 
 #aggregate the effort data to 0;5 degrees and adjust to effort for km2
 
-map(.x = forage_effort_files, .f = \(this_file){
+map(.x = forage_effort_files_md, .f = \(this_file){
   
   fileName <- paste0(gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file))), "_0.5D_km2")
   
-  saveName <- sprintf(here("data/spatial/03-fisheries-effort/%s.tif"), fileName)
+  saveName <- sprintf(here("data/spatial/marine_diet/int/%s.tif"), fileName)
   
   message("Processing ", fileName)
   
@@ -394,8 +401,50 @@ map(.x = forage_effort_files, .f = \(this_file){
   }
 })
 
+
+#Plant diets
+
+forage_effort_files_int_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "forage_trawl_effort", full.names=TRUE)
+forage_effort_files_pd <- forage_effort_files_int_pd[!grepl("0.5D_km2", forage_effort_files_int_pd)]
+
+#this_file <- forage_effort_files[[3]]
+
+#aggregate the effort data to 0.5 degrees and adjust to effort for km2
+
+map(.x = forage_effort_files_pd, .f = \(this_file){
+  
+  fileName <- paste0(gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file))), "_0.5D_km2")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/int/%s.tif"), fileName)
+  
+  message("Processing ", fileName)
+  
+  if(!file.exists(saveName)){
+    
+    this_r <- rast(this_file)
+    
+    this_aggregate_r <- terra::aggregate(this_r, fact = 50, fun = sum, na.rm = TRUE)
+    
+    this_xy <- terra::as.data.frame(this_aggregate_r, xy = TRUE) |> mutate(x = round((x+0.25)*2)/2-0.25,
+                                                                           y = round((y+0.25)*2)/2-0.25)
+    
+    this_new_r <- rast(this_xy, type = "xyz", crs = "EPSG:4326") |> extend(rast(res=0.5))
+    
+    this_new_km2_r <- this_new_r/cellSize(this_new_r, unit = "km")
+    
+    writeRaster(x = this_new_km2_r, filename = saveName, overwrite = TRUE)
+  }
+})
+
+
+
+
+
 ```
 
+
+
+### Holding off on rescaling until we know what we want to rescale all rasters to 
 For the final step in the destruction layer of disturbance, we need to normalise the effort between 0 and 1. The 99th percentile is used to rescale to avoid the undue influence of outliers
 
 ```{r}
@@ -451,6 +500,8 @@ map(.x = forage_effort_km2_r_files, .f = \(this_file){
 plot(rast(rescaled_benthic_list))
 ```
 
+## Biomass removal
+
 The next step is understand the biomass removal component of disturbance. To do this we will bring in each forage fish catch scenario from each source and diet and adjust the biomass taken by the NPP and then rescale between 0-1.
 
 ```{r}
@@ -473,7 +524,7 @@ map(catch_list, \(this_df){
   
   this_source <- unique(this_df$source_code)
   
-  saveName <- sprintf(here("data/spatial/fisheries-catch/forage_fish_catch_%s_%s.tif"), this_diet, this_source)
+  saveName <- sprintf(here("data/spatial/%s/forage_fish_catch_%s_%s.tif"), this_diet, this_diet, this_source)
   
   if(!file.exists(saveName)){
     
@@ -490,15 +541,18 @@ map(catch_list, \(this_df){
 #import npp raster
 npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
 
-#import the catch rasters
-catch_r_list_int <- list.files(here("data/spatial/fisheries-catch"), full.names = TRUE)
-catch_r_list <- catch_r_list_int[!grepl("ea_npp", catch_r_list_int)]
+# Import the catch rasters by marine and plant diets
+
+# marine diet
+
+catch_r_list_int_md <- list.files(here("data/spatial/marine_diet"), pattern = "forage_fish_catch", full.names = TRUE)
+catch_r_list_md <- catch_r_list_int_md[!grepl("ea_npp", catch_r_list_int_md)]
 
 
 #Convert to equal area, adjust by npp and save
-map(catch_r_list, \(this_file){
+map(catch_r_list_md, \(this_file){
   
-  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", basename(this_file))
+  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file)
   
   if(!file.exists(saveName)){
     
@@ -513,6 +567,9 @@ map(catch_r_list, \(this_file){
   }
 
 })
+
+
+#STILL TO CONFIRM IF I NEED TO DO THIS AT THIS LEVEL OR AT THE LEVEL OF THE FEED.
 
 #bring the npp adjusted catch back in and rescale it
 adjusted_catch_r_list <- list.files(here("data/spatial/fisheries-catch"), pattern = "ea_npp", full.names = TRUE) |> map(rast)
