@@ -569,6 +569,32 @@ map(catch_r_list_md, \(this_file){
 })
 
 
+# plant diet
+
+catch_r_list_int_pd <- list.files(here("data/spatial/plant_diet"), pattern = "forage_fish_catch", full.names = TRUE)
+catch_r_list_pd <- catch_r_list_int_pd[!grepl("ea_npp", catch_r_list_int_pd)]
+
+
+#Convert to equal area, adjust by npp and save
+map(catch_r_list_pd, \(this_file){
+  
+  saveName <- gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file)
+  
+  if(!file.exists(saveName)){
+    
+  this_r <- rast(this_file)
+    
+  this_ea_r <- this_r/cellSize(this_r, unit = "km")
+  
+  this_ea_npp_r <- this_ea_r/npp
+  
+  writeRaster(this_ea_npp_r, filename = saveName, overwrite=TRUE)
+  
+  }
+
+})
+
+
 #STILL TO CONFIRM IF I NEED TO DO THIS AT THIS LEVEL OR AT THE LEVEL OF THE FEED.
 
 #bring the npp adjusted catch back in and rescale it
@@ -608,6 +634,8 @@ rescaled_biomass_list <-
   
 plot(rast(rescaled_biomass_list))
 ```
+
+# Will need to revisit this if all rescaling needs to be done within the context of a feed (i.e. rescaled per cell against the highest value for all ingredients across both diets in that cell).
 
 Finally, combine benthic disturbance with biomass removal to get a joint pressure metric.
 
