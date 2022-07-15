@@ -40,7 +40,7 @@ Now join the embodied fish demand xy data with the emission intensity data and c
 embodied_fish <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
 
 #take a look at the differences between gears for watson data and the ei data 
-unique(ei_data$gear_type)
+unique(ei_data$ParkerGearName)
 unique(embodied_fish$VBDesc)
 
 #Gear classifications are different. So we need the join file with Parker Data created in Halpern et al food systems project
@@ -77,9 +77,9 @@ ghg_raw_r_list <-
   
   this_diet <- unique(this_df$diet)
   
-  saveName <- sprintf(here("data/spatial/%s/forage_fish_ghg_raw_%s_%s.tif"), this_diet, this_diet, this_source)
+  saveName <- sprintf(here("data/spatial/%s/int/forage_fish_ghg_raw_%s_%s.tif"), this_diet, this_diet, this_source)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_xy <- this_df |> select(LonCentre, LatCentre, total_GWP_km2)
     
@@ -98,7 +98,7 @@ plot(rast(ghg_raw_r_list))
 
 ```
 
-Now we need to rescale all values
+Now we need to rescale all values - but will wait until we know if we will rescale within feed contexts
 
 ```{r}
 
