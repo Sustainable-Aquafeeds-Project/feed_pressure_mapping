@@ -1,0 +1,54 @@
+---
+title: "10_forage_fish_water_extraction_pressures"
+author: "Rich Cottrell"
+date: "15/07/2022"
+output: html_document
+---
+
+
+```{r setup}
+
+library(tidyverse)
+library(terra)
+library(here)
+
+source(here("src/directories.R"))
+
+
+
+```
+
+For each diet and source import the rasters from ghg and make all values zero - then rexport into "pressures" folder
+
+```{r}
+
+template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "ghg", full.names = TRUE)
+
+this_file <- template_files[[1]]
+
+
+map(.x = template_files, .f = \(this_file){
+  
+  filename <- tools::file_path_sans_ext(this_file)
+  
+  this_source <- substr(x = filename, start = nchar(filename)-2, stop = nchar(filename))
+  
+  saveName_md <- sprintf(here("data/spatial/marine_diet/pressures/forage_fish_water_extraction_pressure_%s.tif"), this_source)
+  saveName_pd <- sprintf(here("data/spatial/plant_diet/pressures/forage_fish_water_extraction_pressure_%s.tif"), this_source)
+  
+  if(!file.exists(saveName_md) | !file.exists(saveName_pd)){
+  
+  this_r <- rast(this_file)*0
+  
+  terra::writeRaster(x = this_r, filename = saveName_md, overwrite = TRUE)
+  
+  terra::writeRaster(x = this_r, filename = saveName_pd, overwrite = TRUE)
+  }
+  
+  })
+
+```
+
+
+
+
