@@ -46,7 +46,7 @@ map(.x = crop_countries, .f =  \(this_country){
   
   this_country_filepath <- here(sprintf("data/spatial/country-rasters/%s.tif", this_country))
   
-  if(file.exists(this_country_filepath)){
+  if(!file.exists(this_country_filepath)){
     
     this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3))
     

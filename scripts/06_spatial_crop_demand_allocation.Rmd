@@ -70,7 +70,7 @@ crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 #check that demand for each rawe material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive).
 
 top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
-  mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola_camelina oil", false = ingredient))
+  mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient))
 
 
 (crop_demand_production_compare <- 
@@ -202,7 +202,7 @@ ingredient_per_country_per_diet <-
   group_split(diet, ingredients, FAOSTAT_name, source_iso3c)
 
 #for testing the function below
-this_ingredient_source <- ingredient_per_country_per_diet[[1]]
+this_ingredient_source <- ingredient_per_country_per_diet[[14]]
 
 #allocating demand on spatial production layers by diet, ingredient, and source country
 AllocateSpatialCropDemand <- \(this_ingredient_source){
@@ -245,6 +245,8 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   }
 }
 
+
+#external pointer warning occurs but ignore - this runs fine. Its a terra  parallel core issue
 mclapply(X = ingredient_per_country_per_diet, FUN = AllocateSpatialCropDemand, mc.cores = detectCores()-2)
 
 ```
