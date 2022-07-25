@@ -5,26 +5,114 @@ date: "30/06/2022"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+This script combines the demand rasters for crop raw materials for each diet across sources with the LCA data for water extraction.
+
+```{r setup}
+
+library(tidyverse)
+library(terra)
+library(here)
+
+select <- dplyr::select
+
+source(here("src/spatial.R"))
+source(here("src/directories.R"))
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Marine diets
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
 
-```{r cars}
-summary(cars)
+md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = "AllTech", full.names = TRUE)
+
+this_file <- md_crop_r_list[[1]]
+
+
+#multiply production demand rasters by the ghg value for production from each country
+
+map(md_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+  
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_diet <- "marine_diet"
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s.tif"), this_diet, this_ingredient, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+    this_h2o_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact_category %in% c("Water consumption", "Water use")) |> pull(value) |> mean()
+    
+    this_h2o_value_tonne <- this_h2o_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_h2o_rast <- this_rast_km2*this_h2o_value_tonne
+    names(this_N_rast) <- "m3km2"
+    
+    writeRaster(x = this_N_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+
+
 ```
 
-## Including Plots
+Plant diets
 
-You can also embed plots, for example:
+```{r}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
+
+this_file <- pd_crop_r_list[[1]]
+
+
+#multiply production demand rasters by the ghg value for production from each country
+
+map(pd_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+  
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_diet <- "plant_diet"
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+   saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s.tif"), this_diet, this_ingredient, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+    this_h2o_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact_category %in% c("Water consumption", "Water use")) |> pull(value) |> mean()
+    
+    this_h2o_value_tonne <- this_h2o_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_h2o_rast <- this_rast_km2*this_h2o_value_tonne
+    names(this_N_rast) <- "m3km2"
+    
+    writeRaster(x = this_N_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+
+
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
