@@ -28,6 +28,9 @@ All scripts are numbered by the order in which they should be run. **Note:** 01_
 | 01_tidying_data   | This script is used for tidying all data products used in the project                                 |
 | 02_global_ingredient_demand.Rmd | Calculates the gross ingredient demand for salmon based on the ingredient compositions of different diets (applied globally not country specific), country-specific FCRs and production volumes |
 | 03_crop_raw_materials_demand.Rmd | Isolates raw materials that support crop-based aquafeed ingredients and synthesises with production data from FAO and MAPSPAM, yield conversion factors from FAO, and price data from TBC. Economic allocation approaches are used to avoid double counting crop biomass |
+| 04_spatial_forage_fish_demand_allocation.Rmd | Uses economic allocation conversion data from Kok et al 2021 to calculate the embodided fish required to meet forage fish demand from plant and fish based feeds over 3 different source areas - the North Atlantic, East Pacfic, and all other areas combined (dictated by productivity). This script applies this allocation spatially due to differences in how FMFO converts to embodied fish biomass depending on the species harvested|
+| 05_crop_source_country_rasters.Rmd | Generates rasters for the source countries to multiply against the mapspam layers|
+| 06_forage_fish_distrubance_pressures | Creates a distrubance metric based on two facets - benthic destruction and biomass removal. Benthic destruction is a function of the effort spent by bottom trawlers catch forage fish species, calculated by harmonising global fishing watch data on effort with that of spatialised catch in forage fish species. Biomass removal is a function of catch normalised by the productivity in the supporting waters. | 
 
 
 
