@@ -221,6 +221,7 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   this_country_production <- unique(this_ingredient_source$national_production)
   
   this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio)
+
   
   #the file_name of interest for this diet, ingredient, and country
   this_demand_raster_filename <- here(sprintf("data/spatial/%s/production/%s_AllTech_%s.tif", this_diet, this_ingredient, this_country))
