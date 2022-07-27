@@ -1,0 +1,47 @@
+---
+title: "Rescaling environmental pressures"
+author: "Rich Cottrell"
+date: "30/06/2022"
+output: html_document
+---
+
+This file is used to rescale all rasters' values for each pressure so that values among feeds may be compared.
+
+```{r}
+
+library(tidyverse)
+library(terra)
+library(here)
+
+```
+
+
+## Disturbance
+
+Bring in  forage fish and crop layers for disturbance for both diets
+
+```{r}
+
+marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
+
+plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
+
+all_disturbance <- c(marine_diet_disturbance, plant_diet_disturbance)
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+

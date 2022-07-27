@@ -573,7 +573,7 @@ Geartypes:
  - squid_jigger: squid jiggers, mostly large industrial pelagic operating vessels
 
 
-The influence of unknown fishing gears ('fishing' above) was addressed in Halpern et al as a source of small source uncertainty. See issue here https://github.com/OHI-Science/global_food_issues/issues/303
+The influence of unknown fishing gears ('fishing' above) was addressed in Halpern et al as a small source of   uncertainty. See issue here https://github.com/OHI-Science/global_food_issues/issues/303
 
 ```{r}
 

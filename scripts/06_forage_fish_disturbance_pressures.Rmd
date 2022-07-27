@@ -500,6 +500,7 @@ map(.x = forage_effort_km2_r_files, .f = \(this_file){
 plot(rast(rescaled_benthic_list))
 ```
 
+
 ## Biomass removal
 
 The next step is understand the biomass removal component of disturbance. To do this we will bring in each forage fish catch scenario from each source and diet and adjust the biomass taken by the NPP and then rescale between 0-1.
@@ -642,8 +643,11 @@ Finally, combine benthic disturbance with biomass removal to get a joint pressur
 ```{r}
 
 #marine-diet
-benthic_destruction_md <- list.files(here("data/spatial/marine_diet"), pattern = "benthic", full=TRUE) |> map(rast)
-biomass_removal_md <- list.files(here("data/spatial/marine_diet"), pattern = "biomass", full=TRUE) |> map(rast)
+benthic_destruction_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "benthic", full=TRUE) 
+biomass_removal_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "biomass", full=TRUE) 
+
+this_benthic_file <- benthic_destruction_md[[1]]
+this_biomass_file <- biomass_removal_md[[1]]
 
 combined_raster_list <- 
   map2(.x = benthic_destruction_md, .y = biomass_removal_md, .f = \(this_benthic_file, this_biomass_file){
@@ -655,20 +659,24 @@ combined_raster_list <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
-  writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/marine_diet/pressures/forage_fish_disturbance_pressure_marine_diet_%s.tif"), this_source), overwrite=TRUE)
+  this_km2_combined_r <- this_combined_r*cellSize(this_combined_r, unit="km")
   
-  return(this_combined_r)
+  writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/marine_diet/int/forage_fish_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
+  
+  return(this_km2_combined_r)
   
 })
 
 
 
 #plant-diet 
-benthic_destruction_pd <- list.files(here("data/spatial/plant_diet"), pattern = "benthic", full=TRUE)
-biomass_removal_pd <- list.files(here("data/spatial/plant_diet"), pattern = "biomass", full=TRUE) 
+benthic_destruction_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "benthic", full=TRUE)
+biomass_removal_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "biomass", full=TRUE) 
 
-
-
+this_benthic_file <- benthic_destruction_pd[[1]]
+this_biomass_file <- biomass_removal_pd[[1]]
+  
+  
 combined_raster_list2 <- 
   map2(.x = benthic_destruction_pd, .y = biomass_removal_pd, .f = \(this_benthic_file, this_biomass_file){
   
@@ -680,10 +688,12 @@ combined_raster_list2 <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
- writeRaster(x = this_combined_r, filename = sprintf(here("data/spatial/plant_diet/pressures/forage_fish_disturbance_pressure_plant_diet_%s.tif"), this_source), overwrite=TRUE)
+  this_km2_combined_r <- this_combined_r*cellSize(this_combined_r, unit="km")
+  
+ writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/plant_diet/int/forage_fish_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
   
   
-  return(this_combined_r)
+  return(this_km2_combined_r)
   
 })
 
