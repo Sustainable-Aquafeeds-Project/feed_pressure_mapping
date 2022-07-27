@@ -70,7 +70,7 @@ scalar_source_list <-
 this_file <- scalar_source_list[[1]]
 
 
-#rescale area by the demand-production ratio
+#rescale area by the demand-production ratio and save the rasters for each diet, ingredient, raw material
 map(.x = scalar_source_list, \(this_file){
   
   this_ingredient <- this_file$ingredients 
