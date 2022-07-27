@@ -110,8 +110,6 @@ saveRDS(object = aquaculture_prod, file = here("data", "tidy_data", "aquaculture
 This is the code to unzip and adjust the extents of the mapspam rasters (-180, 180, -90, 90) - DO NOT RUN IN PROJECT - here as a backup to scripts in the raw data files
 
 ```{r}
-
-
 mapspam_zip_files <- list.files(path = mapspam_dir, pattern = "\\.zip$")
 
 
@@ -144,9 +142,101 @@ adjust_extent <- \(this_filename){
 
 #run over mutliple cores to speed things up - pointer error but all files ran.
 parallel::mclapply(X = tifs, FUN = adjust_extent, mc.cores = detectCores()-2)
+```
 
+
+This chunk of code brings in the crop production and yield rasters (only the production layers for all types) and reprojects to equal area projections for each crop)
+```{r}
+
+crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
+
+crop_list <- unique(crop_demand$map_spam_code)
+
+crop_production_files <- list.files(file.path(mapspam_dir, "new-extents"), full.names = TRUE)[grep(pattern = "_P_", list.files(file.path(mapspam_dir, "new-extents"), full.names = TRUE))] 
+
+these_crop_production_files <- crop_production_files[grepl("MAIZ_A|OPUL_A|WHEA_A|RAPE_A|OOIL_A|SOYB_A|SUNF_A", crop_production_files)]
+
+
+#for testing the below function
+this_code <- crop_list[[1]]
+this_filepath <- these_crop_production_files[[5]]
+
+
+#NOTE::: the function below runs fine (i.e. raster files are reprojected and produced) but introducing terra spat rasters instead of raster::rasters created an error "Error in x@ptr$nrow() : external pointer is not valid" when printing the raster. Still searching for solutions. It is to do with parallelisng SpatRaster see - https://github.com/rspatial/terra/issues/166 . So have switched to lapply to make sure code runs.
+
+lapply(X = these_crop_production_files, FUN = \(this_filepath){
+  
+  this_file <- basename(this_filepath)
+      
+    #import the raster
+    imported_file <- rast(this_filepath)
+    
+    #reproject the file
+    reprojected_file <-  terra::aggregate(imported_file, fact = 6)
+    
+    #write the original and the reprojected to this project
+    writeRaster(imported_file, filename = paste0(here("data/spatial/crop-layers-raw/"), this_file), overwrite = TRUE)
+    writeRaster(reprojected_file, filename = paste0(here("data/spatial/crop-layers-reprojected/"), this_file), overwrite=TRUE)
+  
+  
+})
+  
+
+#this code is need for the physical area layers stuff in the biodiversity paper so leaving in for now. 
+    #imported_file <- imported_file*0.01 #converts the imported raster to km2 from ha 
+    
+
+
+#Pull in the MAPSPAM Yield Data from RDSI 
+these_crop_yield_files <- list.files(file.path(mapspam_dir, "new-extents"), pattern = "_Y_", full.names = TRUE)
+these_crop_yield_files <- these_crop_yield_files[grepl("MAIZ_A|OPUL_A|WHEA_A|RAPE_A|OOIL_A|SOYB_A|SUNF_A", these_crop_yield_files)]
+
+this_file <- these_crop_yield_files[[1]]
+
+
+map(.x = these_crop_yield_files, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_agg_rast <- terra::aggregate(this_rast, fact=6)
+  
+  raw_saveName <- sprintf(here("data/spatial/crop-layers-raw/%s"), basename(this_file))
+  saveName <-  sprintf(here("data/spatial/crop-layers-reprojected/%s"), basename(this_file))
+  
+  if(!file.exists(saveName)){
+    
+    writeRaster(x = this_rast, filename = raw_saveName, overwrite = TRUE)
+    writeRaster(x = this_agg_rast, filename = saveName, overwrite = TRUE)
+    
+  }
+})
+
+#Pull in the MAPSPAM Area Data from RDSI 
+
+these_crop_area_files <- list.files(file.path(mapspam_dir, "new-extents"), pattern = "_A_", full.names = TRUE)
+these_crop_area_files <- these_crop_area_files[grepl("MAIZ_A|OPUL_A|WHEA_A|RAPE_A|OOIL_A|SOYB_A|SUNF_A", these_crop_area_files)]
+
+this_file <- these_crop_area_files[[1]]
+
+map(.x = these_crop_area_files, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_agg_rast <- terra::aggregate(this_rast, fact=6)*0.01 #aggregate to half degree and convert to km2
+  
+  raw_saveName <- sprintf(here("data/spatial/crop-layers-raw/%s"), basename(this_file))
+  saveName <-  sprintf(here("data/spatial/crop-layers-reprojected/%s"), basename(this_file))
+  
+  if(!file.exists(saveName)){
+    
+    writeRaster(x = this_rast, filename = raw_saveName, overwrite = TRUE)
+    writeRaster(x = this_agg_rast, filename = saveName, overwrite = TRUE)
+    
+  }
+}) 
 
 ```
+
 
 
 

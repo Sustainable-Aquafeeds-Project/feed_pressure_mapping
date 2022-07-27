@@ -5,6 +5,8 @@ date: "29/06/2022"
 output: html_document
 ---
 
+Here we use the MAPSPAM physical area parameter as our disturbance metric for crops following the assumptions of Halpern et al 2022 that cropland creates complete disturbance to natural systems where they exist.
+
 ```{r}
 library(tidyverse)
 library(terra)
@@ -14,7 +16,57 @@ source(here("src/directories.R"))
 
 ```
 
+Import the crop demand data to get the FAO-MAPSPAM look up names
 
+```{r}
+
+mapspam_fao_lookup <- 
+  readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> 
+  select(FAOSTAT_name, map_spam_code, source_country) |> 
+  distinct() |> 
+  mutate(map_spam_code = toupper(map_spam_code),
+         iso3c = countrycode(sourcevar = source_country, origin = "country.name", destination = "iso3c", warn=TRUE))
+
+
+```
+Import the demand-production comparisons for crops to see what scale of adjustments need to be made and filter by the countries being used
+
+```{r}
+
+crop_sources <- readRDS(here("data/tidy_data/demand/crop_sourcing_countries_plausible_impacts.rds")) 
+
+demand_production_compare <- readRDS(here("data/tidy_data/demand/crop_demand_production_compare.rds")) |> group_split(ingredients, diet, map_spam_code)
+
+this_crop <- demand_production_compare[[1]]
+
+#filter the production compare by the sources used in the analysis
+
+demand_production_compare_w_sources <- 
+  
+  map_df(demand_production_compare, \(this_crop){
+  
+  sources <- crop_sources |> filter(FAOSTAT_name == unique(this_crop$FAOSTAT_name)) |> pull(iso3c)
+  
+  this_crop_adj <- this_crop |> filter(iso3c %in% sources)
+  
+})
+
+```
+
+
+
+
+Import crop production data for yields and harvested areas
+
+```{r}
+
+production <- readRDS(here("data/raw_data/crop_livestock_production.rds"))
+
+```
+
+
+
+Update yield rasters
 ```{r}
 
 ```

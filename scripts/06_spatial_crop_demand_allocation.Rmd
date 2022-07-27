@@ -19,50 +19,9 @@ base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 select <- dplyr::select
 ```
 
-This chunk of code brings in the crop production raster (only the production layers for all types) and reprojects to equal area projections for each crop)
-```{r}
-
-crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
-
-crop_list <- unique(crop_demand$map_spam_code)
-
-crop_production_files <- list.files(file.path(mapspam_dir, "new-extents"), full.names = TRUE)[grep(pattern = "_P_", list.files(file.path(mapspam_dir, "new-extents"), full.names = TRUE))] 
-
-these_crop_production_files <- crop_production_files[grepl("MAIZ_A|OPUL_A|WHEA_A|RAPE_A|OOIL_A|SOYB_A|SUNF_A", crop_production_files)]
 
 
-#for testing the below function
-this_code <- crop_list[[1]]
-this_filepath <- these_crop_production_files[[5]]
-
-
-#NOTE::: the function below runs fine (i.e. raster files are reprojected and produced) but introducing terra spat rasters instead of raster::rasters created an error "Error in x@ptr$nrow() : external pointer is not valid" when printing the raster. Still searching for solutions. It is to do with parallelisng SpatRaster see - https://github.com/rspatial/terra/issues/166 . So have switched to lapply to make sure code runs.
-
-lapply(X = these_crop_production_files, FUN = \(this_filepath){
-  
-  this_file <- basename(this_filepath)
-      
-    #import the raster
-    imported_file <- rast(this_filepath)
-    
-    #reproject the file
-    reprojected_file <-  terra::aggregate(imported_file, fact = 6)
-    
-    #write the original and the reprojected to this project
-    writeRaster(imported_file, filename = paste0(here("data/spatial/crop-layers-raw/"), this_file), overwrite = TRUE)
-    writeRaster(reprojected_file, filename = paste0(here("data/spatial/crop-layers-reprojected/"), this_file), overwrite=TRUE)
-  
-  
-})
-  
-
-#this code is need for the physical area layers stuff in the biodiversity paper so leaving in for now. 
-    #imported_file <- imported_file*0.01 #converts the imported raster to km2 from ha 
-    
-
-```
-
-We're now interested from where the different crop ingredients could be sourced across the top producing nations. Need to check whether the demand from the global salmon industry can be met by crop producing countries
+We're  interested from where the different crop ingredients could be sourced across the top producing nations. Need to check whether the demand from the global salmon industry can be met by crop producing countries
 
 ```{r}
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
