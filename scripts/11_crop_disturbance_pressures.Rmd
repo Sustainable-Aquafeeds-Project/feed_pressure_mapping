@@ -29,7 +29,8 @@ mapspam_fao_lookup <-
 
 
 ```
-Import the demand-production comparisons for crops to see what scale of adjustments need to be made and filter by the countries being used
+
+Import the demand-production comparisons for crops to adjust the physical area (under the assumption it is yields that have increased).
 
 ```{r}
 
@@ -48,26 +49,56 @@ demand_production_compare_w_sources <-
   sources <- crop_sources |> filter(FAOSTAT_name == unique(this_crop$FAOSTAT_name)) |> pull(iso3c)
   
   this_crop_adj <- this_crop |> filter(iso3c %in% sources)
+}) |> 
+  filter(!(FAOSTAT_name == "Linseed" & source_iso3c %in% c("CHN", "GBR"))) |> 
+  filter(demand_production_ratio>0)
+
+```
+
+Adjust area rasters by the demand_production ratio and save in the int folder for each diet.
+
+```{r}
+
+crop_area_files <- list.files(here("data/spatial/crop-layers-reprojected"), pattern = "_A_", full.names = TRUE)
+
+country_rast_files <- list.files(here("data/spatial/country-rasters"), full.names = TRUE)
+
+scalar_source_list <- 
+  demand_production_compare_w_sources |> 
+  group_split(ingredients, diet, FAOSTAT_name, source_iso3c)
   
+this_file <- scalar_source_list[[1]]
+
+
+#rescale area by the demand-production ratio
+map(.x = scalar_source_list, \(this_file){
+  
+  this_ingredient <- this_file$ingredients 
+  
+  this_mapspam_code <- toupper(this_file$map_spam_code)
+ 
+  this_diet <- this_file$diet
+  
+  this_country <- this_file$source_iso3c
+  
+  this_scalar <- this_file$demand_production_ratio
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s.tif"), this_diet, this_ingredient, this_country)
+  
+  if(!file.exists(saveName)){
+    
+    #raw area rasters are already in km2 so no need to convert
+    this_raw_rast <- rast(crop_area_files[grepl(this_mapspam_code, crop_area_files)]) 
+  
+    this_country_rast <- rast(country_rast_files[grepl(this_country, country_rast_files)])
+    
+    this_country_area_rast <- this_raw_rast*this_country_rast*this_scalar
+    names(this_country_area_rast) <- "Disturbance (km2)"
+    
+    writeRaster(x= this_country_area_rast, filename = saveName, overwrite=TRUE)
+
+  }
 })
-
-```
-
-
-
-
-Import crop production data for yields and harvested areas
-
-```{r}
-
-production <- readRDS(here("data/raw_data/crop_livestock_production.rds"))
-
-```
-
-
-
-Update yield rasters
-```{r}
 
 ```
 

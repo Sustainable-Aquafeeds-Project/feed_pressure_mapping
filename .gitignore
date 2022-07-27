@@ -2,6 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-raw_data
 data/tidy_data/demand/embodied_fish_per_cell.csv 
 data/tidy_data/pressures/fishing-effort/annual_effort_2017.csv
