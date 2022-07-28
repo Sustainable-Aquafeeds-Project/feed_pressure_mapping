@@ -596,8 +596,6 @@ map(catch_r_list_pd, \(this_file){
 })
 
 
-#STILL TO CONFIRM IF I NEED TO DO THIS AT THIS LEVEL OR AT THE LEVEL OF THE FEED.
-
 #bring the npp adjusted catch back in and rescale it
 adjusted_catch_r_list <- list.files(here("data/spatial/fisheries-catch"), pattern = "ea_npp", full.names = TRUE) |> map(rast)
 
