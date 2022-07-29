@@ -372,7 +372,7 @@ Now we need to bring in the effort rasters and aggregate to half a degree and ad
 forage_effort_files_int_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "forage_trawl_effort", full.names=TRUE)
 forage_effort_files_md <- forage_effort_files_int_md[!grepl("0.5D_km2", forage_effort_files_int_md)]
 
-#this_file <- forage_effort_files[[3]]
+this_file <- forage_effort_files_md[[1]]
 
 #aggregate the effort data to 0;5 degrees and adjust to effort for km2
 

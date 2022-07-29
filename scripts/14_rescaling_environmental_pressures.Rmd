@@ -45,16 +45,73 @@ all_disturbance_vals <- unlist(map(.x = all_disturbance, .f = \(this_file){
 }))
 
 
-quantile(all_disturbance_vals, 0.9)
-
-hist(unlist(all_distrubance_list))
+#determine the quantile for rescaling
 
 
+hist(unlist(all_disturbance_vals), main = "", xlab = "Disturbance values")
+abline(v = quantile(all_disturbance_vals, 0.999), lty=2)
+
+
+disturbance_rescale_val <- quantile(all_disturbance_vals, 0.999) |> as.numeric()
+
+
+#rescale all rasters
+
+#marine diets
+
+this_file <- marine_diet_disturbance[[1]]
+
+
+map(.x= marine_diet_disturbance, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+  }
+  
+})
+
+
+#plant diets
+
+map(.x= plant_diet_disturbance, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+  
+})
 
 
 
 ```
 # Greenhouse gas pressures
+
+Need to remove the email raster layers
 
 ```{r}
 
@@ -76,16 +133,161 @@ all_ghg_vals <- unlist(map(.x = all_ghg, .f = \(this_file){
 }))
 
 
-quantile(all_ghg_vals, 0.9)
+hist(all_ghg_vals, main = "", xlab = "GHG values")
+abline(v=quantile(all_ghg_vals, 0.999), lty = 2)
 
-hist(all_ghg_vals)
 
+ghg_rescale_val <- quantile(all_ghg_vals, 0.999) |> as.numeric()
+
+this_file <- marine_diet_ghg[[1]]
+
+
+map(.x= marine_diet_ghg, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>ghg_rescale_val, true = 1, false = x/ghg_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+  }
+  
+})
+
+
+
+#plant diets
+
+map(.x= plant_diet_ghg, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+  
+})
+
+
+rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/pea protein concentrate_ghg_FRA.tif")
+```
+
+# Nutrient pressures
+```{r}
+
+marine_diet_N <- list.files(here("data/spatial/marine_diet/int"), pattern = "_N_", full.names = TRUE)
+
+plant_diet_N <- list.files(here("data/spatial/plant_diet/int"), pattern = "_N_", full.names = TRUE)
+
+all_N <- c(marine_diet_N, marine_diet_N)
+
+this_file <- all_N[[1]]
+
+all_N_vals <- unlist(map(.x = all_N, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_rast_values <- as.vector(values(this_rast, na.rm=TRUE))
+  
+  return(these_rast_values)
+}))
+
+
+hist(all_N_vals, main = "", xlab = "Nitrogen values")
+abline(v=quantile(all_N_vals, 0.999), lty = 2)
+
+
+N_rescale_val <- quantile(all_N_vals, 0.999)
+
+
+
+
+
+
+
+
+
+
+# Phosphorus
+
+marine_diet_P <- list.files(here("data/spatial/marine_diet/int"), pattern = "_P_", full.names = TRUE)
+
+plant_diet_P <- list.files(here("data/spatial/plant_diet/int"), pattern = "_P_", full.names = TRUE)
+
+all_P <- c(marine_diet_P, marine_diet_P)
+
+this_file <- all_P[[1]]
+
+all_P_vals <- unlist(map(.x = all_P, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_rast_values <- as.vector(values(this_rast, na.rm=TRUE))
+  
+  return(these_rast_values)
+}))
+
+
+
+
+hist(all_P_vals, main = "", xlab = "Phosphorus values")
+abline(v=quantile(all_P_vals, 0.999), lty = 2)
+
+P_rescale_val <- quantile(all_P_vals, 0.999)
 
 
 
 ```
+# Water extraction
+```{r}
+
+marine_diet_h2o <- list.files(here("data/spatial/marine_diet/int"), pattern = "_water_", full.names = TRUE)
+
+plant_diet_h2o <- list.files(here("data/spatial/plant_diet/int"), pattern = "_water_", full.names = TRUE)
+
+all_h2o <- c(marine_diet_h2o, marine_diet_h2o)
+
+this_file <- all_h2o[[1]]
+
+all_h2o_vals <- unlist(map(.x = all_h2o, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_rast_values <- as.vector(values(this_rast, na.rm=TRUE))
+  
+  return(these_rast_values)
+}))
 
 
+
+
+hist(all_h2o_vals, main = "", xlab = "Water values")
+abline(v=quantile(all_h2o_vals, 0.999), lty = 2)
+
+
+water_rescale_val <- quantile(all_h2o_vals, 0.999)
+
+
+```
 
 
 
