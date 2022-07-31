@@ -161,7 +161,7 @@ ingredient_per_country_per_diet <-
   group_split(diet, ingredients, FAOSTAT_name, source_iso3c)
 
 #for testing the function below
-this_ingredient_source <- ingredient_per_country_per_diet[[14]]
+this_ingredient_source <- ingredient_per_country_per_diet[[5]]
 
 #allocating demand on spatial production layers by diet, ingredient, and source country
 AllocateSpatialCropDemand <- \(this_ingredient_source){
@@ -185,6 +185,8 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   #the file_name of interest for this diet, ingredient, and country
   this_demand_raster_filename <- here(sprintf("data/spatial/%s/production/%s_AllTech_%s.tif", this_diet, this_ingredient, this_country))
   
+  message("processing ", this_diet, ", ", this_ingredient, ", ", this_country)
+  
   #if the file doesn't exist, create it
   if(!file.exists(this_demand_raster_filename)){
     
@@ -206,8 +208,7 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
 }
 
 
-#external pointer warning occurs but ignore - this runs fine. Its a terra  parallel core issue
-mclapply(X = ingredient_per_country_per_diet, FUN = AllocateSpatialCropDemand, mc.cores = detectCores()-2)
+map(.x = ingredient_per_country_per_diet, .f = AllocateSpatialCropDemand)
 
 ```
 
