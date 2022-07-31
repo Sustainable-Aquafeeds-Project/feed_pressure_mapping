@@ -1,0 +1,16 @@
+---
+title: "16_analysis_visualisation"
+author: "Rich Cottrell"
+date: "01/08/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(sf)
+library(terra)
+
+
+```
+
