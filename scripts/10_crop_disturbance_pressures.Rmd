@@ -11,6 +11,7 @@ Here we use the MAPSPAM physical area parameter as our disturbance metric for cr
 library(tidyverse)
 library(terra)
 library(here)
+library(countrycode)
 
 source(here("src/directories.R"))
 
@@ -36,7 +37,9 @@ Import the demand-production comparisons for crops to adjust the physical area (
 
 crop_sources <- readRDS(here("data/tidy_data/demand/crop_sourcing_countries_plausible_impacts.rds")) 
 
-demand_production_compare <- readRDS(here("data/tidy_data/demand/crop_demand_production_compare.rds")) |> group_split(ingredients, diet, map_spam_code)
+demand_production_compare <- readRDS(here("data/tidy_data/demand/crop_demand_production_compare.rds")) |>
+  filter(total_ingredient_demand > 0) |> 
+  group_split(ingredients, diet, map_spam_code)
 
 this_crop <- demand_production_compare[[1]]
 
@@ -65,7 +68,7 @@ country_rast_files <- list.files(here("data/spatial/country-rasters"), full.name
 
 scalar_source_list <- 
   demand_production_compare_w_sources |> 
-  group_split(ingredients, diet, FAOSTAT_name, source_iso3c)
+  group_split(ingredients, diet, FAOSTAT_name, source_iso3c) 
   
 this_file <- scalar_source_list[[1]]
 

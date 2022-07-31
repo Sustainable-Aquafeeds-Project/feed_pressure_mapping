@@ -55,7 +55,7 @@ abline(v = quantile(all_disturbance_vals, 0.999), lty=2)
 disturbance_rescale_val <- quantile(all_disturbance_vals, 0.999) |> as.numeric()
 
 
-#rescale all rasters
+#rescale all rasters by the 99.9th percentile
 
 #marine diets
 
@@ -212,6 +212,7 @@ all_N_vals <- unlist(map(.x = all_N, .f = \(this_file){
 }))
 
 
+# rescale by the 99.9th percentile
 hist(all_N_vals, main = "", xlab = "Nitrogen values")
 abline(v=quantile(all_N_vals, 0.999), lty = 2)
 
@@ -219,6 +220,56 @@ abline(v=quantile(all_N_vals, 0.999), lty = 2)
 N_rescale_val <- quantile(all_N_vals, 0.999)
 
 
+# Now rescale pressure by the rescale value 
+
+#marine diets - Nitrogen
+
+this_file <- marine_diet_N[[1]]
+
+map(.x= marine_diet_N, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>N_rescale_val, true = 1, false = x/N_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+  }
+  
+})
+
+
+
+#plant diets _ Nitrogen
+
+map(.x= plant_diet_N, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>N_rescale_val, true = 1, false = x/N_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+  
+})
 
 
 
@@ -252,11 +303,69 @@ all_P_vals <- unlist(map(.x = all_P, .f = \(this_file){
 hist(all_P_vals, main = "", xlab = "Phosphorus values")
 abline(v=quantile(all_P_vals, 0.999), lty = 2)
 
-P_rescale_val <- quantile(all_P_vals, 0.999)
+P_rescale_val <- quantile(all_P_vals, 0.999) |> as.numeric()
+
+
+
+
+# Now rescale pressure by the rescale value 
+
+#marine diets - Phosphorus
+
+this_file <- marine_diet_P[[1]]
+
+map(.x= marine_diet_P, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>P_rescale_val, true = 1, false = x/P_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+  }
+  
+})
+
+
+
+#plant diets - Phosphorus
+
+map(.x= plant_diet_P, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>P_rescale_val, true = 1, false = x/P_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+  
+})
+
+
 
 
 
 ```
+
+
 # Water extraction
 ```{r}
 
@@ -285,6 +394,57 @@ abline(v=quantile(all_h2o_vals, 0.999), lty = 2)
 
 
 water_rescale_val <- quantile(all_h2o_vals, 0.999)
+
+
+
+
+
+#marine diets - Water
+
+map(.x= marine_diet_h2o, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>water_rescale_val, true = 1, false = x/water_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+  }
+  
+})
+
+
+
+#plant diets - water
+
+map(.x= plant_diet_h2o, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2", replacement = "")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(!file.exists(saveName)){
+    
+    this_rescaled_rast <- 
+      app(x = this_rast, fun = \(x){
+        if_else(x<0, true = 0, false = 
+                  if_else(x>water_rescale_val, true = 1, false = x/water_rescale_val))})
+    
+    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+  
+})
 
 
 ```

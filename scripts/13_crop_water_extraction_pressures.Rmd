@@ -59,9 +59,9 @@ map(md_crop_r_list, \(this_file){
     this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
     
     this_h2o_rast <- this_rast_km2*this_h2o_value_tonne
-    names(this_N_rast) <- "m3km2"
+    names(this_h2o_rast) <- "m3km2"
     
-    writeRaster(x = this_N_rast, filename = saveName, overwrite=TRUE)
+    writeRaster(x = this_h2o_rast, filename = saveName, overwrite=TRUE)
     
   }
 })
@@ -107,12 +107,12 @@ map(pd_crop_r_list, \(this_file){
     this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
     
     this_h2o_rast <- this_rast_km2*this_h2o_value_tonne
-    names(this_N_rast) <- "m3km2"
+    names(this_h2o_rast) <- "m3km2"
     
-    writeRaster(x = this_N_rast, filename = saveName, overwrite=TRUE)
+    writeRaster(x = this_h2o_rast, filename = saveName, overwrite=TRUE)
     
   }
 })
 
-
+rm(list = ls(all.names = TRUE))
 ```
