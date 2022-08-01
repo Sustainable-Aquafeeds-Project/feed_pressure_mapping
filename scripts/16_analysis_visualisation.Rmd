@@ -6,10 +6,391 @@ output: html_document
 ---
 
 ```{r}
+
 library(tidyverse)
+library(ggpubr)
 library(here)
 library(sf)
 library(terra)
+library(rnaturalearth)
+library(RColorBrewer)
+library(gameofthrones)
+
+
+
+
+moll_crs <- "ESRI:53009"
+gp_crs <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+# taking cumulative impoact palette from Halpern et al 
+d_brown <- "#515256"
+m_brown <- "#B27B54"
+l_brown <- "#BC995F"
+green <- "#A8B072"
+yellow<- "#EFCE71"
+l_yellow <- "#F7F6C1"
+
+jv_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown)
+continuous_pal <-  colorRampPalette(jv_pal, space="Lab", bias = 3.5)(10000)
+light_gray <- "#F8F9FA"
+red <- "#B90000"
+final_palette <- c(light_gray, continuous_pal, red)
+
+
+
+
+
+```
+
+Bring in the source-ingredient combinations within each diet. Fishmeal and oil are combined rather than as fishmeal and oil so modify in the dataframes for now.
+
+```{r}
+
+marine_diets <- 
+  readRDS(here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds")) |> 
+  filter(!grepl("fish oil", ingredient)) |> 
+  mutate(ingredient = case_when(grepl("fishmeal", ingredient) ~ "forage_fish",
+                                TRUE ~ ingredient))
+
+plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds")) |> 
+  filter(!grepl("fish oil", ingredient)) |> 
+  mutate(ingredient = case_when(grepl("fishmeal", ingredient) ~ "forage_fish",
+                                TRUE ~ ingredient)) |> 
+  mutate(ingredient = case_when(ingredient == "canola/camelina oil" ~ "canola oil",
+                                TRUE ~ ingredient))
+
+```
+
+
+# Compare two feeds from different sources.
+
+
+Combine all values for pressures for a marine diet
+
+```{r}
+
+
+marine_source_ingredient <- 
+  marine_diets |> 
+  select(ingredient, source_1 = `5`, source_2 = `9`, source_3 = `21`) |> 
+  mutate(row = row_number()) |> 
+  mutate(source_1 = case_when(ingredient == "guar meal"~ as.integer(1),
+                            TRUE ~ source_1),
+         source_2 = case_when(ingredient == "guar meal"~ as.integer(1),
+                            TRUE ~ source_2),
+         source_3 = case_when(ingredient == "guar meal"~ as.integer(1),
+                            TRUE ~ source_3)) |> 
+  group_split(row) 
+
+
+
+#test dataframe
+this_df <- marine_source_ingredient[[1]]
+
+sources <- c("source_1", "source_2", "source_3")
+
+source_file_list <- list()
+
+
+#Now prepare the files corresponding to the first source for each ingredient for each pressure
+
+for(source in sources){
+    
+    marine_diet_files <- 
+      map(.x = marine_source_ingredient, .f = \(this_df){
+        
+        this_ingredient <- this_df$ingredient
+        
+        these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = this_ingredient, full.names = TRUE)
+        
+        #sources
+        this_source_ingredient <- this_df |> pull(source)
+        
+        #disturbance
+        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
+        
+        #ghg
+        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
+        
+        #nitrogen
+        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #phosphorus
+        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #water
+        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
+        
+        
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        return(these_diet_pressures)
+        
+      }) |> 
+      unlist()
+    
+    source_file_list[[source]] <- marine_diet_files
+    
+  }
+  
+
+
+#adjust layers and replace NA with 0
+
+this_file <- marine_diet_files[[6]]
+
+source_rast_list <- list()
+
+for(source in sources){
+  
+  marine_rast_list <- 
+
+  map(.x = source_file_list[[source]], .f = \(this_file){
+  
+  
+  this_rast <- rast(this_file)
+  this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  
+  this_rast[is.na(this_rast)] <- 0
+  names(this_rast) <- this_source
+  return(this_rast)
+})
+  
+  source_rast_list[[source]] <- marine_rast_list
+  
+}
+
+
+
+#stack and sum the pressures for all ingredients and source combinations
+
+marine_diet_raster <- list()
+
+for(source in sources){
+  
+  #stack rasters for each sourcing combination
+  marine_diet_raster[[source]] <- app(rast(source_rast_list[[source]]), sum)
+  marine_diet_raster[[source]][marine_diet_raster[[source]]==0] <- NA
+  
+  #reproject raster 
+  marine_diet_raster[[source]] <- project(marine_diet_raster[[source]], moll_crs)
+  
+}
+
+
+countries <- ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf")|> st_transform(crs = moll_crs)
+
+
+#source 1
+marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRUE)
+
+
+(marine_sourcing_p1 <- 
+  ggplot()+
+  geom_sf(data = bbox, colour=NA, fill= "white", alpha=0.4)+
+  geom_sf(data = countries, fill="grey90", colour="grey75", size=0.08)+
+  geom_tile(data = marine_diet1_df, aes(x = x, y=y, fill=sum))+
+  theme(panel.grid = element_line(size=0.15, colour="grey75"),
+        panel.background = element_rect(fill = "transparent"),
+        axis.title = element_blank())+
+  scale_fill_gradientn(colours = final_palette)
+  )
+  
+#source 2
+marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRUE)
+
+(marine_sourcing_p2 <- 
+  ggplot()+
+  geom_sf(data = bbox, colour=NA, fill= "white", alpha=0.4)+
+  geom_sf(data = countries, fill="grey90", colour="grey75", size=0.08)+
+  geom_tile(data = marine_diet2_df, aes(x = x, y=y, fill=sum))+
+  theme(panel.grid = element_line(size=0.15, colour="grey75"),
+        panel.background = element_rect(fill = "transparent"),
+        axis.title = element_blank())+
+  scale_fill_gradientn(colours = final_palette)
+  )
+
+#source 3
+
+marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRUE)
+
+(marine_sourcing_p3 <- 
+  ggplot()+
+  geom_sf(data = bbox, colour=NA, fill= "white", alpha=0.4)+
+  geom_sf(data = countries, fill="grey90", colour="grey75", size=0.08)+
+  geom_tile(data = marine_diet3_df, aes(x = x, y=y, fill=sum))+
+  theme(panel.grid = element_line(size=0.15, colour="grey75"),
+        panel.background = element_rect(fill = "transparent"),
+        axis.title = element_blank())+
+  scale_fill_gradientn(colours = final_palette)
+  )
+
+```
+# Plant diets
+
+```{r}
+plant_source_ingredient <- 
+  plant_diets |> 
+  select(ingredient, source_1 = `3`, source_2 = `4`, source_3 = `18`) |> 
+  mutate(source_1 = case_when(ingredient == "linseed oil"~ as.integer(1),
+                            TRUE ~ source_1),
+         source_2 = case_when(ingredient == "linseed oil"~ as.integer(1),
+                            TRUE ~ source_2),
+         source_3 = case_when(ingredient == "linseed oil"~ as.integer(1),
+                            TRUE ~ source_3)) |> 
+  mutate(row = row_number()) |> 
+  group_split(row) 
+
+
+
+#test dataframe
+this_df <- plant_source_ingredient[[2]]
+
+sources <- c("source_1", "source_2", "source_3")
+
+source_file_list <- list()
+
+
+#Now prepare the files corresponding to the first source for each ingredient for each pressure
+
+for(source in sources){
+    
+    plant_diet_files <- 
+      map(.x = plant_source_ingredient, .f = \(this_df){
+        
+        this_ingredient <- this_df$ingredient
+        
+        message("processing...", this_ingredient)
+        
+        
+        these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = this_ingredient, full.names = TRUE)
+        
+        #sources
+        this_source_ingredient <- this_df |> pull(source)
+        
+        #disturbance
+        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
+        
+        #ghg
+        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
+        
+        #nitrogen
+        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #phosphorus
+        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #water
+        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
+        
+        
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        return(these_diet_pressures)
+        
+      }) |> 
+      unlist()
+    
+    source_file_list[[source]] <- plant_diet_files
+    
+  }
+  
+
+
+#adjust layers and replace NA with 0
+
+source_rast_list <- list()
+
+for(source in sources){
+  
+  plant_rast_list <- 
+
+  map(.x = source_file_list[[source]], .f = \(this_file){
+  
+  
+  this_rast <- rast(this_file)
+  this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  
+  this_rast[is.na(this_rast)] <- 0
+  names(this_rast) <- this_source
+  return(this_rast)
+})
+  
+  source_rast_list[[source]] <- plant_rast_list
+  
+}
+
+
+
+#stack and sum the pressures for all ingredients and source combinations
+
+plant_diet_raster <- list()
+
+for(source in sources){
+  
+  #stack rasters for each sourcing combination
+  plant_diet_raster[[source]] <- app(rast(source_rast_list[[source]]), sum)
+  plant_diet_raster[[source]][plant_diet_raster[[source]]==0] <- NA
+  
+  #reproject raster 
+  plant_diet_raster[[source]] <- project(plant_diet_raster[[source]], moll_crs)
+  
+}
+
+
+countries <- ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf")|> st_transform(crs = moll_crs)
+
+
+#source 1
+plant_diet1_df <- terra::as.data.frame(plant_diet_raster[["source_1"]], xy=TRUE)
+
+
+(plant_sourcing_p1 <- 
+  ggplot()+
+  geom_sf(data = bbox, colour=NA, fill= "white", alpha=0.4)+
+  geom_sf(data = countries, fill="grey90", colour="grey75", size=0.08)+
+  geom_tile(data = plant_diet1_df, aes(x = x, y=y, fill=sum))+
+  theme(panel.grid = element_line(size=0.15, colour="grey75"),
+        panel.background = element_rect(fill = "transparent"),
+        axis.title = element_blank())+
+  scale_fill_gradientn(colours = final_palette)
+  )
+  
+#source 2
+plant_diet2_df <- terra::as.data.frame(plant_diet_raster[["source_2"]], xy=TRUE)
+
+(plant_sourcing_p2 <- 
+  ggplot()+
+  geom_sf(data = bbox, colour=NA, fill= "white", alpha=0.4)+
+  geom_sf(data = countries, fill="grey90", colour="grey75", size=0.08)+
+  geom_tile(data = plant_diet2_df, aes(x = x, y=y, fill=sum))+
+  theme(panel.grid = element_line(size=0.15, colour="grey75"),
+        panel.background = element_rect(fill = "transparent"),
+        axis.title = element_blank())+
+  scale_fill_gradientn(colours = final_palette)
+  )
+
+#source 3
+
+plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
+
+(plant_sourcing_p3 <- 
+  ggplot()+
+  geom_sf(data = bbox, colour=NA, fill= "white", alpha=0.4)+
+  geom_sf(data = countries, fill="grey90", colour="grey75", size=0.08)+
+  geom_tile(data = plant_diet3_df, aes(x = x, y=y, fill=sum))+
+  theme(panel.grid = element_line(size=0.15, colour="grey75"),
+        panel.background = element_rect(fill = "transparent"),
+        axis.title = element_blank())+
+  scale_fill_gradientn(colours = final_palette)
+  )
+
+
+ggarrange(marine_sourcing_p3, plant_sourcing_p1,
+          marine_sourcing_p2, plant_sourcing_p2,
+          marine_sourcing_p1, plant_sourcing_p3,
+          nrow = 3, 
+          ncol = 2)
 
 
 ```
