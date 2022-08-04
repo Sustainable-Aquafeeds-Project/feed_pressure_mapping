@@ -8,6 +8,30 @@ library(terra)
 source(here("src/directories.R"))
 
 
+#retriveing terra spatraster values with no na automatically (useful to run in purrr::map and other apply functions)
+no_na_values <- \(x){return(terra::values(x, na.rm=TRUE))}
+
+
+# Function for rasterizing country shapefiles
+
+write_country_raster <- \(this_country){
+  
+  this_country_filepath <- here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country))
+  
+  if(file.exists(this_country_filepath)){
+    
+    this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3)) |>  st_transform(crs = equal_area_gp_proj)
+    
+    this_country_raster <- rasterize(x = vect(this_country_map), y = base_raster_ea)
+    
+    writeRaster(x = this_country_raster, filename = here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)), overwrite=TRUE)
+    
+  }
+}
+
+
+
+
 api_file <- file.path(iucn_dir, "api_key", "api_token.txt")
 api_key <- scan(api_file, what = 'character')
 
@@ -87,22 +111,6 @@ get_threat_api_casey <- function(this_spp_id){
 
 
 
-# Function for rasterizing country shapefiles
-
-write_country_raster <- \(this_country){
-  
-  this_country_filepath <- here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country))
-  
-  if(file.exists(this_country_filepath)){
-    
-    this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3)) |>  st_transform(crs = equal_area_gp_proj)
-    
-    this_country_raster <- rasterize(x = vect(this_country_map), y = base_raster_ea)
-    
-    writeRaster(x = this_country_raster, filename = here(sprintf("data/spatial/00-country-rasters/%s.tif", this_country)), overwrite=TRUE)
-    
-  }
-}
 
 
 

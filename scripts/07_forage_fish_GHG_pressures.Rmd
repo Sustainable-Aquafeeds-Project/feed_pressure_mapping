@@ -102,8 +102,6 @@ Now we need to rescale all values - but will wait until we know if we will resca
 
 ```{r}
 
-
-
 pressures <- list.files(file.path("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/"), full.names = TRUE)
 
 

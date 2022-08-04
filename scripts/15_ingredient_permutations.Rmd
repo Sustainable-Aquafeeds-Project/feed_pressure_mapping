@@ -30,7 +30,6 @@ Now iterate different versions of diet based on sources - the gtools::permutatio
 
 Doing this first for marine diets
 
-
 ```{r}
 md_ingredient_source_list <- crossing(ingredient = marine_diet, source = 1:3) |> group_split(ingredient)
 

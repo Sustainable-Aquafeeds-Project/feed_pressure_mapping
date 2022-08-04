@@ -13,9 +13,10 @@ library(tidyverse)
 library(terra)
 library(here)
 
-
 select <- dplyr::select
 values <- terra::values
+
+source(here("src/fxns.R"))
 ```
 
 
@@ -25,34 +26,27 @@ Bring in  forage fish and crop layers for disturbance for both diets. Look at th
 
 ```{r}
 
+#ID files for disturbance for marine and plant diets
 marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
-
 plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
 
-all_disturbance <- c(marine_diet_disturbance, plant_diet_disturbance)
+#which diet has the highest disturbance values
+marine_disturbance_vals <- marine_diet_disturbance |> map(rast) |> map(no_na_values) |> unlist()
+plant_disturbance_vals <- plant_diet_disturbance |> map(rast) |> map(no_na_values) |> unlist()
 
-this_file <- all_disturbance[[1]]
+#check marine is appearing more intense (given forage fish distrubance values are much higher)
+summary(marine_disturbance_vals)
+summary(plant_disturbance_vals)
 
-all_disturbance_vals <- unlist(map(.x = all_disturbance, .f = \(this_file){
-  
-  this_rast <- rast(this_file)
-  
-  these_rast_values <- as.vector(values(this_rast, na.rm=TRUE))
-  
-  return(these_rast_values)
-  
-  
-}))
+all_disturbance_vals <- c(marine_disturbance_vals, plant_disturbance_vals)
 
 
 #determine the quantile for rescaling
+hist(unlist(all_disturbance_vals), main = "", xlab = "Disturbance values") |> 
+abline(v = quantile(all_disturbance_vals, 1), lty=2)
 
 
-hist(unlist(all_disturbance_vals), main = "", xlab = "Disturbance values")
-abline(v = quantile(all_disturbance_vals, 0.999), lty=2)
-
-
-disturbance_rescale_val <- quantile(all_disturbance_vals, 0.999) |> as.numeric()
+disturbance_rescale_val <- quantile(all_disturbance_vals, 1) |> as.numeric()
 
 
 #rescale all rasters by the 99.9th percentile
@@ -62,7 +56,9 @@ disturbance_rescale_val <- quantile(all_disturbance_vals, 0.999) |> as.numeric()
 this_file <- marine_diet_disturbance[[1]]
 
 
-map(.x= marine_diet_disturbance, .f = \(this_file){
+rescaled_marine_disturbance_rasters <- 
+  
+  map(.x= marine_diet_disturbance, .f = \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -70,22 +66,27 @@ map(.x= marine_diet_disturbance, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
-        if_else(x<0, true = 0, false = 
-                  if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))})
+        if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))
+    })
+    
+    names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
     
     writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+    return(this_rescaled_rast)
   }
-  
 })
 
 
 #plant diets
 
-map(.x= plant_diet_disturbance, .f = \(this_file){
+rescaled_plant_disturbance_rasters <- 
+  
+  map(.x= plant_diet_disturbance, .f = \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -93,20 +94,27 @@ map(.x= plant_diet_disturbance, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
-        if_else(x<0, true = 0, false = 
-                  if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))})
+        if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))
+    })
+    
+    names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
     
     writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
     
+    return(this_rescaled_rast)
   }
   
 })
 
 
+# compare rescaled rasters
+
+plot(rast(rescaled_marine_disturbance_rasters))
+plot(rast(rescaled_plant_disturbance_rasters))
 
 ```
 # Greenhouse gas pressures
@@ -116,33 +124,32 @@ Need to remove the email raster layers
 ```{r}
 
 marine_diet_ghg <- list.files(here("data/spatial/marine_diet/int"), pattern = "ghg", full.names = TRUE)
-
 plant_diet_ghg <- list.files(here("data/spatial/plant_diet/int"), pattern = "ghg", full.names = TRUE)
 
-all_ghg <- c(marine_diet_ghg, plant_diet_ghg)
+#get the raster values from files
+marine_ghg_vals <- marine_diet_ghg |> map(rast) |> map(no_na_values) |> unlist()
+plant_ghg_vals <- plant_diet_ghg |> map(rast) |> map(no_na_values) |> unlist()
 
-this_file <- all_ghg[[1]]
+#check plant is appearing more intense (given crop ghg values are much higher)
+summary(marine_ghg_vals)
+summary(plant_ghg_vals)
 
-all_ghg_vals <- unlist(map(.x = all_ghg, .f = \(this_file){
-  
-  this_rast <- rast(this_file)
-  
-  these_rast_values <- as.vector(values(this_rast, na.rm=TRUE))
-  
-  return(these_rast_values)
-}))
+all_ghg_vals <- c(marine_ghg_vals, plant_ghg_vals)
 
+#explore a reasonable rescale value
+hist(all_ghg_vals, main = "", xlab = "GHG values") |> 
+abline(v=quantile(all_ghg_vals, 1), lty = 2)
 
-hist(all_ghg_vals, main = "", xlab = "GHG values")
-abline(v=quantile(all_ghg_vals, 0.999), lty = 2)
+#select the 99.99th percentile for rescaling
+ghg_rescale_val <- quantile(all_ghg_vals, 1) |> as.numeric()
 
-
-ghg_rescale_val <- quantile(all_ghg_vals, 0.999) |> as.numeric()
-
+#test file
 this_file <- marine_diet_ghg[[1]]
 
-
-map(.x= marine_diet_ghg, .f = \(this_file){
+#Rescale all ghg rasters to the 99.99th percentile
+rescaled_marine_ghg_rasters <- 
+  
+  map(.x= marine_diet_ghg, .f = \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -150,23 +157,32 @@ map(.x= marine_diet_ghg, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
-        if_else(x<0, true = 0, false = 
-                  if_else(x>ghg_rescale_val, true = 1, false = x/ghg_rescale_val))})
+        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_val, true = 1, false = x/ghg_rescale_val))
+                  })
+    names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
     
     writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+    return(this_rescaled_rast)
   }
   
 })
 
 
 
-#plant diets
+#PLANT DIETS
 
-map(.x= plant_diet_ghg, .f = \(this_file){
+#test file
+
+this_file <- plant_diet_ghg[[1]]
+
+rescaled_plant_ghg_rasters <- 
+  
+  map(.x= plant_diet_ghg, .f = \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -174,21 +190,29 @@ map(.x= plant_diet_ghg, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
-        if_else(x<0, true = 0, false = 
-                  if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))})
+        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_val, true = 1, false = x/ghg_rescale_val))
+    })
+    
+    names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
     
     writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+    
+    return(this_rescaled_rast)
     
   }
   
 })
 
 
-rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/pea protein concentrate_ghg_FRA.tif")
+#check layers
+plot(rast(rescaled_marine_ghg_rasters))
+plot(rast(rescaled_plant_ghg_rasters))
+
+
 ```
 
 # Nutrient pressures

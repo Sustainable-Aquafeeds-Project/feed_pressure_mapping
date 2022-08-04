@@ -33,14 +33,19 @@ yellow<- "#EFCE71"
 l_yellow <- "#F7F6C1"
 light_gray <- "#F8F9FA"
 
-discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown)
-continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
 
+discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick")
+continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
 
 final_palette <- c(light_gray, continuous_pal, red)
 
+#source files
+source(here("src/fxns.R"))
 
-
+#spatial products
+countries <- ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf")|> st_transform(crs = moll_crs)
+coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
 
 
 ```
@@ -88,11 +93,11 @@ marine_source_ingredient <-
 
 
 #test dataframe
-this_df <- marine_source_ingredient[[1]]
+#this_df <- marine_source_ingredient[[1]]
 
 sources <- c("source_1", "source_2", "source_3")
 
-source_file_list <- list()
+marine_source_file_list <- list()
 
 
 #Now prepare the files corresponding to the first source for each ingredient for each pressure
@@ -104,7 +109,9 @@ for(source in sources){
         
         this_ingredient <- this_df$ingredient
         
-        these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = this_ingredient, full.names = TRUE)
+        message("processing...", this_ingredient)
+        
+        these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -131,7 +138,7 @@ for(source in sources){
       }) |> 
       unlist()
     
-    source_file_list[[source]] <- marine_diet_files
+    marine_source_file_list[[source]] <- marine_diet_files
     
   }
   
@@ -139,15 +146,16 @@ for(source in sources){
 
 #adjust layers and replace NA with 0
 
-this_file <- marine_diet_files[[6]]
+#this_file <- marine_diet_files[[6]]
 
-source_rast_list <- list()
+
+marine_source_rast_list <- list()
 
 for(source in sources){
   
   marine_rast_list <- 
 
-  map(.x = source_file_list[[source]], .f = \(this_file){
+  map(.x = marine_source_file_list[[source]], .f = \(this_file){
   
   
   this_rast <- rast(this_file)
@@ -158,7 +166,7 @@ for(source in sources){
   return(this_rast)
 })
   
-  source_rast_list[[source]] <- marine_rast_list
+  marine_source_rast_list[[source]] <- marine_rast_list
   
 }
 
@@ -171,7 +179,7 @@ marine_diet_raster <- list()
 for(source in sources){
   
   #stack rasters for each sourcing combination
-  marine_diet_raster[[source]] <- app(rast(source_rast_list[[source]]), sum)
+  marine_diet_raster[[source]] <- app(rast(marine_source_rast_list[[source]]), sum)
   marine_diet_raster[[source]][marine_diet_raster[[source]]==0] <- NA
   
   #reproject raster 
@@ -202,11 +210,11 @@ plant_source_ingredient <-
 
 
 #test dataframe
-this_df <- plant_source_ingredient[[2]]
+this_df <- plant_source_ingredient[[12]]
 
 sources <- c("source_1", "source_2", "source_3")
 
-source_file_list <- list()
+plant_source_file_list <- list()
 
 
 #Now prepare the files corresponding to the first source for each ingredient for each pressure
@@ -221,7 +229,7 @@ for(source in sources){
         message("processing...", this_ingredient)
         
         
-        these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = this_ingredient, full.names = TRUE)
+        these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -248,7 +256,7 @@ for(source in sources){
       }) |> 
       unlist()
     
-    source_file_list[[source]] <- plant_diet_files
+    plant_source_file_list[[source]] <- plant_diet_files
     
   }
   
@@ -256,13 +264,13 @@ for(source in sources){
 
 #adjust layers and replace NA with 0
 
-source_rast_list <- list()
+plant_source_rast_list <- list()
 
 for(source in sources){
   
   plant_rast_list <- 
 
-  map(.x = source_file_list[[source]], .f = \(this_file){
+  map(.x = plant_source_file_list[[source]], .f = \(this_file){
   
   
   this_rast <- rast(this_file)
@@ -273,7 +281,7 @@ for(source in sources){
   return(this_rast)
 })
   
-  source_rast_list[[source]] <- plant_rast_list
+  plant_source_rast_list[[source]] <- plant_rast_list
   
 }
 
@@ -286,7 +294,7 @@ plant_diet_raster <- list()
 for(source in sources){
   
   #stack rasters for each sourcing combination
-  plant_diet_raster[[source]] <- app(rast(source_rast_list[[source]]), sum)
+  plant_diet_raster[[source]] <- app(rast(plant_source_rast_list[[source]]), sum)
   plant_diet_raster[[source]][plant_diet_raster[[source]]==0] <- NA
   
   #reproject raster 
@@ -294,16 +302,19 @@ for(source in sources){
   
 }
 
-
-
+marine_diet_raster
+plant_diet_raster
 
 ```
+
 Figure - maps comparing diet and sourcing
 
 ```{r}
-countries <- ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
-bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf")|> st_transform(crs = moll_crs)
-coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
+
+max_marine_value <- marine_diet_raster |> map(no_na_values) |> unlist() |> as.numeric() |> max()
+max_plant_value <- plant_diet_raster|> map(no_na_values) |> unlist() |> as.numeric() |> max()
+
+max_cum_value <- max(max_marine_value, max_plant_value)
 
 
 # MARINE DIETS
@@ -327,8 +338,10 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRU
         legend.position = "bottom",
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
-  scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, 8.05))+
+  scale_fill_gradientn(
+                      colours = final_palette, 
+                       limits = c(0, max_cum_value)
+                       )+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "SS1", angle = 90)
@@ -355,7 +368,7 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRU
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, 8.05))+
+                       limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "SS2", angle = 90)
@@ -381,7 +394,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, 8.05))+
+                       limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "SS3", angle = 90)
@@ -411,7 +424,7 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_raster[["source_1"]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, 8.05))+
+                       limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))
   )
@@ -435,7 +448,7 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_raster[["source_2"]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, 8.05))+
+                       limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                 barwidth = 10, barheight = 0.5, units = "cm"))
   )
@@ -460,7 +473,7 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, 8.05))+
+                       limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))
 
