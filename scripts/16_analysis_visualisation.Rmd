@@ -16,7 +16,8 @@ library(terra)
 library(rnaturalearth)
 library(RColorBrewer)
 library(gameofthrones)
-
+library(parallel)
+library(ggdist)
 
 
 
@@ -48,6 +49,8 @@ bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physica
 coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
 
 
+select <- dplyr::select
+values <- terra::values
 ```
 
 
@@ -526,19 +529,24 @@ For each of the 500 combinations for marine-dominant and plant-dominant diets, i
 marine_source_ingredient <- 
   marine_diets |>
   select(1:501) |> 
-  rename_with( ~ paste("source", .x)) |>
+  rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
-  mutate_at(vars(matches("source")), case_when(`source ingredient` == "guar meal"~ as.integer(1))) |>  
-  group_split(row) 
+  mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
+                                           TRUE ~ .)) |> 
+  group_split(row)
 
 
-sources <- marine_source_ingredient |> select(-c("source ingredient", "row")) |>  names()   
+
+sources <- bind_rows(marine_source_ingredient) |> select(-c("ingredient", "row")) |>  names()   
 
 marine_source_file_list <- list()
 
-this_df <- 
 
-#Now prepare the files corresponding to the first source for each ingredient for each pressure
+this_df <- marine_source_ingredient[[1]]
+source <- sources[[1]]
+
+
+#Now list the files for all ingredients and sources
 
 for(source in sources){
     
@@ -547,7 +555,7 @@ for(source in sources){
         
         this_ingredient <- this_df$ingredient
         
-        message("processing...", this_ingredient)
+        message("processing...", this_ingredient, "...", source)
         
         these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
         
@@ -580,6 +588,242 @@ for(source in sources){
     
   }
   
+
+#adjust layers and replace NA with 0
+
+marine_source_rast_list <- list()
+
+for(source in sources){
+  
+  message("processing....", source)
+  
+  marine_rast_list <- 
+
+  map(.x = marine_source_file_list[[source]], .f = \(this_file){
+  
+  
+  this_rast <- rast(this_file)
+  this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  
+  # this_rast[is.na(this_rast)] <- 0
+  # names(this_rast) <- this_source
+  return(this_rast)
+})
+  
+  marine_source_rast_list[[source]] <- marine_rast_list
+  
+}
+
+
+
+#stack and sum the pressures for all ingredients and source combinations
+
+marine_diet_raster <- list()
+
+for(source in sources){
+  
+  message("processing stack for combination....", source)
+  
+  #stack rasters for each sourcing combination
+    marine_diet_raster[[source]] <- global(app(rast(marine_source_rast_list[[source]]), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(source = source, .before = sum)
+  
+  
+}
+
+marine_diet_raster_df <- bind_rows(marine_diet_raster) |> mutate(diet = "marine diet")
+
+saveRDS(marine_diet_raster_df, file = here("data/tidy_data/pressures/marine_cumulative_pressure_df.rds"))
+
+
 ```
 
+Plant diets 
+
+```{r}
+
+plant_source_ingredient <- 
+  plant_diets |>
+  select(1:501) |> 
+  rename_at(vars(-ingredient), ~ paste("source", .x)) |>
+  mutate(row = row_number()) |> 
+  mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "linseed oil"~ as.integer(1),
+                                           TRUE ~ .)) |> 
+  group_split(row)
+
+
+
+sources <- bind_rows(plant_source_ingredient) |> select(-c("ingredient", "row")) |>  names()   
+
+plant_source_file_list <- list()
+
+#test data for loop
+# this_df <- plant_source_ingredient[[1]]
+# source <- sources[[1]]
+
+
+#Now list the files for all ingredients and sources
+
+for(source in sources){
+    
+    plant_diet_files <- 
+      map(.x = plant_source_ingredient, .f = \(this_df){
+        
+        this_ingredient <- this_df$ingredient
+        
+        message("processing...", this_ingredient, "...", source)
+        
+        these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        
+        #sources
+        this_source_ingredient <- this_df |> pull(source)
+        
+        #disturbance
+        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
+        
+        #ghg
+        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
+        
+        #nitrogen
+        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #phosphorus
+        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #water
+        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
+        
+        
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        return(these_diet_pressures)
+        
+      }) |> 
+      unlist()
+    
+    plant_source_file_list[[source]] <- plant_diet_files
+    
+  }
+  
+
+#now adjust layers and replace NA with 0 - do I need to do this?
+
+#save this list because it takes ages to run
+#saveName_plant_rast_list <- here("data/tidy_data/pressures/plant_source_rast_list.rds")
+
+plant_source_rast_list <- list()
+
+  
+for(source in sources){
+  
+  message("processing....", source)
+  
+  plant_rast_list <- 
+
+  map(.x = plant_source_file_list[[source]], .f = \(this_file){
+  
+  
+  this_rast <- rast(this_file)
+  this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  # 
+  # this_rast[is.na(this_rast)] <- 0
+  # names(this_rast) <- this_source
+  return(this_rast)
+})
+  
+  plant_source_rast_list[[source]] <- plant_rast_list
+}
+
+
+
+
+#read it back in
+#plant_source_rast_list <- readRDS(file = saveName_plant_rast_list)
+
+
+
+#stack and sum the pressures for all ingredients and source combinations
+
+plant_diet_raster <- list()
+
+for(source in sources){
+  
+  message("processing stack for combination....", source)
+  
+  #stack rasters for each sourcing combination
+  plant_diet_raster[[source]] <- global(app(rast(plant_source_rast_list[[source]]), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(source = source, .before = sum)
+  
+}
+
+plant_diet_raster_df <- bind_rows(plant_diet_raster) |> mutate(diet = "plant diet")
+
+saveRDS(plant_diet_raster_df, file = here("data/tidy_data/pressures/plant_cumulative_pressure_df.rds"))
+
+```
+
+Add marine and plant diet data together and save
+
+```{r}
+marine_diet_raster_df <- readRDS(file = here("data/tidy_data/pressures/marine_cumulative_pressure_df.rds"))
+plant_diet_raster_df <- readRDS(file = here("data/tidy_data/pressures/plant_cumulative_pressure_df.rds"))
+
+marine_plant_df <- bind_rows(marine_diet_raster_df, plant_diet_raster_df)
+
+saveRDS(marine_plant_df, file = here("data/tidy_data/pressures/marine_plant_pressures_combined.rds"))
+
+
+
+```
+
+
+Visualise the differences between the two diets for cumulative pressures
+```{r}
+
+my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
+
+
+ggplot(data = marine_plant_df |> mutate(diet = factor(diet, levels = c("plant diet", "marine diet"))))+
+  aes(x = sum, y = diet, colour = diet)+
+    geom_point(
+    shape = 73, size = 24, alpha = .1
+  )+
+  # ggdist::stat_gradientinterval(
+  #   width = .3, color = "black", fill_type = "gradient"
+  # )+
+  scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
+  theme_pubr()+
+  stat_summary(
+    geom = "point",
+    fun = median,
+    shape = 21,
+    colour = "white",
+    fill = NA,
+    size=5
+  
+  ) 
+  
+  
+  
+  
+  ggdist::stat_halfeye(
+    adjust = .33,
+    width = .67, 
+    color = NA,
+    position = position_nudge(x = .15)
+  ) +
+  gghalves::geom_half_point(
+    side = "l", 
+    range_scale = .3, 
+    alpha = .1, size = 0.3
+  )
+
+
+
+
++
+  scale_x_discrete(expand = c(.07, .07)) +
+  scale_y_continuous(breaks = 1:9) +
+  scale_color_manual(values = my_pal, guide = "none") +
+  scale_fill_manual(values = my_pal, guide = "none") +
+  theme_flip
+
+```
 
