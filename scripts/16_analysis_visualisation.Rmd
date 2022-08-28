@@ -780,50 +780,28 @@ Visualise the differences between the two diets for cumulative pressures
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
 
-ggplot(data = marine_plant_df |> mutate(diet = factor(diet, levels = c("plant diet", "marine diet"))))+
+ggplot(data = marine_plant_df |> mutate(diet = case_when(diet == "plant diet" ~ "Plant-\ndominant\nfeed",
+                                                         diet == "marine diet" ~ "Marine-\ndominant\nfeed"),
+                                        diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Marine-\ndominant\nfeed"))))+
   aes(x = sum, y = diet, colour = diet)+
-    geom_point(
-    shape = 73, size = 24, alpha = .1
+    geom_jitter(shape =20, size = 5, alpha = 0.1, height = 0.4
   )+
   # ggdist::stat_gradientinterval(
   #   width = .3, color = "black", fill_type = "gradient"
   # )+
   scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
   theme_pubr()+
-  stat_summary(
-    geom = "point",
-    fun = median,
-    shape = 21,
-    colour = "white",
-    fill = NA,
-    size=5
-  
-  ) 
-  
-  
-  
-  
-  ggdist::stat_halfeye(
-    adjust = .33,
-    width = .67, 
-    color = NA,
-    position = position_nudge(x = .15)
-  ) +
-  gghalves::geom_half_point(
-    side = "l", 
-    range_scale = .3, 
-    alpha = .1, size = 0.3
-  )
+  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.3, alpha = 0, size=1.1)+
+  labs(y = "Diet", x = "Cumulative pressure index")+
+  theme(text = element_text(size=10),
+        axis.text = element_text(size=10),
+        axis.title = element_text(size=10),
+        axis.title.y = element_blank())
 
 
+ggsave(filename = here("figures/diet_permutation_comparisons.jpg"), device = "jpg", dpi = 600, width = 8.9, height = 3.8 )
 
-
-+
-  scale_x_discrete(expand = c(.07, .07)) +
-  scale_y_continuous(breaks = 1:9) +
-  scale_color_manual(values = my_pal, guide = "none") +
-  scale_fill_manual(values = my_pal, guide = "none") +
-  theme_flip
-
+  
+  
 ```
 
