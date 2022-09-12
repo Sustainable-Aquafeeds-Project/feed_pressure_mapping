@@ -1463,9 +1463,9 @@ for(source in sources){
   
 }
 
-marine_diet_pressures_df <- bind_rows(disaggregated_pressures_df_list) |> mutate(diet = "marine diet")
+marine_diet_pressures_by_ingredient_df <- bind_rows(all_ingredients_pressures_df_list) |> mutate(diet = "marine diet")
 
-saveRDS(marine_diet_pressures_df, file = here("data/tidy_data/pressures/marine_disaggregated_pressures_df.rds"))
+saveRDS(marine_diet_pressures_by_ingredient_df, file = here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df.rds"))
 
 ```
 
