@@ -53,6 +53,99 @@ select <- dplyr::select
 values <- terra::values
 ```
 
+Explanatory plot of the two diets
+
+```{r}
+
+marine_diet <- readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> 
+  filter(prop >0) |> 
+  add_row(groups = "Microingredients", ingredients = "microingredients", diet = "marine_diet", prop = 0.02) |> 
+  mutate(ingredients = case_when(ingredients == "canola/camelina oil" ~ "Canola oil",
+                                  TRUE ~ str_to_sentence(ingredients)),
+         ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> 
+  mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Guar meal", "Soybean meal", "Corn gluten meal", "Wheat gluten", "Wheat", "Microingredients"))) |> 
+  mutate(cum_prop = cumsum(prop)) |> 
+  mutate(label_y_pos = if_else(condition = prop != prop[1], true = prop/2+lag(cum_prop), false = cum_prop/2)) |> 
+  mutate(label_y_pos = 1-label_y_pos) 
+
+plant_diet <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> 
+  filter(prop >0) |> 
+  add_row(groups = "Microingredients", ingredients = "microingredients", diet = "plant_diet", prop = 0.04) |> 
+  mutate(ingredients = case_when(ingredients == "canola/camelina oil" ~ "Canola oil",
+                                  TRUE ~ str_to_sentence(ingredients)),
+         ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> 
+  mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Soy protein concentrate", "Corn gluten meal","Faba beans", "Pea protein concentrate",  "Sunflower meal", "Wheat gluten", "Canola oil", "Linseed oil", "Wheat", "Pea starch", "Corn starch", "Microingredients"))) |> 
+  mutate(cum_prop = cumsum(prop)) |> 
+  mutate(label_y_pos = if_else(condition = prop != prop[1], true = prop/2+lag(cum_prop), false = cum_prop/2))|> 
+   mutate(label_y_pos = 1-label_y_pos) 
+
+
+#check totals 
+marine_diet |> pull(prop) |> sum() #adds to 1
+plant_diet |> pull(prop) |> sum() #adds to 1
+
+ingredient_levels <- c( "Fishmeal",  "Fish oil" ,"Guar meal" , "Soybean meal","Corn gluten meal" , "Wheat gluten" ,"Wheat" , "Soy protein concentrate", "Faba beans" ,   "Pea protein concentrate","Sunflower meal","Canola oil","Linseed oil","Pea starch","Corn starch", "Microingredients")
+
+
+#get a plot and legend for each diet
+
+
+marine_diet_plot <- ggplot(data = marine_diet,
+       aes(x=diet, y = prop, fill = ingredients))+
+  geom_col()+
+  scale_fill_manual(values =  rev(colorRampPalette(colors = rcartocolor::carto_pal(n = 9, name = "Earth"))(16))[c(1:7,16)])
+
+marine_legend <- get_legend(marine_diet_plot)
+
+
+plant_diet_plot <- ggplot(data = plant_diet,
+       aes(x=diet, y = prop, fill = ingredients))+
+  geom_col()+
+  scale_fill_manual(values =  rev(colorRampPalette(colors = rcartocolor::carto_pal(n = 9, name = "Earth"))(16))[c(1,2,5:16)])
+
+plant_legend <- get_legend(plant_diet_plot)
+
+
+
+
+
+#combine both diets
+
+both_diets <- bind_rows(marine_diet, plant_diet) |> 
+  
+  mutate(label_x_pos = if_else(diet =="marine_diet", true =0.5, false = 2.5)) |> 
+  mutate(diet = if_else(condition = diet == "marine_diet", true = "Marine-\ndominant", false = "Plant-\ndominant")) |> 
+  mutate(hjust = if_else(condition = diet == "marine_diet", true = 1, false = 0)) |> 
+  mutate(ingredients = factor(ingredients, levels = rev(ingredient_levels))) |> 
+  mutate(diet = factor(diet, levels = c("Plant-\ndominant", "Marine-\ndominant")))
+
+
+
+
+both_diets_p <- ggplot(data = both_diets,
+       aes(x = diet , y = prop, fill = ingredients))+
+  geom_col()+
+  scale_fill_manual(values =  rev(colorRampPalette(colors = rcartocolor::carto_pal(n = 7, name = "Safe"))(16)))+
+  theme_pubr()+
+  coord_flip()+
+  theme(legend.title = element_blank(),
+        legend.text = element_text(size=7),
+        text = element_text(size=8),
+        legend.position = "top",
+        #legend.box.spacing = unit(-0.1, "cm"),
+        panel.grid = element_blank(),
+        legend.key.size = unit(0.35, "cm")
+        )+
+  labs(x = "Feed scenario", y = "Proportion")+
+  guides(fill = guide_legend(byrow=TRUE, reverse = TRUE, ncol = 6))
+
+
+ggsave(filename = here("figures/feed_composition.jpg"), dpi = 600, width = 18, height = 9, units = "cm")
+
+
+```
+
+
 
 Bring in the source-ingredient combinations within each diet. Fishmeal and oil are combined rather than as fishmeal and oil so modify in the dataframes for now.
 
