@@ -676,3 +676,4 @@ writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/
 ```
 
 
+
