@@ -107,8 +107,6 @@ plant_legend <- get_legend(plant_diet_plot)
 
 
 
-
-
 #combine both diets
 
 both_diets <- bind_rows(marine_diet, plant_diet) |> 
@@ -1325,7 +1323,7 @@ summarised_pressure_disagg_df <-
 
 ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet)
        )+
-  geom_col( position = "dodge", width = 0.75, alpha = 0.8)+
+  geom_col( position = "dodge", width = 1, alpha = 0.8)+
   geom_point(position = position_dodge(width = 0.7), size=0.6)+
   geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.7), width = 0, size = 0.5)+
   geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+

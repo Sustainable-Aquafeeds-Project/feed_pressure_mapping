@@ -675,5 +675,23 @@ writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/
 
 ```
 
+# Pull in allocation data from Kok et al (economic allocation on forage fish) and synthesised data from Teams for gross energy calculation.
+
+Interesting paper by Ayer, Tyedmers et al on the benefits of gross energy allocation https://link.springer.com/content/pdf/10.1065/lca2006.11.284.pdf
+
+
+```{r}
+
+kok_et_al <- read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_kok_et_al.csv")
+write_csv(x = kok_et_al, file = here("data/raw_data/allocation/embodied_fish_kok_et_al.csv"))
+
+ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv")
+write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv"))
+
+
+
+
+
+```
 
 
