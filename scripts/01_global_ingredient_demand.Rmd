@@ -48,8 +48,6 @@ salmon_aquaculture <- aquaculture %>% filter(species == "Atlantic salmon" & year
 
 ```
 
-
-
 Import the feed conversion ratios and join to production. 
 
 Feed conversion ratios were sourced from Tacon and Metian 2008 which has country specific information for salmon feed conversion ratios.
@@ -76,10 +74,9 @@ Bring in diet data from downloaded from Teams (and stored in raw_data in this re
 
 ```{r}
 
-
-
 #all_diets <- read_csv(here("data/raw_data/diet_formats.csv")) %>% dplyr::select(-Sources)
-both_diets <- read_csv(here("data/raw_data/feed_composition_pressures.csv")) |> select(-X5)
+both_diets <- read_csv(here("data/raw_data/feed_composition_pressures.csv")) |> select(-X5) |> 
+  mutate(ingredients = if_else(condition = ingredients== "canola/camelina oil", true = "canola oil", false = ingredients))
 
 diet_summaries <- 
   both_diets %>% 
@@ -162,6 +159,8 @@ ingredient_list <- tibble(ingredient = readRDS(here("data/tidy_data/demand/total
 Create ingredient demand plot for supplementary information
 
 ```{r}
+
+# This is FMFO plot only
 
 ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
 

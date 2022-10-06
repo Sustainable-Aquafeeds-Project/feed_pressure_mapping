@@ -682,6 +682,9 @@ Interesting paper by Ayer, Tyedmers et al on the benefits of gross energy alloca
 
 ```{r}
 
+cf_coproduct_data <- read_csv("/mnt/rdsi/raw_data/allocation/coproduct_conversions.csv") |> select(ingredient, coproduct,country, coproduct_cf)
+write_csv(x = cf_coproduct_data, file = here("data/raw_data/allocation/coproduct_conversions.csv"))
+
 kok_et_al <- read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_kok_et_al.csv")
 write_csv(x = kok_et_al, file = here("data/raw_data/allocation/embodied_fish_kok_et_al.csv"))
 

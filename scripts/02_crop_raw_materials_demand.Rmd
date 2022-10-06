@@ -28,7 +28,6 @@ values <- terra::values
 ```
 
 
-
 #CROP INGREDIENTS
 
 Have added codes and FAO_names for plant ingredients in teams so join these to production data. 
@@ -103,6 +102,41 @@ plant_ingredient_codes <-
   left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name"))
 )
 
+
+#get gross energy data and join with conversion factors to get embodied allocation factors
+cf_data <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
+  mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient)) 
+
+cf_coproduct_data <- read_csv(here("data/raw_data/allocation/coproduct_conversions.csv"))
+
+#join product and coproduct conversion data
+all_cf_data <- 
+  cf_data |> 
+  select(-X7) |> 
+  filter(!ingredient %in% c("tapioca starch", "lupins")) |> 
+  left_join(cf_coproduct_data, by = c("ingredient", "iso3c"="country"))
+
+
+#bring in the gross energy values
+ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv")) |> 
+  select(-c(unit,reference, notes)) |> 
+  filter(!ingredient %in% c("fishmeal", "fish oil")) |> 
+  mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))
+
+ge_values |> 
+  left_join(all_cf_data, by = c("ingredient", "coproduct")) |> 
+  mutate(energy_cf_product = gross_energy_product*cf,
+         energy_cf_coproduct = gross_energy_coproduct*coproduct_cf) |> 
+  ungroup() |> 
+  group_by(ingredient, area) |> 
+  nest() |> 
+  mutate(allocation_factor = map(data, ~(.$gross_energy_product/ (sum(unique(.$energy_cf_product), sum(.$energy_cf_coproduct))) ))) |> 
+  unnest(c(data, allocation_factor))
+
+
+dat <- ge_list$data[1] |> as.data.frame()
+
+unique(dat$gross_energy_product)/sum(unique(dat$energy_cf_product), sum(dat$energy_cf_coproduct))
 
 #join the ingredient demand by diet to the top 10 producer data so for each ingredient there will be an raw material demand per source, and diet scenario. Create new raw_material demand column by dividing total ingredient demand by the conversion factor (i.e. the ingredient extraction rate from the raw material in the first place)
 crop_raw_material_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
