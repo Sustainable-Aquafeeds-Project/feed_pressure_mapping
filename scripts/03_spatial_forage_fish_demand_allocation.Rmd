@@ -37,35 +37,40 @@ fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 
 rm(total_ingredient_demand)
 
-(embodied_fish_ratios <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> 
-  mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", `Ecosystem d`) ~ "North Atlantic",
-                                        `Ecosystem d` == "HC" ~ "Humboldt",
-                                        `Ecosystem d` == "GM" ~ "Gulf of Mexico", 
-                                        `Ecosystem d` == "SO" ~ "Southern Ocean",
-                                        `Ecosystem d` == "GA" ~ "Other")) |> 
-  select(common_name, sci_name, ecosystem_combined, Ingredient, `2020`) |> 
+
+(embodied_fish_ratios <- read_csv(here("data/raw_data/allocation/embodied_fish_ge_allocation_tidy.csv")) |> 
+  filter(common_name != "Gross energy") |> 
+  mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", ecosystem) ~ "North Atlantic",
+                                        ecosystem == "HC" ~ "Humboldt",
+                                        ecosystem == "GM" ~ "Gulf of Mexico", 
+                                        ecosystem == "SO" ~ "Southern Ocean",
+                                        ecosystem == "GA" ~ "Other")) |> 
+  select(common_name, sci_name, ecosystem_combined, ingredient, value) |> 
   mutate(sci_name = case_when(sci_name == "Brevoorti patronus" ~ "Brevoortia patronus",
-                              TRUE ~ sci_name)) |> distinct() )
+                              TRUE ~ sci_name)) |> distinct())
+
+
 
 #global values for later
-globalav_embodiedfish_fm <- embodied_fish_ratios |> filter(common_name == "Global average" & Ingredient == "Fishmeal") |> pull(`2020`)
-globalav_embodiedfish_fo <- embodied_fish_ratios |> filter(common_name == "Global average" & Ingredient == "Fish oil") |> pull(`2020`)
+globalav_embodiedfish_fm <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(value)
+globalav_embodiedfish_fo <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(value)
 
 
 forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName))
 
 (forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
-  summarise(total_catch = sum(total_ind, na.rm=TRUE)) |> 
+  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
   arrange(-total_catch) |> 
-  left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fishmeal_cf =`2020`), by = c("TaxonName" = "sci_name")) |> 
-    left_join(embodied_fish_ratios |> filter(Ingredient == "Fish oil") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fish_oil_cf =`2020`), by = c("TaxonName" = "sci_name", "common_name"))
+  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf =value), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |> rename(fish_oil_cf =value), by = c("TaxonName" = "sci_name", "common_name"))
 )
+
 
 
 #plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
 forage_xyz <- forage_catch |> group_by(LonCentre, LatCentre) |> 
-  summarise(total_catch = sum(total_ind)) |> 
+  summarise(total_catch = sum(total_catch)) |> 
   #select(LonCentre, LatCentre, total_catch) |> 
   rename(x=LonCentre, y= LatCentre, z = total_catch) 
 
@@ -112,7 +117,7 @@ fao_areas_of_interest <- unique(fao_xyz_of_interest$area_name)
 #plot the FAO regions used for a supplementary figure
 forage_regions_shp <- FAO_regions_shp |> filter(F_AREA %in% fao_areas)
 world_shp <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
-catch_raster <- total_forage_raster |> raster::raster() |> as("SpatialPointsDataFrame") |> as.data.frame()
+catch_raster <- total_forage_raster |> terra::as.data.frame(xy=TRUE)
 
 
 ggplot()+
@@ -152,7 +157,7 @@ fao_area_production_potential <-
             by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
   drop_na(fao_area_name) |>
   group_by(fao_area_name) |> 
-  summarise(total_catch = sum(total_ind, na.rm=TRUE)) |> 
+  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
   mutate(all_catch = sum(total_catch)) |>  # from this Atlantic Northeast, Eastern Pacific (all regions), and "Other" seem like the best options
   mutate(source_code = case_when(fao_area_name == "Atlantic, Northeast" ~ "NAT",
                                  fao_area_name %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
@@ -179,11 +184,11 @@ forage_catch_w_prop_supply <-
                                                       TRUE ~ "OTH")) |> 
   group_by(source_code) |> 
   nest() |> 
-  mutate(prop_source_catch = map(data, ~(.$total_ind/sum(.$total_ind)))) |> 
+  mutate(prop_source_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
   unnest(cols = c(data, prop_source_catch)) |> 
   ungroup() |> 
-  left_join(embodied_fish_ratios |> filter(Ingredient == "Fishmeal") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fishmeal_cf=`2020`), by = c("TaxonName" = "sci_name")) |> 
-    left_join(embodied_fish_ratios |> filter(Ingredient == "Fish oil") |> select(-c(Ingredient, ecosystem_combined)) |> rename(fish_oil_cf=`2020`), by = c("TaxonName" = "sci_name", "common_name")) |> 
+  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf=value), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |> rename(fish_oil_cf=value), by = c("TaxonName" = "sci_name", "common_name")) |> 
   mutate(fishmeal_cf = case_when(is.na(common_name) ~ globalav_embodiedfish_fm,
                                  TRUE ~ fishmeal_cf),
          fish_oil_cf = case_when(is.na(common_name) ~ globalav_embodiedfish_fo,
@@ -218,7 +223,7 @@ Now do some checks on if demand and supply match up per record i.e. by per cell-
 ```{r}
 #check the demand vs supply match up - are there cells where supply is outstripped by demand? 
 forage_supply_demand_by_diet |> filter(demand_vs_supply>1) #lots of rows where demand exceeds supply - likely due to global average conversions, but by how much typically?
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 2.8% of catch records demand exceed catch in 2017
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 7% of catch records demand exceed catch in 2017
 forage_supply_demand_by_diet |> filter(demand_vs_supply>1) |> pull(demand_vs_supply) |> unique() #nothing exceeding 1.11 of catch. How much does this matter- i.e. what does that equate to in tonnes and is that within a range of variation for that cell?
 nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1.1))/nrow(forage_supply_demand_by_diet) # the same 2.8% of records because this is the only value
 
@@ -230,11 +235,11 @@ exceedance_check <- forage_supply_demand_by_diet |>
                                       TRUE ~ 0))
 
 #what is the maximum exceedance in tonnage?
-max_exceedance <- exceedance_check |> pull(exceedance) |> max() #7745 tonnes - might not be so bad depending on the cell
+max_exceedance <- exceedance_check |> pull(exceedance) |> max() #25193 tonnes - could be due to artisanal catch
 #but what does the catch look like when max absolute exceedance occurs?
-exceedance_check |> filter(exceedance == max_exceedance) # catch is 64000 tonnes when demand exceeds catch by as much as 2800 tonnes
+exceedance_check |> filter(exceedance == max_exceedance) # catch is 64000 tonnes when demand exceeds catch by as much as a lot
 #what is the maximum proportional exceedance?
-max_prop_exceedance <- exceedance_check |> pull(prop_exceedance) |> max() #11.9% this is so so, but not nothing.
+max_prop_exceedance <- exceedance_check |> pull(prop_exceedance) |> max() #38% this is not great
 #what is the catch when proportional exceedance is this high?
 exceedance_check |> filter(prop_exceedance == max_prop_exceedance) # catch is tiny when proportional exceedance is maximised 
  
@@ -256,7 +261,6 @@ ggplot(data = exceedance_only_df)+
 Redistribute the demand in cells where it is greater than supply across other cells where there is available deficit. How to allocate can be scaled by the proportion that cell accounts for in terms of the total deficit.  Do this independently for each diet-source combo though, so need to split the data.
 
 ```{r}
-
 #data list by source and diet
 forage_supply_demand_list <- forage_supply_demand_by_diet |> 
   relocate(diet, .before = source_code) |> 
@@ -269,7 +273,7 @@ forage_supply_demand_redistributed <-
     exceed_supply <- this_df |> filter(demand_vs_supply>1)
     below_supply <- this_df |> filter(demand_vs_supply<=1)
     
-    this_diet_source <-  paste0( unique(this_df$diet),"_",unique(this_df$source_code))
+    this_diet_source <-  paste0(unique(this_df$diet),"_",unique(this_df$source_code))
     
     if(nrow(exceed_supply)>0){
       
@@ -289,7 +293,7 @@ forage_supply_demand_redistributed <-
         mutate(added_embodied_fish = prop_exceedance * total_exceedance) |> 
         mutate(adj_embodied_fish = total_embodied_fish+added_embodied_fish)
       
-      message("Total biomass from exceedance cells is equal to that added to deficit cells = ", sum(below_supply2$added_embodied_fish)==total_exceedance)
+      message("Total biomass from exceedance cells is equal to that added to deficit cells = ", round(sum(below_supply2$added_embodied_fish), digits = 0 )==round(total_exceedance, digits = 0))
       
       exceed_supply3 <-  exceed_supply2 |> 
         mutate(prop_exceedance = NA) |> 
@@ -334,7 +338,7 @@ sum(forage_supply_demand_by_diet$total_embodied_fish) == sum(forage_supply_deman
 #check marine diet - yep total embodied fish is a match between the original and redistributed sets
 forage_supply_demand_by_diet |> filter(diet=="marine_diet") |> pull(total_embodied_fish) |> sum() == forage_supply_demand_redistributed |> filter(diet=="marine_diet") |> pull(adj_embodied_fish) |> sum()
 
-#check marine diet - yep total embodied fish is a match between the original and redistributed sets
+#check plant diet - yep total embodied fish is a match between the original and redistributed sets
 forage_supply_demand_by_diet |> filter(diet=="plant_diet") |> pull(total_embodied_fish) |> sum() == forage_supply_demand_redistributed |> filter(diet=="plant_diet") |> pull(adj_embodied_fish) |> sum()
 
 
@@ -347,6 +351,48 @@ embodied_fish_demand_by_diet_source <- forage_supply_demand_redistributed |>
   })
 
 saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
+
+
+
+
+#For the East Pacific, supply falls short of demand based on catch for the marine diet - look into this here
+
+marine_EPC_checks <- 
+  forage_supply_demand_redistributed |> filter(diet == "marine_diet" & source_code == "EPC") |> #78,466 rows 
+  mutate(adj_demand_vs_supply = adj_embodied_fish/total_catch) |> 
+  filter(adj_demand_vs_supply >1) |> #51300 rows have exceedance (most)
+  mutate(actual_exceedance_adj = adj_embodied_fish-total_catch) |> 
+  mutate(prop_exceedance_adj = actual_exceedance_adj/total_catch)
+
+max_exceedance <- max(marine_EPC_checks$actual_exceedance_adj) #can exceed 2017 catch levels by 2400 tonnes
+max_prop_exceedance_adj <- max(marine_EPC_checks$prop_exceedance_adj) #max exceedance is 24% levels
+
+#Where it exceeds by the max value in tonnes, this is a 23% increase
+marine_EPC_checks |> filter(actual_exceedance_adj == max_exceedance)
+median(marine_EPC_checks$actual_exceedance_adj)
+median(marine_EPC_checks$prop_exceedance_adj)
+
+# 2 tonnes exceeded at the 90th percentile.
+
+sequence <- c(seq(from = 0.25, 0.99, by =0.05), 0.96,0.97,0.98, 0.99, 0.999)
+exceedance_list <- vector(length = length(sequence))
+
+for(i in 1:length(sequence)){
+  exceedance_list[[i]] <- quantile(marine_EPC_checks$actual_exceedance_adj,sequence[i])
+}
+
+#Given the variability of forage fish population biomass, for most catch (95% and 98% respectively) to be within 7 tonnes and 70 tonnes of 2017 catch and at no point exceeded 25% of that years catch, this seems reasonable.
+
+ggplot(data = tibble(percentile = sequence, exceedance_tonnes = exceedance_list))+
+  aes(x = percentile, y = exceedance_tonnes)+
+  geom_point()+
+  theme_bw()+
+  labs(x = "Exceedance percentile", y= "Exceedance (tonnes)")+
+  theme(text = element_text(size=8))
+
+
+ggsave(filename = here("figures/supplementary/cell_catch_exceedance_for_marinediet_EPC.jpg"), dpi=600, width = 9, height = 6, units = "cm")
+
 
 ```
   

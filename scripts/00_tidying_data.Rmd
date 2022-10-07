@@ -442,6 +442,26 @@ kok_etal_data <- read_csv(here("data/raw_data/fisheries/embodied_fish_kok_et_al.
 
 write_csv(kok_etal_data, file = here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv"))
 
+# now tidy ge allocation synthesised for this project.
+ge_allocation_raw <- read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_ge_allocation.csv") |> 
+  select(species, ecosystem, fishmeal_yield, fish_oil_yield, ingredient, value) |> 
+  mutate(species = substring(species, 1, nchar(species)-1)) |> 
+  mutate(common_name = case_when(grepl("Sandeels|Capelin|Boarfish", species) ~ word(species, start = 1, end = 1),
+                                 grepl("South American pilchard", species) ~ word(species, start = 1, end = 3),
+                                 TRUE ~ word(species, start = 1, end = 2))) |> 
+  mutate(common_name = case_when(grepl("bnchovy", common_name)~ "Peruvian anchovy",
+                                TRUE ~ common_name)) |> 
+  mutate(sci_name = c(rep(NA, times = 2),unlist(str_extract_all(ge_allocation_raw$species,  "(?<=\\().+?(?=\\))")), rep(NA, times = 2))) |> 
+  mutate(sci_name = case_when(sci_name == "C. harengus" ~ "Clupea harengus",
+                              sci_name == "M. villosus" ~ "Mallotus villosus",
+                              TRUE~sci_name)) |> 
+  select(-species) |> 
+  relocate(c(common_name, sci_name), .before = ecosystem)
+  
+
+write_csv(ge_allocation_raw, file = here("data/raw_data/allocation/embodied_fish_ge_allocation_tidy.csv"))
+
+
 ```
 
 
@@ -691,17 +711,6 @@ write_csv(x = cf_coproduct_data, file = here("data/raw_data/allocation/coproduct
 ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv") |> 
   mutate(coproduct = if_else(ingredient == "guar meal", true = "guar gum", false = coproduct)) 
 write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv"))
-
-
-#gross energy allocation
-ge_allocation <- read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_ge_allocation.csv")
-write_csv(x = ge_allocation, file = here("data/raw_data/allocation/embodied_fish_ge_allocation.csv"))
-
-
-
-#Economic allocation of embodied fish from Kok et al
-kok_et_al <- read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_kok_et_al.csv")
-write_csv(x = kok_et_al, file = here("data/raw_data/allocation/embodied_fish_kok_et_al.csv"))
 
 
 

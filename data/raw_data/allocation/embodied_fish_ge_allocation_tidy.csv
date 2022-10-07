@@ -1,0 +1,37 @@
+common_name,sci_name,ecosystem,fishmeal_yield,fish_oil_yield,ingredient,value
+Gross energy,NA,NA,NA,NA,Fishmeal,21.9
+Gross energy,NA,NA,NA,NA,Fish oil,39
+Antarctic krill,Euphausia superba,SO,16%,0%,Fishmeal,6.25
+Antarctic krill,Euphausia superba,SO,16%,0%,Fish oil,11.13013699
+Atlantic herring,Clupea harengus,IS,20%,12%,Fishmeal,2.417218543
+Atlantic herring,Clupea harengus,IS,20%,12%,Fish oil,4.304635762
+Atlantic herring,Clupea harengus,NWS,20%,12%,Fishmeal,2.417218543
+Atlantic herring,Clupea harengus,NWS,20%,12%,Fish oil,4.304635762
+Atlantic herring,Clupea harengus,NS,20%,12%,Fishmeal,2.417218543
+Atlantic herring,Clupea harengus,NS,20%,12%,Fish oil,4.304635762
+Atlantic mackerel,Scomber scombrus,NS,19%,19%,Fishmeal,1.892662691
+Atlantic mackerel,Scomber scombrus,NS,19%,19%,Fish oil,3.370495204
+Blue whiting,Micromesistius poutassou,NS,20%,2%,Fishmeal,4.244186047
+Blue whiting,Micromesistius poutassou,NS,20%,2%,Fish oil,7.558139535
+Boarfish,Capros aper,NS,22%,3%,Fishmeal,3.657314629
+Boarfish,Capros aper,NS,22%,3%,Fish oil,6.513026052
+Capelin,Mallotus villosus,BS,17%,8%,Fishmeal,3.200350723
+Capelin,Mallotus villosus,BS,17%,8%,Fish oil,5.699254713
+Capelin,Mallotus villosus,IS,17%,8%,Fishmeal,3.200350723
+Capelin,Mallotus villosus,IS,17%,8%,Fish oil,5.699254713
+Chilean jack,Trachurus murphyi,HC,19%,19%,Fishmeal,1.892662691
+Chilean jack,Trachurus murphyi,HC,19%,19%,Fish oil,3.370495204
+European sprat,Sprattus sprattus,NS,19%,8%,Fishmeal,3.007828595
+European sprat,Sprattus sprattus,NS,19%,8%,Fish oil,5.356407087
+Gulf menhaden,Brevoorti patronus,GM,24%,13%,Fishmeal,2.120859965
+Gulf menhaden,Brevoorti patronus,GM,24%,13%,Fish oil,3.776873911
+Norway pout,Trisopterus esmarkii,NS,20%,12%,Fishmeal,2.417218543
+Norway pout,Trisopterus esmarkii,NS,20%,12%,Fish oil,4.304635762
+Peruvian anchovy,Engraulis ringens,HC,23%,5%,Fishmeal,3.134392443
+Peruvian anchovy,Engraulis ringens,HC,23%,5%,Fish oil,5.581794762
+Sandeels,Ammodytes tobianus,NS,20%,4%,Fishmeal,3.686868687
+Sandeels,Ammodytes tobianus,NS,20%,4%,Fish oil,6.565656566
+South American pilchard,Sardinops sagax,HC,23%,18%,Fishmeal,1.816372232
+South American pilchard,Sardinops sagax,HC,23%,18%,Fish oil,3.234635481
+Global average,NA,GA,23%,5%,Fishmeal,3.134392443
+Global average,NA,GA,0.225,0.05,Fish oil,5.670665213
