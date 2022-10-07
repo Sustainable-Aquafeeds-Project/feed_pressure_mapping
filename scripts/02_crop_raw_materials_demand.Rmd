@@ -159,8 +159,7 @@ crop_raw_material_demand <- readRDS(here("data/tidy_data/demand/total_ingredient
   rename(FAOSTAT_name = item,
          source_country = area,
          source_iso3c = iso3c) |> 
-  mutate(total_crop_demand = total_ingredient_demand*allocation_factor) |> 
-  mutate(ingredients = if_else(ingredients == "canola/camelina oil", true = "canola oil", false = ingredients)) #to prevent file_path issues later
+  mutate(total_crop_demand = total_ingredient_demand*allocation_factor)
 
 #export total crop demand for a woring data source
 saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/total_crop_demand.rds"))
