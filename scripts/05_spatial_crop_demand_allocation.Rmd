@@ -20,7 +20,6 @@ select <- dplyr::select
 ```
 
 
-
 We're  interested from where the different crop ingredients could be sourced across the top producing nations. Need to check whether the demand from the global salmon industry can be met by crop producing countries
 
 ```{r}
@@ -28,19 +27,11 @@ crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 #check that demand for each rawe material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive).
 
-top_10_producers <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
-  mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient))
-
-
 (crop_demand_production_compare <- 
   crop_demand |> 
-  left_join(top_10_producers |> 
-              select(-c(cf, X7)), 
-            by = c("ingredients"="ingredient", "FAOSTAT_name"="item", "source_country" = "area")) |> 
     mutate(demand_production_ratio = total_crop_demand/mean_value,
-           check = demand_production_ratio>1) %>% 
+           check = demand_production_ratio>1) |> 
     rename(national_production = mean_value)
-    
     )
 
 #Demand only exceeds production for the top 3 producers for guar (only India can support this demand from global salmon. But this isn't bad given we only have footprint information for India)
