@@ -1,0 +1,37 @@
+species,ecosystem,fishmeal_yield,fish_oil_yield,ingredient,value,X7,X8,X9,X10,X11,X12,X13,X14,X15,X16,X17,X18,X19,X20,X21,X22,X23,X24,X25,X26,X27,X28,X29,X30,X31,X32,X33
+Gross energy MJ kg-1 DM,NA,NA,NA,Fishmeal,21.9,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Gross energy MJ kg-1 DM,NA,NA,NA,Fish oil,39,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Antarctic krill (Euphausia superba)a,SO,16%,0%,Fishmeal,6.25,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Antarctic krill (Euphausia superba)a,SO,16%,0%,Fish oil,11.13013699,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic herring (Clupea harengus) b,IS,20%,12%,Fishmeal,2.417218543,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic herring (Clupea harengus) b,IS,20%,12%,Fish oil,4.304635762,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic herring (C. harengus) b,NWS,20%,12%,Fishmeal,2.417218543,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic herring (C. harengus) b,NWS,20%,12%,Fish oil,4.304635762,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic herring (C. harengus) b,NS,20%,12%,Fishmeal,2.417218543,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic herring (C. harengus) b,NS,20%,12%,Fish oil,4.304635762,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic mackerel (Scomber scombrus) b,NS,19%,19%,Fishmeal,1.892662691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Atlantic mackerel (Scomber scombrus) b,NS,19%,19%,Fish oil,3.370495204,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Blue whiting (Micromesistius poutassou) b,NS,20%,2%,Fishmeal,4.244186047,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Blue whiting (Micromesistius poutassou) b,NS,20%,2%,Fish oil,7.558139535,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Boarfish (Capros aper) b,NS,22%,3%,Fishmeal,3.657314629,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Boarfish (Capros aper) b,NS,22%,3%,Fish oil,6.513026052,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Capelin (Mallotus villosus) b,BS,17%,8%,Fishmeal,3.200350723,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Capelin (Mallotus villosus) b,BS,17%,8%,Fish oil,5.699254713,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Capelin (M. villosus) b,IS,17%,8%,Fishmeal,3.200350723,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Capelin (M. villosus) b,IS,17%,8%,Fish oil,5.699254713,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Chilean jack mackerel (Trachurus murphyi) b,HC,19%,19%,Fishmeal,1.892662691,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Chilean jack mackerel (Trachurus murphyi) b,HC,19%,19%,Fish oil,3.370495204,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+European sprat (Sprattus sprattus) b,NS,19%,8%,Fishmeal,3.007828595,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+European sprat (Sprattus sprattus) b,NS,19%,8%,Fish oil,5.356407087,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Gulf menhaden (Brevoorti patronus) b,GM,24%,13%,Fishmeal,2.120859965,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Gulf menhaden (Brevoorti patronus) b,GM,24%,13%,Fish oil,3.776873911,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Norway pout (Trisopterus esmarkii) b,NS,20%,12%,Fishmeal,2.417218543,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Norway pout (Trisopterus esmarkii) b,NS,20%,12%,Fish oil,4.304635762,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Peruvian bnchovy (Engraulis ringens) b,HC,23%,5%,Fishmeal,3.134392443,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Peruvian bnchovy (Engraulis ringens) b,HC,23%,5%,Fish oil,5.581794762,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Sandeels (Ammodytes tobianus) b,NS,20%,4%,Fishmeal,3.686868687,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Sandeels (Ammodytes tobianus) b,NS,20%,4%,Fish oil,6.565656566,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+South American pilchard (Sardinops sagax) b,HC,23%,18%,Fishmeal,1.816372232,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+South American pilchard (Sardinops sagax) b,HC,23%,18%,Fish oil,3.234635481,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Global average c,GA,23%,5%,Fishmeal,3.134392443,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+Global average c,GA,0.225,0.05,Fish oil,5.670665213,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
