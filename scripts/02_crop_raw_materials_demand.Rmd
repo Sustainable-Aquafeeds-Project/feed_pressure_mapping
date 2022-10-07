@@ -83,10 +83,9 @@ saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-d
 ```
 
 
-Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors (yields) from ingredients to  each of these raw materials in different places. This was done separately in the Sustainable Aquafeeds Project Teams interface and subsequently transferred to 'tidy_data' in this project. This can be combined with the global demand for ingredients from the top crop producers to create raw material demands. This needs to be adjusted for economic allocation however. 
+Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors (yields) from ingredients to  each of these raw materials in different places and also the gross energy values of each ingredient and co-product so that energetic allocation can be achieved. This was done separately in the Sustainable Aquafeeds Project Teams interface. 
 
 ```{r}
-
 #import codes that will be compatible with MAPSPAM layers
 
 plant_ingredient_codes <- 
@@ -94,7 +93,8 @@ plant_ingredient_codes <-
   select(-reference) |> 
   drop_na(ingredient) |> 
   #add_row(ingredient = "pea starch", raw_material = "peas", FAOSTAT_name = "Peas, green", FAO_code = 187, map_spam_code = "opul") |> this row is for if you want pea starch to come from green peas and dried peas - just using dried peas for simplicity
-  mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name))
+  mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name),
+         ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient))
 
 #join codes to top 10 producers and conversion factors data
 (top_10_crop_w_cf <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
@@ -102,14 +102,14 @@ plant_ingredient_codes <-
   left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name"))
 )
 
-
-#get gross energy data and join with conversion factors to get embodied allocation factors
+#get yield data from main ingredients
 cf_data <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
   mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient)) 
 
+# get coproduct yield data
 cf_coproduct_data <- read_csv(here("data/raw_data/allocation/coproduct_conversions.csv"))
 
-#join product and coproduct conversion data
+#join product and coproduct yield (conversion) data
 all_cf_data <- 
   cf_data |> 
   select(-X7) |> 
@@ -123,30 +123,43 @@ ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocatio
   filter(!ingredient %in% c("fishmeal", "fish oil")) |> 
   mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))
 
-ge_values |> 
+(allocation_raw <- 
+  ge_values |> 
   left_join(all_cf_data, by = c("ingredient", "coproduct")) |> 
   mutate(energy_cf_product = gross_energy_product*cf,
          energy_cf_coproduct = gross_energy_coproduct*coproduct_cf) |> 
   ungroup() |> 
   group_by(ingredient, area) |> 
   nest() |> 
-  mutate(allocation_factor = map(data, ~(.$gross_energy_product/ (sum(unique(.$energy_cf_product), sum(.$energy_cf_coproduct))) ))) |> 
-  unnest(c(data, allocation_factor))
+  mutate(allocation_factor = map(data, ~(.$gross_energy_product/ (sum(unique(.$energy_cf_product), sum(.$energy_cf_coproduct)))))) |> 
+  unnest(c(data, allocation_factor)))
+
+write_csv(x = allocation_raw, file = here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv"))
+
+```
 
 
-dat <- ge_list$data[1] |> as.data.frame()
+Join the ingredient demand and allocation data to generate crop raw material demand
 
-unique(dat$gross_energy_product)/sum(unique(dat$energy_cf_product), sum(dat$energy_cf_coproduct))
+```{r}
+
+#get saved allocation data
+(allocation_factors <- read_csv(here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv")) |> 
+  select(item, ingredient, area, iso3c, mean_value, allocation_factor) |> 
+  left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name")) |> 
+  distinct()
+)
 
 #join the ingredient demand by diet to the top 10 producer data so for each ingredient there will be an raw material demand per source, and diet scenario. Create new raw_material demand column by dividing total ingredient demand by the conversion factor (i.e. the ingredient extraction rate from the raw material in the first place)
+
 crop_raw_material_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
   ungroup() |> 
-  left_join(top_10_crop_w_cf, by = c("ingredients" = "ingredient")) |> 
+  left_join(allocation_factors, by = c("ingredients" = "ingredient")) |> 
   drop_na(item) |> 
   rename(FAOSTAT_name = item,
          source_country = area,
          source_iso3c = iso3c) |> 
-  mutate(total_crop_demand = total_ingredient_demand/cf) |> 
+  mutate(total_crop_demand = total_ingredient_demand*allocation_factor) |> 
   mutate(ingredients = if_else(ingredients == "canola/camelina oil", true = "canola oil", false = ingredients)) #to prevent file_path issues later
 
 #export total crop demand for a woring data source

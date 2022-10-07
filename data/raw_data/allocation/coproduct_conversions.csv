@@ -89,16 +89,16 @@ wheat gluten,wheat starch,UKR,0.75
 wheat gluten,wheat starch,PAK,0.85
 wheat gluten,wheat starch,DEU,0.5
 wheat gluten,wheat starch,AUS,0.78
-wheat,wheat,CHN,1
-wheat,wheat,IND,1
-wheat,wheat,RUS,1
-wheat,wheat,USA,1
-wheat,wheat,FRA,1
-wheat,wheat,CAN,1
-wheat,wheat,UKR,1
-wheat,wheat,PAK,1
-wheat,wheat,DEU,1
-wheat,wheat,AUS,1
+wheat,wheat,CHN,0
+wheat,wheat,IND,0
+wheat,wheat,RUS,0
+wheat,wheat,USA,0
+wheat,wheat,FRA,0
+wheat,wheat,CAN,0
+wheat,wheat,UKR,0
+wheat,wheat,PAK,0
+wheat,wheat,DEU,0
+wheat,wheat,AUS,0
 corn gluten meal,corn starch,USA,0.62
 corn gluten meal,corn starch,CHN,0.7
 corn gluten meal,corn starch,BRA,0.85
@@ -259,26 +259,26 @@ linseed oil,linseed meal,ETH,0.45
 linseed oil,linseed meal,UKR,0.6
 linseed oil,linseed meal,FRA,0.62
 linseed oil,linseed meal,GBR,0.64
-guar meal,guar meal,IND,0.5
-guar meal,guar meal,KEN,0.5
-guar meal,guar meal,ETH,0.5
-guar meal,guar meal,TZA,0.5
-guar meal,guar meal,SDN,0.5
-guar meal,guar meal,SLE,0.5
-guar meal,guar meal,NGA,0.5
-guar meal,guar meal,PAK,0.5
-guar meal,guar meal,GIN,0.5
-guar meal,guar meal,CAF,0.5
-faba beans,faba beans,CHN,1
-faba beans,faba beans,ETH,1
-faba beans,faba beans,GBR,1
-faba beans,faba beans,AUS,1
-faba beans,faba beans,FRA,1
-faba beans,faba beans,DEU,1
-faba beans,faba beans,SDN,1
-faba beans,faba beans,EGY,1
-faba beans,faba beans,ITA,1
-faba beans,faba beans,MAR,1
+guar meal,guar gum,IND,0.42
+guar meal,guar gum,KEN,0.42
+guar meal,guar gum,ETH,0.42
+guar meal,guar gum,TZA,0.42
+guar meal,guar gum,SDN,0.42
+guar meal,guar gum,SLE,0.42
+guar meal,guar gum,NGA,0.42
+guar meal,guar gum,PAK,0.42
+guar meal,guar gum,GIN,0.42
+guar meal,guar gum,CAF,0.42
+faba beans,faba beans,CHN,0
+faba beans,faba beans,ETH,0
+faba beans,faba beans,GBR,0
+faba beans,faba beans,AUS,0
+faba beans,faba beans,FRA,0
+faba beans,faba beans,DEU,0
+faba beans,faba beans,SDN,0
+faba beans,faba beans,EGY,0
+faba beans,faba beans,ITA,0
+faba beans,faba beans,MAR,0
 canola oil,canola meal,CAN,0.61
 canola oil,canola meal,CHN,0.63
 canola oil,canola meal,IND,0.6

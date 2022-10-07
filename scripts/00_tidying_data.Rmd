@@ -682,13 +682,17 @@ Interesting paper by Ayer, Tyedmers et al on the benefits of gross energy alloca
 
 ```{r}
 
+ingredient_cf_data <- read_csv("/mnt/rdsi/raw_data/allocation/top_crop_producers_conversions.csv")
+write_csv(ingredient_cf_data, here("data/tidy_data/production-data/top_crop_producers_conversions.csv"))  
+
 cf_coproduct_data <- read_csv("/mnt/rdsi/raw_data/allocation/coproduct_conversions.csv") |> select(ingredient, coproduct,country, coproduct_cf)
 write_csv(x = cf_coproduct_data, file = here("data/raw_data/allocation/coproduct_conversions.csv"))
 
 kok_et_al <- read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_kok_et_al.csv")
 write_csv(x = kok_et_al, file = here("data/raw_data/allocation/embodied_fish_kok_et_al.csv"))
 
-ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv")
+ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv") |> 
+  mutate(coproduct = if_else(ingredient == "guar meal", true = "guar gum", false = coproduct)) 
 write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv"))
 
 
