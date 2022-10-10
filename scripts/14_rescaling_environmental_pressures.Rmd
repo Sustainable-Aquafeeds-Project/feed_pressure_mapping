@@ -43,10 +43,10 @@ all_disturbance_vals <- c(marine_disturbance_vals, plant_disturbance_vals)
 
 #determine the quantile for rescaling
 hist(unlist(all_disturbance_vals), main = "", xlab = "Disturbance values") |> 
-abline(v = quantile(all_disturbance_vals, 1), lty=2)
+abline(v = quantile(all_disturbance_vals, 0.999), lty=2)
 
 
-disturbance_rescale_val <- quantile(all_disturbance_vals, 1) |> as.numeric()
+disturbance_rescale_val <- quantile(all_disturbance_vals, 0.999) |> as.numeric()
 
 
 #rescale all rasters by the 99.9th percentile
@@ -66,7 +66,7 @@ rescaled_marine_disturbance_rasters <-
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -94,7 +94,7 @@ rescaled_plant_disturbance_rasters <-
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -138,10 +138,10 @@ all_ghg_vals <- c(marine_ghg_vals, plant_ghg_vals)
 
 #explore a reasonable rescale value
 hist(all_ghg_vals, main = "", xlab = "GHG values") |> 
-abline(v=quantile(all_ghg_vals, 1), lty = 2)
+abline(v=quantile(all_ghg_vals, 0.999), lty = 2)
 
-#select the 99.99th percentile for rescaling
-ghg_rescale_val <- quantile(all_ghg_vals, 1) |> as.numeric()
+#select the 99.9th percentile for rescaling
+ghg_rescale_val <- quantile(all_ghg_vals, 0.999) |> as.numeric()
 
 #test file
 this_file <- marine_diet_ghg[[1]]
@@ -157,7 +157,7 @@ rescaled_marine_ghg_rasters <-
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -190,7 +190,7 @@ rescaled_plant_ghg_rasters <-
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -282,7 +282,7 @@ map(.x= plant_diet_N, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -310,7 +310,7 @@ plant_diet_P <- list.files(here("data/spatial/plant_diet/int"), pattern = "_P_",
 
 all_P <- c(marine_diet_P, marine_diet_P)
 
-this_file <- all_P[[1]]
+#this_file <- all_P[[1]]
 
 all_P_vals <- unlist(map(.x = all_P, .f = \(this_file){
   
@@ -323,7 +323,7 @@ all_P_vals <- unlist(map(.x = all_P, .f = \(this_file){
 
 
 
-
+#determine quantile for rescaling
 hist(all_P_vals, main = "", xlab = "Phosphorus values")
 abline(v=quantile(all_P_vals, 0.999), lty = 2)
 
@@ -336,7 +336,7 @@ P_rescale_val <- quantile(all_P_vals, 0.999) |> as.numeric()
 
 #marine diets - Phosphorus
 
-this_file <- marine_diet_P[[1]]
+#this_file <- marine_diet_P[[1]]
 
 map(.x= marine_diet_P, .f = \(this_file){
   
@@ -412,7 +412,7 @@ all_h2o_vals <- unlist(map(.x = all_h2o, .f = \(this_file){
 
 
 
-
+#determine quantile for rescaling
 hist(all_h2o_vals, main = "", xlab = "Water values")
 abline(v=quantile(all_h2o_vals, 0.999), lty = 2)
 
@@ -469,6 +469,10 @@ map(.x= plant_diet_h2o, .f = \(this_file){
   }
   
 })
+
+
+
+rm(list = ls())
 
 
 ```

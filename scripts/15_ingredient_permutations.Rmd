@@ -95,13 +95,16 @@ Given the number of unique combinations varies from marine to plant diet - here 
 
 source_combinations_md <- source_combinations_md |> select(1:501)
 
-source_combinations_pd <-  source_combinations_md |> select(1:501)
+source_combinations_pd <-  source_combinations_pd |> select(1:501)
 
 
 #save marine and plant diet combinations for reuse during calculations
 saveRDS(object = source_combinations_md, file = here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds"))
 
 saveRDS(object = source_combinations_pd, file = here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds"))
+
+
+rm(list = ls())
 
 ```
 

@@ -115,7 +115,7 @@ both_diets <- bind_rows(marine_diet, plant_diet) |>
   mutate(diet = if_else(condition = diet == "marine_diet", true = "Marine-\ndominant", false = "Plant-\ndominant")) |> 
   mutate(hjust = if_else(condition = diet == "marine_diet", true = 1, false = 0)) |> 
   mutate(ingredients = factor(ingredients, levels = rev(ingredient_levels))) |> 
-  mutate(diet = factor(diet, levels = c("Plant-\ndominant", "Marine-\ndominant")))
+  mutate(diet = factor(diet, levels = rev(c("Plant-\ndominant", "Marine-\ndominant"))))
 
 
 
@@ -123,22 +123,21 @@ both_diets <- bind_rows(marine_diet, plant_diet) |>
 both_diets_p <- ggplot(data = both_diets,
        aes(x = diet , y = prop, fill = ingredients))+
   geom_col()+
-  scale_fill_manual(values =  rev(colorRampPalette(colors = rcartocolor::carto_pal(n = 7, name = "Safe"))(16)))+
+  scale_fill_manual(values =  (colorRampPalette(colors = rcartocolor::carto_pal(n = 7, name = "Earth"))(16)))+
   theme_pubr()+
-  coord_flip()+
   theme(legend.title = element_blank(),
         legend.text = element_text(size=7),
         text = element_text(size=8),
-        legend.position = "top",
+        legend.position = "right",
         #legend.box.spacing = unit(-0.1, "cm"),
         panel.grid = element_blank(),
-        legend.key.size = unit(0.35, "cm")
+        legend.key.size = unit(0.25, "cm")
         )+
   labs(x = "Feed scenario", y = "Proportion")+
-  guides(fill = guide_legend(byrow=TRUE, reverse = TRUE, ncol = 6))
+  guides(fill = guide_legend(byrow=TRUE, reverse = FALSE, ncol = 1))
 
 
-ggsave(filename = here("figures/feed_composition.jpg"), dpi = 600, width = 18, height = 9, units = "cm")
+ggsave(filename = here("figures/feed_composition.jpg"), dpi = 600, width = 10, height = 9, units = "cm")
 
 
 ```
@@ -305,7 +304,7 @@ plant_source_ingredient <-
 
 
 #test dataframe
-this_df <- plant_source_ingredient[[12]]
+this_df <- plant_source_ingredient[[6]]
 
 sources <- c("source_1", "source_2", "source_3")
 
@@ -683,7 +682,7 @@ for(source in sources){
   }
   
 
-#adjust layers and replace NA with 0
+#bring in rasters to list
 
 marine_source_rast_list <- list()
 
@@ -798,10 +797,7 @@ for(source in sources){
   }
   
 
-#now adjust layers and replace NA with 0 - do I need to do this?
-
-#save this list because it takes ages to run
-#saveName_plant_rast_list <- here("data/tidy_data/pressures/plant_source_rast_list.rds")
+#bring in rasters to list
 
 plant_source_rast_list <- list()
 
@@ -825,13 +821,6 @@ for(source in sources){
   
   plant_source_rast_list[[source]] <- plant_rast_list
 }
-
-
-
-
-#read it back in
-#plant_source_rast_list <- readRDS(file = saveName_plant_rast_list)
-
 
 
 #stack and sum the pressures for all ingredients and source combinations
@@ -914,10 +903,10 @@ max_marine <- max(marine_vals)
 min_plant <- min(plant_vals)
 
 #which marine vals are higher than the plant minimum?
-marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #79% of marine values
+marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #86.2% of marine values
 
 #which plant vals are lower than the marine maximum?
-plant_vals[plant_vals<max_marine] |> length()/ length(plant_vals) #68.2%
+plant_vals[plant_vals<max_marine] |> length()/ length(plant_vals) #88.8%
 
 
 
@@ -1000,7 +989,7 @@ for(source in sources){
 
 #stack and sum by individual pressures for each ingredient source combination
 
-disaggregated_pressures_df_list <- list()
+md_disaggregated_pressures_df_list <- list()
 
 
 for(source in sources){
@@ -1098,11 +1087,11 @@ for(source in sources){
   this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, .before = sum)
   
   
-  disaggregated_pressures_df_list[[source]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
+  md_disaggregated_pressures_df_list[[source]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
   
 }
 
-marine_diet_pressures_df <- bind_rows(disaggregated_pressures_df_list) |> mutate(diet = "marine diet")
+marine_diet_pressures_df <- bind_rows(md_disaggregated_pressures_df_list) |> mutate(diet = "marine diet")
 
 saveRDS(marine_diet_pressures_df, file = here("data/tidy_data/pressures/marine_disaggregated_pressures_df.rds"))
 
@@ -1180,7 +1169,7 @@ for(source in sources){
 
 #stack and sum by individual pressures for each ingredient source combination
 
-disaggregated_pressures_df_list <- list()
+pd_disaggregated_pressures_df_list <- list()
 
 
 for(source in sources){
@@ -1278,11 +1267,11 @@ for(source in sources){
   this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, .before = sum)
   
   
-  disaggregated_pressures_df_list[[source]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
+  pd_disaggregated_pressures_df_list[[source]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
   
 }
 
-plant_diet_pressures_df <- bind_rows(disaggregated_pressures_df_list) |> mutate(diet = "plant diet")
+plant_diet_pressures_df <- bind_rows(pd_disaggregated_pressures_df_list) |> mutate(diet = "plant diet")
 
 saveRDS(plant_diet_pressures_df, file = here("data/tidy_data/pressures/plant_disaggregated_pressures_df.rds"))
 
@@ -1298,6 +1287,11 @@ plant_pressure_disagg <- readRDS(here("data/tidy_data/pressures/plant_disaggrega
 marine_plant_pressure_disagg_df <- bind_rows(marine_pressure_disagg, plant_pressure_disagg)
 
 saveRDS(object = marine_plant_pressure_disagg_df, file = here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df.rds"))
+
+
+marine_pressure_disagg
+plant_pressure_disagg
+
 
 ```
 
@@ -1323,7 +1317,7 @@ summarised_pressure_disagg_df <-
 
 ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet)
        )+
-  geom_col( position = "dodge", width = 1, alpha = 0.8)+
+  geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
   geom_point(position = position_dodge(width = 0.7), size=0.6)+
   geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.7), width = 0, size = 0.5)+
   geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
@@ -1331,6 +1325,7 @@ ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = d
   theme_bw()+
   theme(panel.border = element_blank(),
         axis.title.x = element_blank(),
+        #axis.line.y = element_line(colour = "black", size=0.5),
         axis.title.y = element_text(hjust = 0.83),
         legend.position = c(0.84, 0.01),
         legend.title = element_blank(),
@@ -1340,7 +1335,7 @@ ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = d
         text = element_text(size=8))+
   scale_fill_manual(values = my_pal[c(2, 4)])+
   scale_y_continuous(breaks = c(0,50,100,150, 200,250))+
-  labs(y = "Normalised pressure index")+
+  labs(y = "Cumulative pressure index")+
   guides(fill = guide_legend(override.aes = list(shape = NA)))
 
 #boxplot version

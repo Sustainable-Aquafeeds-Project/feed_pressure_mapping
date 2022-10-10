@@ -69,12 +69,12 @@ crop_main_pressures |>
 
 #match up country-specific pressure data with country production/demand data. Want to constrain the countries used for LCA variability by those that can plausibly source demand
 
-(plausible_crop_sourcing_list <- crop_demand_production_compare |> select(ingredients, diet, FAOSTAT_name, source_iso3c, total_crop_demand, national_production, demand_production_ratio, check) |>  filter(check == FALSE) |> group_split(ingredients))
+(plausible_crop_sourcing_list <- crop_demand_production_compare |> select(ingredients, diet, FAOSTAT_name, source_iso3c, total_crop_demand, national_production, demand_production_ratio, check) |>  filter(check == FALSE & total_crop_demand>0) |> group_split(ingredients))
 
 which_crop_countries <- \(this_df){
   
-  this_raw_material <- this_df$FAOSTAT_name |> unique()
-  these_countries <- this_df$source_iso3c |> unique()
+  this_raw_material <- this_df|> pull(FAOSTAT_name) |> unique()
+  these_countries <- this_df  |> pull(source_iso3c) |> unique()
   this_return_df <- bind_cols(FAOSTAT_name = this_raw_material, iso3c = these_countries, plausible = TRUE)
   
 }
@@ -152,7 +152,7 @@ ingredient_per_country_per_diet <-
   group_split(diet, ingredients, FAOSTAT_name, source_iso3c)
 
 #for testing the function below
-this_ingredient_source <- ingredient_per_country_per_diet[[5]]
+#this_ingredient_source <- ingredient_per_country_per_diet[[5]]
 
 #allocating demand on spatial production layers by diet, ingredient, and source country
 AllocateSpatialCropDemand <- \(this_ingredient_source){

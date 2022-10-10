@@ -22,13 +22,7 @@ source(here("src/spatial.R"))
 Bringing in the emission intensity data from Halpern et al stored in RDSI and tidy to distinct categories with functional groups associated with the Watson data.
 ```{r}
 
-ei_data <- 
-  fread(file.path(food_systems_data_dir, "all_catch_emissions_2017.csv")) |> 
-  lazy_dt(immutable = FALSE) |> 
-  select(Taxonkey, Descript, species_class_int, species_class_fin, ParkerGearName = gear_type, ei_kgco2_kgcatch) |> 
-  distinct() |> 
-  arrange(ParkerGearName)|> 
-  as_tibble()
+ei_data <- read_csv(here("data/raw_data/fisheries/all_catch_emissions_2017.csv"))
   
 
 ```
@@ -98,14 +92,4 @@ plot(rast(ghg_raw_r_list))
 
 ```
 
-Now we need to rescale all values - but will wait until we know if we will rescale within feed contexts
-
-```{r}
-
-pressures <- list.files(file.path("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/"), full.names = TRUE)
-
-
-plot(rast(pressures[1:3]))
-
-```
 

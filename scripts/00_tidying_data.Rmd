@@ -678,6 +678,22 @@ parker_gear_join <- read_csv(file.path(food_systems_data_dir, "parker_gear_join.
 
 write_csv(parker_gear_join, file = here("data/raw_data/fisheries/parker_gear_join.csv"))
 
+
+
+#Bring emissions intensity data from Parker et al 2018 stored in RDSI and save to project
+ei_data <- 
+  fread(file.path(food_systems_data_dir, "all_catch_emissions_2017.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  select(Taxonkey, Descript, species_class_int, species_class_fin, ParkerGearName = gear_type, ei_kgco2_kgcatch) |> 
+  distinct() |> 
+  arrange(ParkerGearName)|> 
+  as_tibble()
+  
+write_csv(x= ei_data, file = here("data/raw_data/fisheries/all_catch_emissions_2017.csv"))
+
+
+
+
 ```
 
 
