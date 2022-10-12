@@ -147,16 +147,22 @@ Some statistics on the number of species/crop raw materials/countries/marine reg
 ```{r}
 
 forage_fish <- data.table::fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
-
 forage_fish_md <- forage_fish |> filter(diet == "marine_diet") |> as_tibble()
-
 unique(forage_fish$CommonName)
-
 sum(forage_fish_md$total_catch)
 
+# number of countries for crops
+
+
+
+#forage fish embodied demand by regions
+embodied_fish_bysource <- readRDS(here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
+
+ggplot(data = embodied_fish_bysource,
+       aes(x = diet, y = embodied_fish_demand, fill = source_code))+
+  geom_col(position = "dodge")
+
 ```
-
-
 
 Bring in the source-ingredient combinations within each diet. Fishmeal and oil are combined rather than as fishmeal and oil so modify in the dataframes for now.
 
@@ -177,11 +183,6 @@ plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations
 
 ```
 
-
-
-
-
-
 # Compare marine-dominant and plant-dominant feeds from a selectiom of different sources to illustrate the concept.
 
 
@@ -192,15 +193,23 @@ Combine all values for pressures for a marine diet
 
 marine_source_ingredient <- 
   marine_diets |> 
-  select(ingredient, source_1 = `5`, source_2 = `9`, source_3 = `21`) |> 
-  mutate(row = row_number()) |> 
-  mutate(source_1 = case_when(ingredient == "guar meal"~ as.integer(1),
-                            TRUE ~ source_1),
-         source_2 = case_when(ingredient == "guar meal"~ as.integer(1),
-                            TRUE ~ source_2),
-         source_3 = case_when(ingredient == "guar meal"~ as.integer(1),
-                            TRUE ~ source_3)) |> 
+  select(ingredient) |> 
+  mutate(source_1 = c(1, 2, 1, 2, 1, 2),
+         source_2 = c(2, 1, 1, 1, 2, 3),
+         source_3 = c(3, 3, 1, 3, 3, 1)) |> 
+   mutate(row = row_number()) |> 
   group_split(row) 
+  
+  # select(ingredient, source_1 = `5`, source_2 = `9`, source_3 = `21`) |> 
+  # 
+  # mutate(source_1 = case_when(ingredient == "guar meal"~ as.integer(1),
+  #                           TRUE ~ source_1),
+  #        source_2 = case_when(ingredient == "guar meal"~ as.integer(1),
+  #                           TRUE ~ source_2),
+  #        source_3 = case_when(ingredient == "guar meal"~ as.integer(1),
+  #                           TRUE ~ source_3)) |> 
+  # 
+
 
 
 
@@ -309,15 +318,24 @@ Combine all values for a plant-dominant diet
 ```{r}
 plant_source_ingredient <- 
   plant_diets |> 
-  select(ingredient, source_1 = `3`, source_2 = `4`, source_3 = `18`) |> 
-  mutate(source_1 = case_when(ingredient == "linseed oil"~ as.integer(1),
-                            TRUE ~ source_1),
-         source_2 = case_when(ingredient == "linseed oil"~ as.integer(1),
-                            TRUE ~ source_2),
-         source_3 = case_when(ingredient == "linseed oil"~ as.integer(1),
-                            TRUE ~ source_3)) |> 
-  mutate(row = row_number()) |> 
+  select(ingredient) |> 
+  mutate(source_1 = c(1, 1, 2, 2, 1, 1, 1, 3, 3, 2, 2, 1),
+         source_2 = c(2, 2, 3, 3, 2, 1, 3, 2, 1, 3, 1, 2),
+         source_3 = c(3, 3, 1, 1, 3, 1, 2, 1, 2, 1, 3, 3)) |> 
+   mutate(row = row_number()) |> 
   group_split(row) 
+
+
+# 
+#   select(ingredient, source_1 = `3`, source_2 = `4`, source_3 = `18`) |> 
+#   mutate(source_1 = case_when(ingredient == "linseed oil"~ as.integer(1),
+#                             TRUE ~ source_1),
+#          source_2 = case_when(ingredient == "linseed oil"~ as.integer(1),
+#                             TRUE ~ source_2),
+#          source_3 = case_when(ingredient == "linseed oil"~ as.integer(1),
+#                             TRUE ~ source_3)) |> 
+#   mutate(row = row_number()) |> 
+#   group_split(row) 
 
 
 
@@ -900,7 +918,7 @@ ggplot(data = marine_plant_df |> mutate(diet = case_when(diet == "plant diet" ~ 
         axis.title.y = element_blank())
 
 
-ggsave(filename = here("figures/diet_permutation_comparisons.jpg"), device = "jpg", dpi = 600, width = 8.9, height = 3.8 )
+ggsave(filename = here("figures/diet_permutation_comparisons.jpg"), device = "jpg", dpi = 600, width = 18, height = 9, units="cm")
 
   
   

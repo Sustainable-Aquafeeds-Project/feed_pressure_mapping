@@ -165,6 +165,10 @@ fao_area_production_potential <-
   ungroup()
 
 
+saveRDS(object = fao_area_production_potential, file = here("data/tidy_data/production-data/fao_regions_forage_production_potential.rds"))
+
+
+
 #the new umbrella groups - these catch levels are relatively even as they can be
 source_production_potential <- 
   fao_area_production_potential |> 
@@ -328,8 +332,6 @@ forage_supply_demand_redistributed <-
 
 fwrite(forage_supply_demand_redistributed, file = here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
 
-
-#check same number of rows as the input file and that totals are the same in combination and by diet
 
 nrow(forage_supply_demand_by_diet)==nrow(forage_supply_demand_redistributed)
 

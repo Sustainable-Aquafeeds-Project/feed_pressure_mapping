@@ -258,7 +258,7 @@ map(.x= marine_diet_N, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -433,7 +433,7 @@ map(.x= marine_diet_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -457,7 +457,7 @@ map(.x= plant_diet_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
