@@ -486,7 +486,7 @@ map(.x = md_forage_effort_km2_r_files, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     all_effort_values <- unlist(md_forage_effort_km2_r_list)
     
@@ -541,7 +541,7 @@ map(.x = pd_forage_effort_km2_r_files, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     all_effort_values <- unlist(pd_forage_effort_km2_r_list)
     
@@ -650,7 +650,7 @@ map(catch_r_list_pd, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -668,7 +668,6 @@ map(catch_r_list_pd, \(this_file){
 #bring the npp adjusted catch back in and rescale it
 adjusted_catch_r_list <- list.files(here("data/spatial/fisheries-catch"), pattern = "ea_npp", full.names = TRUE) |> map(rast)
 
-
 #rescale and save rescaled rasters for biomass removal
 rescaled_biomass_list <- 
   
@@ -682,7 +681,7 @@ rescaled_biomass_list <-
   
   saveName <- sprintf(here("data/spatial/%s/int/forage_biomass_removal_rescaled_%s_%s.tif"), this_diet, this_diet, this_source)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     all_catch_values <- unlist(map(adjusted_catch_r_list, \(this_r){return(c(terra::values(this_r, na.rm=TRUE)))}))
 
@@ -700,7 +699,7 @@ rescaled_biomass_list <-
   
 })
   
-plot(rast(rescaled_biomass_list))
+
 ```
 
 # Will need to revisit this if all rescaling needs to be done within the context of a feed (i.e. rescaled per cell against the highest value for all ingredients across both diets in that cell).
@@ -837,12 +836,12 @@ ggsave(filename = here("figures/presos/forage_fish_catch_md_OTH.jpg"), device = 
 
 #EPC
 
-disturbance_md <- terra::as.data.frame(x = rast(here("data/spatial/marine_diet/pressures/forage_fish_disturbance_pressure_marine_diet_EPC.tif")), xy = TRUE)
+disturbance_md <- terra::as.data.frame(x = rast(here("data/spatial/marine_diet/pressures/forage_fish_disturbance_EPC.tif")), xy = TRUE)
 
 
 ggplot()+
   geom_sf(data = countries |> filter(region_wb %in% c("Latin America & Caribbean" , "North America")), colour = NA, fill = "grey70")+
-  geom_tile(data = disturbance_md, aes(x = x, y = y, fill = log10(lyr.1+1)))+
+  geom_tile(data = disturbance_md, aes(x = x, y = y, fill = log10(forage_fish_disturbance_EPC+1)))+
   theme_bw()+
   theme(axis.title = element_blank(),
         axis.text = element_blank(),
