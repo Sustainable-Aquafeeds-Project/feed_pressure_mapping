@@ -479,12 +479,18 @@ catch <- fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv"))
  #145 unique species and species groups in the FAO data
 forage_spp_fao <- read_csv(here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv")) |> select(Name_en, Scientific_Name) |> distinct() |> rename(common_name = Name_en, sci_name = Scientific_Name) 
 
+#bring in species highlighted in the SI of Froehlich et al 2018 Avoiding the ecological limits of forage fish. Nature Sustainability.
+froehlich_spp <- read_csv("/mnt/rdsi/raw_data/froehlich/forage_fish_spp.csv")
+
+froehlich_binomials <- froehlich_spp |> filter(resolution == "binomial") |> mutate(common_name = NA) |> select(common_name, sci_name)
+
+
 #13 species in Kok et al - some not in the FAO data
 forage_spp_koketal <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  select(common_name, sci_name) |> distinct()
 #forage_spp_koketal_common <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  pull(common_name) |> unique()
 
 #bind the two sources and save - 155 species considered in total
-forage_spp_list <- bind_rows(forage_spp_fao, forage_spp_koketal) |> distinct()
+forage_spp_list <- bind_rows(forage_spp_fao, froehlich_binomials ,forage_spp_koketal) |> distinct()
 write_csv(forage_spp_list, here("data/raw_data/fisheries/forage_fish_list_final.csv"))
 
 forage_catch <- catch |> 
@@ -501,16 +507,6 @@ unique(forage_catch$TaxonName)
 
 saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2017.rds"))
 
-
-
-#THE V4 DATA
-
-# #check how many of the 154 are represented - only 31 species representing over 20 million tonnes but species from the embodied fish are also missing. Might be worth filtering by relevant genus as even binomials can differ
-# unique(forage_catch$TaxonName)
-# sum(forage_catch$total_catch)
-# 
-# saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2015.rds"))
-# 
 
 
 ```

@@ -223,8 +223,8 @@ Now do some checks on if demand and supply match up per record i.e. by per cell-
 ```{r}
 #check the demand vs supply match up - are there cells where supply is outstripped by demand? 
 forage_supply_demand_by_diet |> filter(demand_vs_supply>1) #lots of rows where demand exceeds supply - likely due to global average conversions, but by how much typically?
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 7% of catch records demand exceed catch in 2017
-forage_supply_demand_by_diet |> filter(demand_vs_supply>1) |> pull(demand_vs_supply) |> unique() #nothing exceeding 1.11 of catch. How much does this matter- i.e. what does that equate to in tonnes and is that within a range of variation for that cell?
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 6.7% of catch records demand exceed catch in 2017
+forage_supply_demand_by_diet |> filter(demand_vs_supply>1) |> pull(demand_vs_supply) |> unique() #nothing exceeding 1.3 of catch. How much does this matter- i.e. what does that equate to in tonnes and is that within a range of variation for that cell?
 nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1.1))/nrow(forage_supply_demand_by_diet) # the same 2.8% of records because this is the only value
 
 #look at what quantities and proportion demand exceeded supply by
