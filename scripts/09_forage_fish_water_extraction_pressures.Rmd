@@ -18,23 +18,26 @@ source(here("src/directories.R"))
 
 ```
 
-For each diet and source import the rasters from ghg and make all values zero - then rexport into "pressures" folder
+For each diet and source import the rasters from ghg and make all values zero - then rexport into "pressures" folder. Do this Fishmeal and Fish oil
+
+
+Fishmeal
 
 ```{r}
 
-template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "forage_fish_ghg", full.names = TRUE)
+fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg", full.names = TRUE)
 
-this_file <- template_files[[1]]
+this_file <- fm_template_files[[1]]
 
 
-map(.x = template_files, .f = \(this_file){
+map(.x = fm_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
   this_source <- substr(x = filename, start = nchar(filename)-2, stop = nchar(filename))
   
-  saveName_md <- sprintf(here("data/spatial/marine_diet/int/forage_fish_water_km2_%s.tif"), this_source)
-  saveName_pd <- sprintf(here("data/spatial/plant_diet/int/forage_fish_water_km2_%s.tif"), this_source)
+  saveName_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_water_km2_%s.tif"), this_source)
+  saveName_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_water_km2_%s.tif"), this_source)
   
   if(!file.exists(saveName_md) | !file.exists(saveName_pd)){
   
@@ -50,6 +53,40 @@ map(.x = template_files, .f = \(this_file){
 
 ```
 
+Fish oil
+
+
+```{r}
+
+fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg", full.names = TRUE)
+
+this_file <- fo_template_files[[1]]
+
+
+map(.x = fo_template_files, .f = \(this_file){
+  
+  filename <- tools::file_path_sans_ext(this_file)
+  
+  this_source <- substr(x = filename, start = nchar(filename)-2, stop = nchar(filename))
+  
+  saveName_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_water_km2_%s.tif"), this_source)
+  saveName_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_water_km2_%s.tif"), this_source)
+  
+  if(!file.exists(saveName_md) | !file.exists(saveName_pd)){
+  
+  this_r <- rast(this_file)*0
+  names(this_r) <- "total_h20_km2"
+  
+  terra::writeRaster(x = this_r, filename = saveName_md, overwrite = TRUE)
+  
+  terra::writeRaster(x = this_r, filename = saveName_pd, overwrite = TRUE)
+  }
+  
+  })
+
+
+rm(list = ls())
+```
 
 
 

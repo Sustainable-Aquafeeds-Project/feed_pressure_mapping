@@ -28,7 +28,10 @@ Bring in  forage fish and crop layers for disturbance for both diets. Look at th
 
 #ID files for disturbance for marine and plant diets
 marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
+marine_diet_disturbance <- marine_diet_disturbance[!grepl("forage_fish", marine_diet_disturbance)]
+
 plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
+plant_diet_disturbance <- plant_diet_disturbance[!grepl("forage_fish", plant_diet_disturbance)]
 
 #which diet has the highest disturbance values
 marine_disturbance_vals <- marine_diet_disturbance |> map(rast) |> map(no_na_values) |> unlist()
@@ -117,6 +120,7 @@ plot(rast(rescaled_marine_disturbance_rasters))
 plot(rast(rescaled_plant_disturbance_rasters))
 
 ```
+
 # Greenhouse gas pressures
 
 Need to remove the email raster layers
@@ -124,7 +128,10 @@ Need to remove the email raster layers
 ```{r}
 
 marine_diet_ghg <- list.files(here("data/spatial/marine_diet/int"), pattern = "ghg", full.names = TRUE)
+marine_diet_ghg <- marine_diet_ghg[!grepl("forage_fish", marine_diet_ghg)]
+
 plant_diet_ghg <- list.files(here("data/spatial/plant_diet/int"), pattern = "ghg", full.names = TRUE)
+plant_diet_ghg <- plant_diet_ghg[!grepl("forage_fish", plant_diet_ghg)]
 
 #get the raster values from files
 marine_ghg_vals <- marine_diet_ghg |> map(rast) |> map(no_na_values) |> unlist()
@@ -219,8 +226,10 @@ plot(rast(rescaled_plant_ghg_rasters))
 ```{r}
 
 marine_diet_N <- list.files(here("data/spatial/marine_diet/int"), pattern = "_N_", full.names = TRUE)
+marine_diet_N <- marine_diet_N[!grepl("forage_fish", marine_diet_N)]
 
 plant_diet_N <- list.files(here("data/spatial/plant_diet/int"), pattern = "_N_", full.names = TRUE)
+plant_diet_N <- plant_diet_N[!grepl("forage_fish", plant_diet_N)]
 
 all_N <- c(marine_diet_N, marine_diet_N)
 
@@ -258,7 +267,7 @@ map(.x= marine_diet_N, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -282,7 +291,7 @@ map(.x= plant_diet_N, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -305,8 +314,10 @@ map(.x= plant_diet_N, .f = \(this_file){
 # Phosphorus
 
 marine_diet_P <- list.files(here("data/spatial/marine_diet/int"), pattern = "_P_", full.names = TRUE)
+marine_diet_P <- marine_diet_P[!grepl("forage_fish", marine_diet_P)]
 
 plant_diet_P <- list.files(here("data/spatial/plant_diet/int"), pattern = "_P_", full.names = TRUE)
+plant_diet_P <- plant_diet_P[!grepl("forage_fish", plant_diet_P)]
 
 all_P <- c(marine_diet_P, marine_diet_P)
 
@@ -394,8 +405,10 @@ map(.x= plant_diet_P, .f = \(this_file){
 ```{r}
 
 marine_diet_h2o <- list.files(here("data/spatial/marine_diet/int"), pattern = "_water_", full.names = TRUE)
+marine_diet_h2o <- marine_diet_h2o[!grepl("forage_fish", marine_diet_h2o)]
 
 plant_diet_h2o <- list.files(here("data/spatial/plant_diet/int"), pattern = "_water_", full.names = TRUE)
+plant_diet_h2o <- plant_diet_h2o[!grepl("forage_fish", plant_diet_h2o)]
 
 all_h2o <- c(marine_diet_h2o, marine_diet_h2o)
 
@@ -433,7 +446,7 @@ map(.x= marine_diet_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -457,7 +470,7 @@ map(.x= plant_diet_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -469,6 +482,7 @@ map(.x= plant_diet_h2o, .f = \(this_file){
   }
   
 })
+
 
 
 

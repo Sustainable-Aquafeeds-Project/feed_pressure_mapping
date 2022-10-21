@@ -20,9 +20,10 @@ values <- terra::values
 Bring in all ingredients by diet
 
 ```{r}
-marine_diet <- readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> filter(prop>0) |> pull(ingredients)
+marine_diet <- readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> filter(prop>0) |> mutate(ingredients = gsub(pattern = "-wild", replacement = "", x = ingredients)) |> pull(ingredients)
 
-plant_diet <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> filter(prop>0) |> pull(ingredients)
+plant_diet <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> filter(prop>0) |> mutate(ingredients = gsub(pattern = "-wild", replacement = "", x = ingredients)) |> pull(ingredients)
+
 
 ```
 
@@ -39,6 +40,8 @@ md_df_list <- vector(mode="list", length = 1000)
 
 #iterate a random pull from each ingredient source 1000 times and isolate non duplicates
 for(i in 1:1000){
+  
+  message(i, "/1000")
   
   this_diet_df <- 
     map_df(md_ingredient_source_list, \(this_df){
@@ -69,6 +72,8 @@ pd_df_list <- vector(mode="list", length = 1000)
 
 #iterate a random pull from each ingredient source 1000 times and isolate non duplicates
 for(i in 1:1000){
+  
+  message("iteration ", i, "/1000")
   
   this_diet_df <- 
     map_df(pd_ingredient_source_list, \(this_df){

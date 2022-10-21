@@ -20,24 +20,25 @@ source(here("src/directories.R"))
 
 For each diet and source import the rasters from ghg and make all values zero - then rexport into "int" folder with nutrient file names - for both nitrogen and phosphorus
 
+# Nitrogen pollution
 
-Nitrogen pollution
+Fishmeal
 
 ```{r}
 
-template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "forage_fish_ghg", full.names = TRUE)
+fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg", full.names = TRUE)
 
-this_file <- template_files[[3]]
+this_file <- fm_template_files[[3]]
 
 
-map(.x = template_files, .f = \(this_file){
+map(.x = fm_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
   this_source <- substr(x = filename, start = nchar(filename)-2, stop = nchar(filename))
   
-  saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/forage_fish_N_km2_%s.tif"), this_source)
-  saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/forage_fish_N_km2_%s.tif"), this_source)
+  saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_N_km2_%s.tif"), this_source)
+  saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_N_km2_%s.tif"), this_source)
   
   if(!file.exists(saveName_N_md) | !file.exists(saveName_N_pd)){
     
@@ -55,22 +56,60 @@ map(.x = template_files, .f = \(this_file){
 
 ```
 
-Phosphorus pollution
+Fish oil
 
 ```{r}
-template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "forage_fish_ghg", full.names = TRUE)
 
-this_file <- template_files[[3]]
+fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg", full.names = TRUE)
+
+this_file <- fo_template_files[[3]]
 
 
-map(.x = template_files, .f = \(this_file){
+map(.x = fo_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
   this_source <- substr(x = filename, start = nchar(filename)-2, stop = nchar(filename))
   
-  saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/forage_fish_P_km2_%s.tif"), this_source)
-  saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/forage_fish_P_km2_%s.tif"), this_source)
+  saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_N_km2_%s.tif"), this_source)
+  saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_N_km2_%s.tif"), this_source)
+  
+  if(!file.exists(saveName_N_md) | !file.exists(saveName_N_pd)){
+    
+    this_r <- rast(this_file)*0
+    names(this_r) <- "total_N_km2"
+    
+    #save N rasters
+    terra::writeRaster(x = this_r, filename = saveName_N_md, overwrite = TRUE)
+    
+    terra::writeRaster(x = this_r, filename = saveName_N_pd, overwrite = TRUE)
+    
+  }
+  
+})
+
+```
+
+
+
+# Phosphorus pollution
+
+Fishmeal
+
+```{r}
+fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg", full.names = TRUE)
+
+this_file <- fm_template_files[[3]]
+
+
+map(.x = fm_template_files, .f = \(this_file){
+  
+  filename <- tools::file_path_sans_ext(this_file)
+  
+  this_source <- substr(x = filename, start = nchar(filename)-2, stop = nchar(filename))
+  
+  saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_P_km2_%s.tif"), this_source)
+  saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_P_km2_%s.tif"), this_source)
   
   if(!file.exists(saveName_P_md) | !file.exists(saveName_P_pd)){
   
@@ -88,6 +127,41 @@ map(.x = template_files, .f = \(this_file){
 
 ```
 
+
+Fish oil 
+
+```{r}
+fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg", full.names = TRUE)
+
+this_file <- fo_template_files[[3]]
+
+
+map(.x = fo_template_files, .f = \(this_file){
+  
+  filename <- tools::file_path_sans_ext(this_file)
+  
+  this_source <- substr(x = filename, start = nchar(filename)-2, stop = nchar(filename))
+  
+  saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_P_km2_%s.tif"), this_source)
+  saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_P_km2_%s.tif"), this_source)
+  
+  if(!file.exists(saveName_P_md) | !file.exists(saveName_P_pd)){
+  
+  this_r <- rast(this_file)*0
+  names(this_r) <- "total_P_km2"
+  
+  #save P rasters
+  terra::writeRaster(x = this_r, filename = saveName_P_md, overwrite = TRUE)
+  
+  terra::writeRaster(x = this_r, filename = saveName_P_pd, overwrite = TRUE)
+  }
+  
+  })
+
+
+
+rm(list = ls())
+```
 
 
 

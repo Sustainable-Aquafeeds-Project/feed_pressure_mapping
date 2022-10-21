@@ -266,7 +266,10 @@ Redistribute the demand in cells where it is greater than supply across other ce
 
 ```{r}
 #data list by source and diet
-forage_supply_demand_list <- forage_supply_demand_by_diet |> 
+forage_supply_demand_list <- 
+  forage_supply_demand_by_diet |> 
+  mutate(fm_prop_embodied_fish = fm_embodied_fish/total_embodied_fish) |> 
+  mutate(fo_prop_embodied_fish = fo_embodied_fish/total_embodied_fish) |> 
   relocate(diet, .before = source_code) |> 
   group_split(diet, source_code)
 
@@ -317,20 +320,24 @@ forage_supply_demand_redistributed <-
       
     } else{
       
-        this_df <- this_df |> 
+      this_df <- this_df |> 
         mutate(exceedance = 0) |> 
         mutate(prop_exceedance = 0) |> 
         mutate(added_embodied_fish = 0) |> 
-        mutate(adj_embodied_fish = total_embodied_fish)
+        mutate(adj_embodied_fish = total_embodied_fish) 
       
-    return(this_df)
+      return(this_df)
       
     }
-
+    
   })
 
+forage_supply_demand_redistributed_fmfo <- 
+  forage_supply_demand_redistributed |> 
+  mutate(embodied_fish_adj_fm = fm_prop_embodied_fish*adj_embodied_fish,
+         embodied_fish_adj_fo = fo_prop_embodied_fish*adj_embodied_fish)
 
-fwrite(forage_supply_demand_redistributed, file = here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
+fwrite(forage_supply_demand_redistributed_fmfo, file = here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
 
 
 nrow(forage_supply_demand_by_diet)==nrow(forage_supply_demand_redistributed)

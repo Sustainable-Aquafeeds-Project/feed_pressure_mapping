@@ -27,10 +27,9 @@ ei_data <- read_csv(here("data/raw_data/fisheries/all_catch_emissions_2017.csv")
 
 ```
 
-Now join the embodied fish demand xy data with the emission intensity data and calculate the emissions from each gear in each cell. Then we can save the rasters for each diet and source
+Now join the embodied fish demand xy data with the emission intensity data and calculate the emissions from each gear in each cell. Then we can save the rasters for each diet and source, for both fishmeal and oil ingredients
 
 ```{r}
-
 embodied_fish <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
 
 #take a look at the differences between gears for watson data and the ei data 
@@ -47,35 +46,42 @@ embodied_fish_new_gear <-
   left_join(parker_gear_join, by="Gear") |> 
   left_join(ei_data, by = c("Taxonkey", "Descript", "ParkerGearName")) |> 
   as_tibble() |> 
-  mutate(adj_embodied_fish_kg = adj_embodied_fish *1000) |> 
-  mutate(ei_kg_CO2_eq = adj_embodied_fish_kg*ei_kgco2_kgcatch)
+  mutate(fm_adj_embodied_fish_kg = embodied_fish_adj_fm *1000,
+         fo_adj_embodied_fish_kg = embodied_fish_adj_fo *1000) |> 
+  mutate(ei_kg_CO2_eq_fm = fm_adj_embodied_fish_kg*ei_kgco2_kgcatch,
+         ei_kg_CO2_eq_fo = fo_adj_embodied_fish_kg*ei_kgco2_kgcatch)
 
 #embodied_fish_new_gear |> filter(is.na(ei_kgco2_kgcatch))
 #no missing emissions intensity data - what we want.
 
+```
 
-ghg_list <- embodied_fish_new_gear |> 
-  select(diet, source_code, LonCentre, LatCentre, ei_kg_CO2_eq) |> 
+
+# Fishmeal
+```{r}
+
+ghg_list_fm <- embodied_fish_new_gear |> 
+  select(diet, source_code, LonCentre, LatCentre, ei_kg_CO2_eq_fm) |> 
   group_by(diet, source_code, LonCentre, LatCentre) |> 
-  summarise(total_GWP_km2 = sum(ei_kg_CO2_eq, na.rm=TRUE)) |> 
+  summarise(total_GWP_km2_fm = sum(ei_kg_CO2_eq_fm, na.rm=TRUE)) |> 
   ungroup() |> 
   group_split(diet, source_code)
 
 
 
-ghg_raw_r_list <- 
+ghg_raw_r_list_fm <- 
   
-  map(.x = ghg_list, .f = \(this_df) {
+  map(.x = ghg_list_fm, .f = \(this_df) {
   
   this_source <- unique(this_df$source_code)
   
   this_diet <- unique(this_df$diet)
   
-  saveName <- sprintf(here("data/spatial/%s/int/forage_fish_ghg_raw_%s_%s.tif"), this_diet, this_diet, this_source)
+  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_raw_%s_%s.tif"), this_diet, this_diet, this_source)
   
   if(!file.exists(saveName)){
     
-    this_xy <- this_df |> select(LonCentre, LatCentre, total_GWP_km2)
+    this_xy <- this_df |> select(LonCentre, LatCentre, total_GWP_km2_fm)
     
     this_r <- rast(this_xy, type = "xyz", crs = "EPSG:4326") |> extend(ext(rast(res=0.5)))
     
@@ -88,8 +94,50 @@ ghg_raw_r_list <-
 })
 
 #check the rasters
-plot(rast(ghg_raw_r_list))
+plot(rast(ghg_raw_r_list_fm))
 
 ```
 
+# Fish oil
+
+```{r}
+
+ghg_list_fo <- embodied_fish_new_gear |> 
+  select(diet, source_code, LonCentre, LatCentre, ei_kg_CO2_eq_fo) |> 
+  group_by(diet, source_code, LonCentre, LatCentre) |> 
+  summarise(total_GWP_km2_fo = sum(ei_kg_CO2_eq_fo, na.rm=TRUE)) |> 
+  ungroup() |> 
+  group_split(diet, source_code)
+
+
+
+ghg_raw_r_list_fo <- 
+  
+  map(.x = ghg_list_fo, .f = \(this_df) {
+  
+  this_source <- unique(this_df$source_code)
+  
+  this_diet <- unique(this_df$diet)
+  
+  saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_raw_%s_%s.tif"), this_diet, this_diet, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    this_xy <- this_df |> select(LonCentre, LatCentre, total_GWP_km2_fo)
+    
+    this_r <- rast(this_xy, type = "xyz", crs = "EPSG:4326") |> extend(ext(rast(res=0.5)))
+    
+    this_r_km2 <- this_r/cellSize(this_r, unit="km")
+    
+    writeRaster(x = this_r_km2, filename = saveName, overwrite=TRUE)
+    
+    return(this_r_km2)
+  }
+})
+
+#check the rasters
+plot(rast(ghg_raw_r_list_fo))
+
+
+```
 
