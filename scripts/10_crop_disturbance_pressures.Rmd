@@ -17,7 +17,7 @@ source(here("src/directories.R"))
 
 ```
 
-Import the crop demand data to get the FAO-MAPSPAM look up names
+Import the crop demand data to get the FAO-MAPSPAM look up names. Also import the area harvested data to use as a proxy to understand how physical area may have changed based on the trend in area 
 
 ```{r}
 
@@ -29,6 +29,18 @@ mapspam_fao_lookup <-
          iso3c = countrycode(sourcevar = source_country, origin = "country.name", destination = "iso3c", warn=TRUE))
 
 
+
+crop_area <- 
+  readRDS(here("data/tidy_data/production-data/crops_production_tidy.rds")) |> 
+  filter(element == "Area harvested") |> 
+  filter(item %in% unique(mapspam_fao_lookup$FAOSTAT_name)) |> 
+  filter(year %in% c(2010, 2017)) |> 
+  mutate(value_km2 = value*0.01) |> 
+  select(area, iso3c, item, element, year, value_km2) |> 
+  pivot_wider(id_cols = c(area, iso3c, item, element), names_from = year, values_from = value_km2) |> 
+  mutate(rel_change = `2017`/`2010`) |> 
+  filter(area != "China")
+  
 ```
 
 Import the demand-production comparisons for crops to adjust the physical area (under the assumption it is yields that have increased).
@@ -58,11 +70,75 @@ demand_production_compare_w_sources <-
 
 ```
 
-Adjust area rasters by the demand_production ratio and save in the int folder for each diet.
+Check the area harvested from FAOSTAT with physical area from MAPSPAM to identify the discrepencies and fix by adjustment factors based on the greatest area harvested in either 2010 or 2017.
 
 ```{r}
 
 crop_area_files <- list.files(here("data/spatial/crop-layers-reprojected"), pattern = "_A_", full.names = TRUE)
+
+country_rast_files <- list.files(here("data/spatial/country-rasters"), full.names = TRUE)
+
+countries_of_interest <- 
+  country_rast_files |> map(\(this_element){
+  this_file <- tools::file_path_sans_ext(this_element)
+  this_country <- substr(this_file, start = nchar(this_file)-2, stop = nchar(this_file))
+  return(this_country)
+}) |> unlist()
+
+crop_area_data <- crop_area |> 
+  filter(iso3c %in% countries_of_interest) |> 
+  group_by(item, iso3c, area) |> 
+  group_split()
+
+this_country_crop <- crop_area_data[[1]]
+
+mapspam_fao_compare <- 
+  
+  map_df(.x = crop_area_data, .f = \(this_country_crop){
+  
+  this_iso3 <- this_country_crop$iso3c
+  this_item <- this_country_crop$item
+  this_mapsam_code <- mapspam_fao_lookup |> filter(FAOSTAT_name == this_item) |> pull(map_spam_code) |> unique()
+  
+  message("Calculating area for ", "'", this_mapsam_code, "'", " in ", this_iso3)
+  
+  this_country_rast <- rast(country_rast_files[grep(this_iso3, country_rast_files)])
+  vals <- values(this_country_rast)
+  
+  (this_global_crop_rast <- rast(crop_area_files[grep(this_mapsam_code, crop_area_files)]))
+  
+  (this_country_crop_rast <- this_global_crop_rast*this_country_rast)
+  
+  mapspam_value <- sum(values(this_country_crop_rast), na.rm=TRUE)
+  
+  return(this_country_crop |> mutate(mapspam_value = mapspam_value))
+
+}) |> 
+  mutate(mapspam_value = mapspam_value) |> 
+  mutate(adjustment_factor= case_when(is.na(`2017`)|is.na(`2010`) ~ 0,
+                                      `2017` > `2010` ~ `2017`/mapspam_value,
+                                       `2010` > `2017` ~ `2010`/mapspam_value))
+
+
+# now adjust the MAPSPAM rasters by the factors identified
+
+
+mapspam_adj_list <- mapspam_fao_compare |> 
+  group_by(item, iso3c, area) |> 
+  group_split()
+
+
+
+
+
+```
+
+
+Adjust area rasters by the demand_production ratio and save in the int folder for each diet.
+
+```{r}
+
+crop_area_files <- list.files(here("data/spatial/crop-layers-adjusted"), pattern = "_A_", full.names = TRUE)
 
 country_rast_files <- list.files(here("data/spatial/country-rasters"), full.names = TRUE)
 

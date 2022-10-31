@@ -151,11 +151,21 @@ forage_fish_md <- forage_fish |> filter(diet == "marine_diet") |> as_tibble()
 unique(forage_fish$CommonName)
 sum(forage_fish_md$total_catch)
 
-# Number of countries for crops
-# marine_pressure_files <- 
-#   list.files("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures", full.names = TRUE) |> 
-#   str_extract()
+#Number of countries for crops
+pressure_files <-
+  c(list.files("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures", full.names = TRUE), list.files("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/plant_diet/pressures", full.names = TRUE)) |>
+  map(.f = \(this_element){
+    sans_ext <- tools::file_path_sans_ext(this_element)
+    
+    last_3 <-  str_sub(string = sans_ext, start = nchar(sans_ext)-2, end = nchar(sans_ext))
+    return(last_3)
+  }) |> 
+  unlist() |> 
+  unique() 
+  
+(countries_regions <- pressure_files[pressure_files!="les"])
 
+length(countries_regions[!countries_regions %in% c("EPC", "NAT", "OTH")]) # 14 countries used excluding the 3 marine regions
 
 
 #number of crop types
@@ -1006,9 +1016,10 @@ marine_vals <-  marine_plant_df |> filter(diet == "marine diet") |> pull(sum)
 plant_vals <- marine_plant_df |> filter(diet == "plant diet") |> pull(sum)
 
 
-
 max_marine <- max(marine_vals)
 min_plant <- min(plant_vals)
+
+
 
 #which marine vals are higher than the plant minimum?
 marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #97.6% of marine values
@@ -1030,7 +1041,7 @@ max(plant_vals)/max(marine_vals) #32% higher maximum CPI for plants
 
 
 #minimum of one, maximum of anotehr
-min(plant_vals)/max(marine_vals) #plant diets can have CPI 63% lower than marine diets
+min(plant_vals)/max(marine_vals) #plant diets can have CPI 61% lower than marine diets
 
 
 summary(marine_vals)
@@ -1919,16 +1930,21 @@ summarised_ingredient_pressure_df <-
   mutate(ingredient = str_to_sentence(ingredient))
 
 
-marine_diet <- 
+(marine_diet <- 
   ggplot(data = summarised_ingredient_pressure_df |> 
            filter(diet == "Marine-dominant feed"),
-         aes(x = pressure, y = mean, fill=ingredient))+
+         aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
   # geom_polygon(aes(group = ingredient, colour = ingredient), alpha=0.3, size=1.1)+
-  coord_polar(clip="off")+
+  #coord_polar(clip="off")+
+  coord_flip()+
   
-  geom_col(aes(fill=ingredient), position = "dodge", width = 0.75, alpha = 0.8)+
-  geom_point(position = position_dodge(width = 0.7), size=0.1, colour="red")+
-  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.7), width = 0, size = 0.2)+
+  geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
+  #geom_point(position = position_dodge(width = 0.7), size=0.1, colour="red")+
+  geom_errorbar(aes(x = ingredient, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.9), width = 0, size = 0.2)
+
+)
+
++
   #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
   #scale_fill_manual(values = rcartocolor::carto_pal(n=6, name = "Safe")[c(5,11,2, 4, 3,7)])+
   scale_fill_manual(values = rcartocolor::carto_pal(n=12, name = "Safe"))+
