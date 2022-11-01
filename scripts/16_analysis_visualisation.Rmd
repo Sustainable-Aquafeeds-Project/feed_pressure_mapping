@@ -262,9 +262,7 @@ Bring in the source-ingredient combinations within each diet. Fishmeal and oil a
 marine_diets <- 
   readRDS(here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds")) 
 
-plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds")) |> 
-  mutate(ingredient = case_when(ingredient == "canola/camelina oil" ~ "canola oil",
-                                TRUE ~ ingredient))
+plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds")) 
 
 ```
 
@@ -298,7 +296,7 @@ marine_source_ingredient <-
 
 
 #test dataframe
-#this_df <- marine_source_ingredient[[1]]
+this_df <- marine_source_ingredient[[1]]
 
 sources <- c("source_1", "source_2", "source_3")
 

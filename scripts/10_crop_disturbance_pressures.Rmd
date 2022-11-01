@@ -13,6 +13,9 @@ library(terra)
 library(here)
 library(countrycode)
 
+
+
+
 source(here("src/directories.R"))
 
 ```
@@ -120,11 +123,6 @@ mapspam_fao_compare <-
                                        `2010` > `2017` ~ `2010`/mapspam_value))
 
 
-# now adjust the MAPSPAM rasters by the factors identified
-
-
-
-
 
 
 ```
@@ -170,13 +168,19 @@ map(.x = scalar_source_list, \(this_file){
   
     this_country_rast <- rast(country_rast_files[grepl(this_country, country_rast_files)])
     
-    this_country_area_rast <- this_raw_rast*this_country_rast*this_scalar
-    names(this_country_area_rast) <- "Disturbance (km2)"
+    this_country_area_rast <- this_raw_rast*this_country_rast*this_raster_scalar*this_demand_scalar
+    
+    #check
+    check_vals <- values(!is.na(this_country_area_rast/cellSize(this_country_area_rast))) |> as.numeric()
+    
+    message("Are any cells greater than cell size? ",  max(check_vals)>1)
+    
     
     writeRaster(x= this_country_area_rast, filename = saveName, overwrite=TRUE)
 
   }
 })
+
 
 ```
 
