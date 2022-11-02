@@ -33,7 +33,7 @@ ext(base_rast) <- c(-180, 180, -90, 90)
 eq_area_rast <- project(base_rast, gall_peters, res=10000) 
 values(eq_area_rast) <- 1:ncell(eq_area_rast)
 
-plot(eq_area_rast)
+#plot(eq_area_rast)
 #cellSize(eq_area_rast, unit="km")
 
 ```
@@ -68,7 +68,7 @@ md_reprojected_rasters <-
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_disturbance_km2_gp_%s.tif"), this_ingredient, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -107,7 +107,7 @@ pd_reprojected_rasters <-
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_km2_gp_%s.tif"), this_ingredient, this_country)
     
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -166,7 +166,7 @@ rescaled_marine_disturbance_rasters <-
     
     saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
     
     message("Processing ", "'", this_basename, "'")  
       
@@ -196,7 +196,7 @@ rescaled_plant_disturbance_rasters <-
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
    message("Processing ", "'", this_basename, "'")
     
@@ -253,7 +253,7 @@ map(.x = marine_diet_ghg, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_ghg_gp_%s.tif"), this_ingredient, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -287,7 +287,7 @@ map(.x = plant_diet_ghg, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_ghg_gp_%s.tif"), this_ingredient, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -319,7 +319,7 @@ pd_reprojected_rasters_ghg <- list.files(path = here("data/spatial/plant_diet/in
 marine_ghg_vals <- md_reprojected_rasters_ghg |> map(rast) |> map(no_na_values) |> unlist()
 plant_ghg_vals <- pd_reprojected_rasters_ghg |> map(rast) |> map(no_na_values) |> unlist()
 
-#check plant is appearing more intense (given crop ghg values are much higher)
+#compare marine and plant ghgs
 summary(marine_ghg_vals)
 summary(plant_ghg_vals)
 
@@ -346,7 +346,7 @@ rescaled_marine_ghg_rasters <-
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -431,7 +431,7 @@ map(.x = marine_diet_N, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_N_gp_%s.tif"), this_ingredient, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -465,7 +465,7 @@ map(.x = plant_diet_N, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_N_gp_%s.tif"), this_ingredient, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -523,7 +523,7 @@ map(.x= md_reprojected_rasters_N, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     message("Processing", "'", this_basename, "'")
     
@@ -551,7 +551,7 @@ map(.x= pd_reprojected_rasters_N, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -633,7 +633,7 @@ map(.x = plant_diet_P, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_P_gp_%s.tif"), this_ingredient, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -721,7 +721,7 @@ map(.x= pd_reprojected_rasters_P, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
      message("Processing", "'", this_basename, "'")
     
@@ -772,7 +772,7 @@ map(.x = marine_diet_h2o, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_water_gp_%s.tif"), this_ingredient, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -866,7 +866,7 @@ map(.x= md_reprojected_rasters_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){
@@ -892,7 +892,7 @@ map(.x= pd_reprojected_rasters_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_rescaled_rast <- 
       app(x = this_rast, fun = \(x){

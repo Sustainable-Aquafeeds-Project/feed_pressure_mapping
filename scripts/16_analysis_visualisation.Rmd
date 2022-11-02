@@ -18,7 +18,8 @@ library(RColorBrewer)
 library(gameofthrones)
 library(parallel)
 library(ggdist)
-
+library(data.table)
+library(dtplyr)
 
 
 moll_crs <- "ESRI:53009"
@@ -201,7 +202,7 @@ for(s in source_codes){
 }
 unlist(diff_list) #~2.2 across all regions
 
-#Differences among regions withinmarine-dominant feed
+#Differences among regions within marine-dominant feed
 embodied_fish_bysource |> 
   filter(diet == "Marine-dominant\nfeed") |> 
   arrange(-embodied_fish_demand) |> 
@@ -255,7 +256,7 @@ ggsave(here("figures/supplementary/embodied_fish_by_diet_source.jpg"), device = 
 
 ```
 
-Bring in the source-ingredient combinations within each diet. Fishmeal and oil are combined rather than as fishmeal and oil so modify in the dataframes for now.
+Bring in the source-ingredient combinations within each diet. 
 
 ```{r}
 
@@ -296,7 +297,7 @@ marine_source_ingredient <-
 
 
 #test dataframe
-this_df <- marine_source_ingredient[[1]]
+this_df <- marine_source_ingredient[[3]]
 
 sources <- c("source_1", "source_2", "source_3")
 
@@ -347,7 +348,7 @@ for(source in sources){
   
 
 
-#adjust layers and replace NA with 0
+#load all files as rasters and adjust files a  NA -> 0
 
 #this_file <- marine_diet_files[[6]]
 
@@ -379,6 +380,7 @@ for(source in sources){
 
 marine_diet_raster <- list()
 
+options(warn = 0)
 for(source in sources){
   
   #stack rasters for each sourcing combination
@@ -389,7 +391,7 @@ for(source in sources){
   marine_diet_raster[[source]] <- project(marine_diet_raster[[source]], moll_crs)
   
 }
-
+options(warn = 1)
 
 
 ```
@@ -503,6 +505,8 @@ for(source in sources){
 
 plant_diet_raster <- list()
 
+oldw <- getOption("warn")
+options(warn = -1) #just turns off the warnings of southern latitudes issues from converting from Gall-Peters to Mollweide
 for(source in sources){
   
   #stack rasters for each sourcing combination
@@ -513,6 +517,7 @@ for(source in sources){
   plant_diet_raster[[source]] <- project(plant_diet_raster[[source]], moll_crs)
   
 }
+options(warn = oldw)
 
 marine_diet_raster
 plant_diet_raster
