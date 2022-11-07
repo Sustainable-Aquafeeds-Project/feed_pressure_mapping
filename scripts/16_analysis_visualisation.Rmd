@@ -260,8 +260,7 @@ Bring in the source-ingredient combinations within each diet.
 
 ```{r}
 
-marine_diets <- 
-  readRDS(here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds")) 
+marine_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds")) 
 
 plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds")) 
 
@@ -522,6 +521,9 @@ options(warn = oldw)
 marine_diet_raster
 plant_diet_raster
 
+
+
+
 ```
 
 Figure - maps comparing diet and sourcing
@@ -715,9 +717,9 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
 
 
 source_diet_map <- 
-  (marine_sourcing_p1|plant_sourcing_p1)/
+  (marine_sourcing_p1|plant_sourcing_p3)/
   (marine_sourcing_p2|plant_sourcing_p2)/
-  (marine_sourcing_p3|plant_sourcing_p3)+
+  (marine_sourcing_p3|plant_sourcing_p1)+
   plot_layout(guides = "collect")+
   plot_annotation(tag_levels = "a", #surely there is a better way than below?
                   title = "                    Marine-dominant feed                                Plant-dominant feed") & 
@@ -1025,27 +1027,27 @@ min_plant <- min(plant_vals)
 
 
 #which marine vals are higher than the plant minimum?
-marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #97.6% of marine values
+marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #98% of marine values
 
 #which plant vals are lower than the marine maximum?
-plant_vals[plant_vals<max_marine] |> length()/ length(plant_vals) #97%
+plant_vals[plant_vals<max_marine] |> length()/ length(plant_vals) #98.8%
 
 #median comparisons
 median(marine_vals)
 median(plant_vals)
 
-median(plant_vals)/median(marine_vals) #21% higher median CPI for plants
+median(marine_vals)/median(plant_vals) #2% higher median CPI for plants
 
 #maximum comparisons
 max(marine_vals)
 max(plant_vals)
 
-max(plant_vals)/max(marine_vals) #32% higher maximum CPI for plants
+max(plant_vals)/max(marine_vals) #11% higher maximum CPI for plants
 
 
 #minimum of one, maximum of anotehr
-min(plant_vals)/max(marine_vals) #plant diets can have CPI 61% lower than marine diets
-
+min(plant_vals)/max(marine_vals) #plant diets can have CPI 75% lower than marine diets
+min(plant_vals)/min(marine_vals) #min plant diets have CPI 20% > marine diets
 
 summary(marine_vals)
 summary(plant_vals)

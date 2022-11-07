@@ -189,7 +189,7 @@ map(.x = scalar_source_list, \(this_file){
     
     this_country_crop_adj_rast <- this_country_crop_rast*this_raster_scalar #increases the area associated with production
     
-    this_country_crop_demand_rast <- this_country_crop_adj_rast*this_demand_scalar
+    this_country_crop_demand_rast <- this_country_crop_adj_rast*this_demand_scalar #scales the area produced by the demand:production ratio
     
     writeRaster(x= this_country_crop_demand_rast, filename = saveName, overwrite=TRUE)
 
