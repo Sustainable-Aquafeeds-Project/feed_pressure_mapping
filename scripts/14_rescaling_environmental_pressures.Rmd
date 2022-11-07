@@ -52,7 +52,7 @@ marine_diet_disturbance <- marine_diet_disturbance[!grepl("forage_fish|_gp", mar
 
 #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA
 
-this_file <- marine_diet_disturbance[[1]]
+this_file <- marine_diet_disturbance[[2]]
 
 
 #marine diets
@@ -85,6 +85,8 @@ md_reprojected_rasters <-
     }
   })
 
+
+marine_diet_disturbance |> map(rast)
 
 
 #plant diets

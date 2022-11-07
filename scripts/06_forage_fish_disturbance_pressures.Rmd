@@ -29,6 +29,20 @@ source(here("src/spatial.R"))
 
 ```
 
+Equal area projection resources
+```{r}
+
+gall_peters <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+#raster template 
+base_rast <- rast(res=0.5)
+ext(base_rast) <- c(-180, 180, -90, 90)
+
+eq_area_rast <- project(base_rast, gall_peters, res=10000) 
+values(eq_area_rast) <- 1:ncell(eq_area_rast)
+
+```
+
+
 
 ## Benthic destruction
 
@@ -750,7 +764,9 @@ combined_raster_list <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
-  this_km2_combined_r <- this_combined_r*cellSize(this_combined_r, unit="km")
+  this_combined_r_reproj <- project(this_combined_r, gall_peters)
+  
+  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
   
   writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/marine_diet/int/fishmeal_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
   
@@ -779,7 +795,9 @@ combined_raster_list2 <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
-  this_km2_combined_r <- this_combined_r*cellSize(this_combined_r, unit="km")
+  this_combined_r_reproj <- project(this_combined_r, gall_peters)
+  
+  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
   
  writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/plant_diet/int/fishmeal_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
   
@@ -1401,7 +1419,9 @@ combined_raster_list <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
-  this_km2_combined_r <- this_combined_r*cellSize(this_combined_r, unit="km")
+   this_combined_r_reproj <- project(this_combined_r, gall_peters)
+  
+  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
   
   writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/marine_diet/int/fish oil_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
   
@@ -1430,7 +1450,9 @@ combined_raster_list2 <-
   
   this_combined_r <- (this_benthic_r+this_biomass_r)/2
   
-  this_km2_combined_r <- this_combined_r*cellSize(this_combined_r, unit="km")
+   this_combined_r_reproj <- project(this_combined_r, gall_peters)
+  
+  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
   
  writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/plant_diet/int/fish oil_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
   
@@ -1447,10 +1469,10 @@ plot(rast(combined_raster_list2))
 fo_benthic_destruction_md |> map(rast)
 fo_benthic_destruction_pd |> map(rast)
 
-fm_biomass_removal_md |> map(rast)
-fm_biomass_removal_pd |> map(rast)
+fo_biomass_removal_md |> map(rast)
+fo_biomass_removal_pd |> map(rast)
 
-
+rm(list = ls())
 ```
 
 
