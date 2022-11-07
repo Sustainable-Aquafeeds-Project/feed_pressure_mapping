@@ -20,7 +20,7 @@ source(here("src/directories.R"))
 
 ```
 
-Import the crop demand data to get the FAO-MAPSPAM look up names. Also import the area harvested data to use as a proxy to understand how physical area may have changed based on the trend in area 
+Import the crop demand data to get the FAO-MAPSPAM look up names. Also import the area harvested data to use as a proxy to understand how physical area may have changed based on the trend in area harvested. 
 
 ```{r}
 
@@ -33,17 +33,30 @@ mapspam_fao_lookup <-
 
 
 
-crop_area <- 
-  readRDS(here("data/tidy_data/production-data/crops_production_tidy.rds")) |> 
+crop_area_raw <- 
+  readRDS(here("data/tidy_data/production-data/crops_production_tidy.rds"))
+
+(crop_area <- crop_area_raw |>  
   filter(element == "Area harvested") |> 
   filter(item %in% unique(mapspam_fao_lookup$FAOSTAT_name)) |> 
-  filter(year %in% c(2010, 2017)) |> 
+  filter(year %in% c(2009, 2010, 2011, 2016, 2017, 2018)) |> 
   mutate(value_km2 = value*0.01) |> 
   select(area, iso3c, item, element, year, value_km2) |> 
-  pivot_wider(id_cols = c(area, iso3c, item, element), names_from = year, values_from = value_km2) |> 
-  mutate(rel_change = `2017`/`2010`) |> 
+  drop_na(value_km2) |> 
+  mutate(era = if_else(condition = year %in% c(2009, 2010, 2011), true = "early", false = "late")) |> 
+  group_by(area, iso3c, item, element, era) |> 
+  summarise(mean_value_km2 = mean(value_km2, na.rm = TRUE)) |> 
+  drop_na(iso3c) |> 
+  pivot_wider(id_cols = c(area, iso3c, item, element), names_from = era, values_from = mean_value_km2) |> 
+  mutate(rel_change = case_when(early == 0 ~ 1,
+                              is.na(early) | is.na(late) ~ 1,
+                              TRUE ~ late/early)) |> 
   filter(area != "China")
+  )
   
+
+max(crop_area$rel_change, na.rm = TRUE)
+
 ```
 
 Import the demand-production comparisons for crops to adjust the physical area (under the assumption it is yields that have increased).
@@ -68,7 +81,7 @@ demand_production_compare_w_sources <-
   
   this_crop_adj <- this_crop |> filter(iso3c %in% sources)
 }) |> 
-  filter(!(FAOSTAT_name == "Linseed" & source_iso3c %in% c("CHN", "GBR"))) |> 
+  #filter(!(FAOSTAT_name == "Linseed" & source_iso3c %in% c("CHN", "GBR"))) |> 
   filter(demand_production_ratio>0)
 
 ```
@@ -88,14 +101,26 @@ countries_of_interest <-
   return(this_country)
 }) |> unlist()
 
-crop_area_data <- crop_area |> 
-  filter(iso3c %in% countries_of_interest) |> 
+crop_area_data_countries <- crop_area |> 
+  filter(iso3c %in% countries_of_interest) 
+
+#Some crazy changes in area harvested which doubtfully reflect the physical change in area - s
+hist(crop_area_data_countries$rel_change) |> 
+  abline(v= quantile(crop_area_data_countries$rel_change, c(0.75,0.9, 0.95, 0.99)), lty = 2)
+
+quantile(crop_area_data_countries$rel_change, c(0.9, 0.95, 0.99))
+summary(crop_area_data_countries$rel_change) # highly skewed so those values greater than the mean get the mean value (mean is greater than the 90th percentile)
+area_adj_value <- mean(crop_area_data_countries$rel_change)
+
+crop_area_data <- crop_area_data_countries |> 
+  mutate(rel_change = case_when(rel_change > area_adj_value ~ area_adj_value,
+                                TRUE ~ rel_change)) |> 
   group_by(item, iso3c, area) |> 
   group_split()
 
 this_country_crop <- crop_area_data[[1]]
 
-mapspam_fao_compare <- 
+mapspam_rel_change <- 
   
   map_df(.x = crop_area_data, .f = \(this_country_crop){
   
@@ -116,15 +141,7 @@ mapspam_fao_compare <-
   
   return(this_country_crop |> mutate(mapspam_value = mapspam_value))
 
-}) |> 
-  mutate(mapspam_value = mapspam_value) |> 
-  mutate(adjustment_factor= case_when(is.na(`2017`)|is.na(`2010`) ~ 0,
-                                      `2017` > `2010` ~ `2017`/mapspam_value,
-                                       `2010` > `2017` ~ `2010`/mapspam_value))
-
-
-
-
+}) 
 ```
 
 
@@ -138,7 +155,7 @@ country_rast_files <- list.files(here("data/spatial/country-rasters"), full.name
 
 scalar_source_list <- 
   demand_production_compare_w_sources |> 
-  left_join( y = mapspam_fao_compare, by = c("source_country" = "area", "iso3c", "FAOSTAT_name" = "item")) |> 
+  left_join( y = mapspam_rel_change, by = c("source_country" = "area", "iso3c", "FAOSTAT_name" = "item")) |> 
   group_split(ingredients, diet, FAOSTAT_name, source_iso3c) 
   
 this_file <- scalar_source_list[[1]]
@@ -157,7 +174,7 @@ map(.x = scalar_source_list, \(this_file){
   
   this_demand_scalar <- this_file$demand_production_ratio
   
-  this_raster_scalar <- this_file$adjustment_factor
+  this_raster_scalar <- this_file$rel_change
   
   saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s.tif"), this_diet, this_ingredient, this_country)
   
@@ -168,15 +185,13 @@ map(.x = scalar_source_list, \(this_file){
   
     this_country_rast <- rast(country_rast_files[grepl(this_country, country_rast_files)])
     
-    this_country_area_rast <- this_raw_rast*this_country_rast*this_raster_scalar*this_demand_scalar
+    this_country_crop_rast <- this_raw_rast*this_country_rast
     
-    #check
-    check_vals <- values(!is.na(this_country_area_rast/cellSize(this_country_area_rast))) |> as.numeric()
+    this_country_crop_adj_rast <- this_country_crop_rast*this_raster_scalar #increases the area associated with production
     
-    message("Are any cells greater than cell size? ",  max(check_vals)>1)
+    this_country_crop_demand_rast <- this_country_crop_adj_rast*this_demand_scalar
     
-    
-    writeRaster(x= this_country_area_rast, filename = saveName, overwrite=TRUE)
+    writeRaster(x= this_country_crop_demand_rast, filename = saveName, overwrite=TRUE)
 
   }
 })

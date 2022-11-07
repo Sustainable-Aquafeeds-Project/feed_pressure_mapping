@@ -1444,8 +1444,8 @@ combined_raster_list2 <-
 plot(rast(combined_raster_list))
 plot(rast(combined_raster_list2))
 
-fm_benthic_destruction_md |> map(rast)
-fm_benthic_destruction_pd |> map(rast)
+fo_benthic_destruction_md |> map(rast)
+fo_benthic_destruction_pd |> map(rast)
 
 fm_biomass_removal_md |> map(rast)
 fm_biomass_removal_pd |> map(rast)
