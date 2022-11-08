@@ -1921,117 +1921,103 @@ Visualise the disaggregation by pressure and ingredient
 
 marine_plant_pressure_ingredient_disagg_combined_df <- readRDS(here("data/tidy_data/pressures/marine_plant_disaggregated_pressures_by_ingredient_combined_df.rds"))
 
+marine_plant_pressure_ingredient_disagg_combined_df <- 
+  marine_plant_pressure_ingredient_disagg_combined_df |> 
+group_by(diet, source) |> 
+  nest() |> 
+  mutate(total = map(data, ~(sum(.$sum)))) |> 
+  unnest(c(data, total)) |> 
+  mutate(prop = sum/total)
+
+
 summarised_ingredient_pressure_df <- 
   marine_plant_pressure_ingredient_disagg_combined_df |> 
   group_by(diet, pressure, ingredient) |> 
-  summarise(mean = mean(sum, na.rm=TRUE),
-            sd = sd(sum, na.rm=TRUE),
+  summarise(mean = mean(prop, na.rm=TRUE),
+            sd = sd(prop, na.rm=TRUE),
             se = sd/sqrt(500),
             median = median(sum, na.rm = TRUE),
-            lq = quantile(sum, 0.25),
-            uq = quantile(sum, 0.75), .groups = "drop") |> 
+            lq = quantile(prop, 0.25),
+            uq = quantile(prop, 0.75), .groups = "drop") |> 
   mutate(diet = if_else(diet == "marine diet", true = "Marine-dominant feed", false = "Plant-dominant feed")) |> 
   mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
   mutate(ingredient = str_to_sentence(ingredient))
 
 
+
 (marine_diet <- 
   ggplot(data = summarised_ingredient_pressure_df |> 
            filter(diet == "Marine-dominant feed"),
-         aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
-  # geom_polygon(aes(group = ingredient, colour = ingredient), alpha=0.3, size=1.1)+
-  #coord_polar(clip="off")+
+                aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
   coord_flip()+
-  
   geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
-  #geom_point(position = position_dodge(width = 0.7), size=0.1, colour="red")+
-  geom_errorbar(aes(x = ingredient, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.9), width = 0, size = 0.2)
-
-)
-
-+
-  #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
-  #scale_fill_manual(values = rcartocolor::carto_pal(n=6, name = "Safe")[c(5,11,2, 4, 3,7)])+
-  scale_fill_manual(values = rcartocolor::carto_pal(n=12, name = "Safe"))+
-  scale_y_continuous(limits=c(0,100), breaks = c(0,25,50,75,100))+
+  geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.75), width = 0, size = 0.2)+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "Safe"))+
+   scale_y_continuous(expand = c(0,0), limits = c(0,0.302), breaks = c(0.1, 0.2, 0.3))+
   theme_bw()+
-  theme(panel.border = element_blank(),
-        axis.title.x = element_blank(),
+  theme(
+        #panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        # axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom",
-        legend.direction = "horizontal",
-        legend.title = element_text(size=6),
-        legend.text = element_text(size=5),
+        # axis.text.y = element_blank(),
+        # axis.ticks = element_blank(),
+        plot.title = element_text(size=8, hjust=0.5),
+        legend.position = c(0.8,0.25),
+        legend.title = element_text(size=7, colour = "grey20"),
+        legend.text = element_text(size=7, colour = "grey20"),
         legend.background = element_rect(fill="transparent"),
-        legend.key.size = unit(0.27, "cm"),
-        legend.box.spacing = unit(-0.2, "cm"),
+        legend.key.size = unit(0.3, "cm"),
+        #legend.box.spacing = unit(-0.2, "cm"),
         text = element_text(size=8))+
-  labs(y = "Normalised pressure index", fill = "Marine-dominant feed")+
-  guides(fill = guide_legend(override.aes = list(shape = NA), title.hjust = 0.5, title.position = "top"))
+  labs(y = "Prop. of Cumulative Pressure Index", fill = "Pressure", title = "Marine-dominant feed")+
+  guides(fill = "none"))
 
 
-ggsave(here("figures/marine_disaggreation_by_ingredient_pressure.jpg"), dpi = 600, height=9.4, width=8.9, units="cm")
+ggsave(here("figures/marine_disaggreation_by_ingredient_pressure.jpg"), dpi = 600, height=12, width=8.9, units="cm")
 
-  
-  
-plant_diet <- 
+
+
+
+(plant_diet <- 
   ggplot(data = summarised_ingredient_pressure_df |> 
            filter(diet == "Plant-dominant feed"),
-         aes(x = pressure, y = mean, fill=ingredient))+
-  # geom_polygon(aes(group = ingredient, colour = ingredient), alpha=0.3, size=1.1)+
-  coord_polar(clip="off")+
-  geom_col(aes(fill=ingredient), position = "dodge", width = 0.75, alpha = 0.8)+
-  geom_point(position = position_dodge(width = 0.75), size=0.1, colour="red")+
-  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.75), width = 0, size = 0.2)+
-  #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
-  scale_fill_manual(values = rcartocolor::carto_pal(n=12, name = "Safe"))+
-  #scale_fill_manual(values = rcartocolor::carto_pal(n=12, name = "Safe")[c(10,5, 6, 8, 11, 9, 2, 12, 4,1, 3,7)], labels = str_pad_custom)+
-  scale_y_continuous(limits=c(0,100))+
+         aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
+  coord_flip()+
+  geom_col(aes(fill=pressure), position = "dodge", width = 0.85, alpha = 0.8)+
+  geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.85), width = 0, size = 0.2)+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "Safe"))+
+  scale_y_continuous(expand = c(0,0), limits = c(0,0.302), breaks = c(0.1, 0.2, 0.3))+
   theme_bw()+
-  theme(panel.border = element_blank(),
-        axis.title.x = element_blank(),
+  theme(
+        #panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        # axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom",
-        legend.direction = "horizontal",
-        legend.title = element_text(size=6),
-        legend.text = element_text(size=5),
+        # axis.text.y = element_blank(),
+        # axis.ticks = element_blank(),
+        plot.title = element_text(size=8, hjust=0.5),
+        legend.position = c(0.8,0.13),
+        legend.title = element_text(size=7, colour = "grey20"),
+        legend.text = element_text(size=7, colour = "grey20"),
         legend.background = element_rect(fill="transparent"),
-        legend.key.size = unit(0.27, "cm"),
-        legend.box.spacing = unit(-0.2, "cm"),
+        legend.key.size = unit(0.3, "cm"),
+        #legend.box.spacing = unit(-0.2, "cm"),
         text = element_text(size=8))+
-  labs(y = "Normalised pressure index", fill = "Plant-dominant feed")+
-  guides(fill = guide_legend(override.aes = list(shape = NA), title.hjust = 0.5, title.position = "top"))
+  labs(y = "Prop. of Cumulative Pressure Index", fill = "Pressure", title = "Plant-dominant feed"))
 
 
-ggsave(here("figures/plant_disaggreation_by_ingredient_pressure.jpg"), dpi = 600, height=9.4, width=8.9, units="cm")
+ggsave(here("figures/plant_disaggreation_by_ingredient_pressure.jpg"), dpi = 600, height=12, width=8.9, units="cm")
 
 
  
-joint_legend <- get_legend(marine_diet)
+
+marine_diet|plant_diet
+
+ggsave(here("figures/disaggregation_of_pressure_by_ingredient.jpg"), dpi = 600, width = 16, height =13, units="cm")
 
 
-(marine_diet|plant_diet)
-
-ggsave(here("figures/disaggregation_of_pressure_by_ingredient.jpg"), dpi = 600, width = 18, height =11, units="cm")
 
 
-
-source_diet_map <- 
-  (marine_sourcing_p1|plant_sourcing_p1)/
-  (marine_sourcing_p2|plant_sourcing_p2)/
-  (marine_sourcing_p3|plant_sourcing_p3)+
-  plot_layout(guides = "collect")+
-  plot_annotation(tag_levels = "a", #surely there is a better way than below?
-                  title = "                            Marine diet                                               Plant diet") & 
-  theme(plot.tag = element_text(size=10), 
-        plot.tag.position = c(0.1, 1),
-        legend.position = "bottom")
-          
-
-  
 ```
 
