@@ -198,7 +198,7 @@ map(.x = these_crop_yield_files, .f = \(this_file){
   
   this_rast <- rast(this_file)
   
-  this_agg_rast <- terra::aggregate(this_rast, fact=6)
+  this_agg_rast <- terra::aggregate(this_rast, fact=6, fun=sum)
   
   raw_saveName <- sprintf(here("data/spatial/crop-layers-raw/%s"), basename(this_file))
   saveName <-  sprintf(here("data/spatial/crop-layers-reprojected/%s"), basename(this_file))
@@ -222,12 +222,12 @@ map(.x = these_crop_area_files, .f = \(this_file){
   
   this_rast <- rast(this_file)
   
-  this_agg_rast <- terra::aggregate(this_rast, fact=6)*0.01 #aggregate to half degree and convert to km2
+  this_agg_rast <- terra::aggregate(this_rast, fact=6, fun=sum)*0.01 #aggregate to half degree and convert to km2
   
   raw_saveName <- sprintf(here("data/spatial/crop-layers-raw/%s"), basename(this_file))
   saveName <-  sprintf(here("data/spatial/crop-layers-reprojected/%s"), basename(this_file))
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     writeRaster(x = this_rast, filename = raw_saveName, overwrite = TRUE)
     writeRaster(x = this_agg_rast, filename = saveName, overwrite = TRUE)

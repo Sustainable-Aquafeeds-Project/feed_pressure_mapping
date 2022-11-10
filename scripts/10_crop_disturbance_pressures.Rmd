@@ -110,7 +110,7 @@ hist(crop_area_data_countries$rel_change) |>
 
 quantile(crop_area_data_countries$rel_change, c(0.9, 0.95, 0.99))
 summary(crop_area_data_countries$rel_change) # highly skewed so those values greater than the mean get the mean value (mean is greater than the 90th percentile)
-area_adj_value <- mean(crop_area_data_countries$rel_change)
+area_adj_value <- max(crop_area_data_countries$rel_change)
 
 crop_area_data <- crop_area_data_countries |> 
   mutate(rel_change = case_when(rel_change > area_adj_value ~ area_adj_value,

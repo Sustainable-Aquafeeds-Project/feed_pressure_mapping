@@ -22,7 +22,7 @@ values <- terra::values
 source(here("src/fxns.R"))
 ```
 
-Createequal area projection for rescaling
+Create equal area projection for rescaling
 ```{r}
 
 gall_peters <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
@@ -85,7 +85,6 @@ md_reprojected_rasters <-
   })
 
 
-marine_diet_disturbance |> map(rast)
 
 
 #plant diets
