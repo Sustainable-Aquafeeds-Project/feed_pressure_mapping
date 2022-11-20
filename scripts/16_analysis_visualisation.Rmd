@@ -141,6 +141,7 @@ both_diets_p <- ggplot(data = both_diets,
 ggsave(filename = here("figures/feed_composition.jpg"), dpi = 600, width = 10, height = 9, units = "cm")
 
 
+
 ```
 
 Some statistics on the number of species/crop raw materials/countries/marine regions needed to support demand. 
@@ -256,7 +257,7 @@ ggsave(here("figures/supplementary/embodied_fish_by_diet_source.jpg"), device = 
 
 ```
 
-Bring in the source-ingredient combinations within each diet. 
+Bring in the source-ingredient combinations within each diet.  
 
 ```{r}
 
@@ -2092,7 +2093,8 @@ summarised_ingredient_pressure_df2 <-
             lq = quantile(prop, 0.25),
             uq = quantile(prop, 0.75), .groups = "drop") |> 
   mutate(diet = if_else(diet == "marine diet", true = "Marine-dominant feed", false = "Plant-dominant feed")) |> 
-  mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) 
+  mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
+   mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nitrogen", "GHG", "Disturbance")))
 
 
 
@@ -2103,7 +2105,7 @@ summarised_ingredient_pressure_df2 <-
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.75), width = 0, size = 0.2)+
-  scale_fill_manual(values = (rcartocolor::carto_pal(n=5, name = "Safe")))+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
     scale_y_continuous(expand = c(0,0), limits = c(0,0.302))+
   theme_bw()+
   theme(
@@ -2137,7 +2139,7 @@ ggsave(here("figures/supplementary/marine_disaggreation_by_ingredient_pressure_p
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.85, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.85), width = 0, size = 0.2)+
-  scale_fill_manual(values = (rcartocolor::carto_pal(n=5, name = "Safe")))+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
   scale_y_continuous(expand = c(0,0), limits = c(0,0.302))+
   theme_bw()+
   theme(
@@ -2165,10 +2167,166 @@ ggsave(here("figures/supplementary/plant_disaggreation_by_ingredient_pressure_pr
  
 
 (marine_diet_ingredients_p2|plant_diet_ingredients_p2) +
+ plot_layout(guides = "keep")+
+  guides(fill = guide_legend(reverse = TRUE))+
   plot_annotation(tag_levels = "a")&
-  theme(plot.tag = element_text(size=8))&
-  guides(fill = guide_legend(reverse = TRUE))
+  theme(plot.tag = element_text(size=8))
 ggsave(here("figures/supplementary/disaggregation_of_pressure_by_ingredient_prop.jpg"), dpi = 600, width = 18, height =13, units="cm")
+
+
+
+```
+
+
+
+Now some case studies of ingredients 
+
+
+Fish oil - disturbance
+
+```{r}
+
+list.files(here("data/spatial/marine_diet/int"), pattern = "fish oil_disturbance_km2_gp", full=TRUE) |> rast() |> global(fun = sum, na.rm=TRUE)
+
+list.files(here("data/spatial/plant_diet/int"), pattern = "fish oil_disturbance_km2_gp", full=TRUE) |> rast() |> global(fun = sum, na.rm=TRUE)
+
+
+
+marine_diet_disturbance <- 
+  bind_rows(
+  
+  fo_low_epc_r <- list.files(here("data/spatial/marine_diet/int"), pattern = "fish oil_disturbance_km2_gp", full=TRUE) |> pluck(1) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "Eastern Pacific"),
+  
+  fo_hi_nat_r <- list.files(here("data/spatial/marine_diet/int"), pattern = "fish oil_disturbance_km2_gp", full=TRUE) |> pluck(2) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "North Atlantic")
+) |> mutate(pressure = "Disturbance km2",
+            diet = "Marine-dominant feed") |> 
+  rename(value = lyr.1)
+
+
+
+plant_diet_disturbance <- 
+  bind_rows(
+  
+  fo_low_epc_r <- list.files(here("data/spatial/plant_diet/int"), pattern = "fish oil_disturbance_km2_gp", full=TRUE) |> pluck(1) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "Eastern Pacific"),
+  
+  fo_hi_nat_r <- list.files(here("data/spatial/plant_diet/int"), pattern = "fish oil_disturbance_km2_gp", full=TRUE) |> pluck(2) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "North Atlantic")
+) |> mutate(pressure = "Disturbance km2",
+            diet = "Plant-dominant feed") |> 
+  rename(value = lyr.1)
+
+
+
+
+
+fish_oil_disturbance_epc_nat <- bind_rows(marine_diet_disturbance, plant_diet_disturbance)
+
+get_bounds <- fish_oil_disturbance_epc_nat |> select(x,y, value) |> rast(type="xyz")
+crs(get_bounds) <- gp_crs
+fish_oil_bounds <- st_bbox(get_bounds)
+
+fo_bounds_df <- tibble(xmin = fish_oil_bounds["xmin"] , xmax = fish_oil_bounds["xmax"] , ymin = fish_oil_bounds["ymin"] , ymax = fish_oil_bounds["ymax"])
+
+
+fo_dist_p <- ggplot()+
+  geom_rect(data = fo_bounds_df, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = "aliceblue", alpha = 0.7)+
+  geom_tile(data = fish_oil_disturbance_epc_nat, aes(x = x, y = y, fill = value))+
+  geom_sf(data = ne_countries(scale = 10, returnclass = "sf") |> st_transform(crs = gp_crs) |> st_crop(y = fish_oil_bounds), size = NA, fill="grey75")+
+  facet_grid(rows = vars(source), cols = vars(diet))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n = 7, name = "SunsetDark"))+
+  theme_bw()+
+  theme(axis.text = element_blank(),
+        axis.title.y = element_text(vjust = 3, size = 12),
+        axis.title.x = element_blank(),
+        axis.ticks = element_blank(),
+        legend.box.spacing = unit(-0.8, "cm"),
+        legend.title = element_text(size = 8))+
+  labs(fill = expression(paste("Disturbance (km"^{2}*")")), y = "Fish oil - Disturbance")
+  
+
+ggsave(filename = here("explore/fish_oil_comparisons.jpg"), device = "jpg", dpi = 600, width = 18, height = 12, units = "cm")
+
+
+```
+
+
+Wheat - GHG
+
+```{r}
+list.files(here("data/spatial/marine_diet/int"), pattern = "wheat_N_gp", full=TRUE) |> rast() |> global(fun = sum, na.rm=TRUE)
+
+list.files(here("data/spatial/plant_diet/int"), pattern = "wheat_N_gp", full=TRUE) |> rast() |> global(fun = sum, na.rm=TRUE)
+
+
+
+marine_diet_wheat_N <- 
+  bind_rows(
+  
+  wheat_low_ukr_r <- list.files(here("data/spatial/marine_diet/int"), pattern = "wheat_N_gp", full=TRUE) |> pluck(3) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "Ukraine"),
+  
+  wheat_low_ukr_r <- list.files(here("data/spatial/marine_diet/int"), pattern = "wheat_N_gp", full=TRUE) |> pluck(2) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "Pakistan")
+  ) |>  
+  mutate(pressure = "kg N eq.",
+            diet = "Marine-dominant feed") |> 
+  rename(value = N_eq)
+
+
+
+plant_diet_wheat_N <- 
+  bind_rows(
+  
+  wheat_low_ukr_r <- list.files(here("data/spatial/plant_diet/int"), pattern = "wheat_N_gp", full=TRUE) |> pluck(3) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "Ukraine"),
+  
+  wheat_low_ukr_r <- list.files(here("data/spatial/plant_diet/int"), pattern = "wheat_N_gp", full=TRUE) |> pluck(2) |> rast() |> terra::as.data.frame(xy = TRUE) |> mutate(source = "Pakistan")
+  ) |>  
+  mutate(pressure = "kg N eq.",
+            diet = "Plant-dominant feed") |> 
+  rename(value = N_eq)
+
+
+
+wheat_N_ukr_pak <- bind_rows(marine_diet_wheat_N, plant_diet_wheat_N)
+
+get_bounds_2 <- wheat_N_ukr_pak |> select(x,y, value) |> rast(type="xyz")
+crs(get_bounds_2) <- gp_crs
+wheat_bounds <- st_bbox(get_bounds_2)
+
+wheat_bounds_df <- tibble(xmin = wheat_bounds["xmin"] , xmax = wheat_bounds["xmax"] , ymin = wheat_bounds["ymin"] , ymax = wheat_bounds["ymax"])
+
+wheat_N_p <- 
+  ggplot()+
+  geom_rect(data = wheat_bounds_df, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), fill = "aliceblue", alpha = 0.7)+
+  geom_sf(data = ne_countries(scale = 10, returnclass = "sf") |> st_transform(crs = gp_crs) |> st_crop(y = wheat_bounds), size = 0.3, colour="grey50", fill="grey75")+
+  geom_tile(data = wheat_N_ukr_pak, aes(x = x, y = y, fill = value))+
+  
+  facet_grid(rows = vars(source), cols = vars(diet))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n = 7, name = "TealGrn"))+
+  theme_bw()+
+  theme(axis.text = element_blank(),
+        axis.title.y = element_text(vjust = 3, size = 12),
+        axis.title.x = element_blank(),
+        axis.ticks = element_blank(),
+        legend.title = element_text(size = 8),
+        plot.margin = unit(c(t = 0, b = 0, l=0.3, r=0.3), "cm"))+
+  labs(fill = "kg N eq.", y = "Wheat - Nitrogen pollution")
+  
+
+ggsave(filename = here("explore/wheat_comparisons.jpg"), device = "jpg", dpi = 600, width = 18, height = 12, units = "cm")
+
+
+
+
+```
+
+Combine plots
+
+```{r}
+
+(fo_dist_p/wheat_N_p)+
+  plot_annotation(tag_levels = "a")+
+  plot_layout(heights = c(1.2,1))
+
+ggsave(filename = here("figures/ingredient_casestudies.jpg"), device = "jpg", dpi = 600, width = 18, height = 26, units = "cm")
+
 
 
 
