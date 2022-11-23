@@ -2332,3 +2332,120 @@ ggsave(filename = here("figures/ingredient_casestudies.jpg"), device = "jpg", dp
 
 ```
 
+
+```{r}
+
+us_maize_r <- rast(here("data/spatial/marine_diet/production/corn gluten meal_AllTech_CAN.tif"))
+
+us_maize_df <- terra::as.data.frame(us_maize_r, xy =TRUE)
+
+countries_shp <- ne_countries(scale = "medium", returnclass = "sf") |> filter(adm0_a3 ==  "CAN" ) 
+
+nAm_bbox <- countries_shp |> st_bbox()
+
+#nAm_bbox["xmax"] <- 
+
+
+ggplot()+
+  geom_sf(data = countries_shp, fill="grey95" )+
+  geom_tile(data = us_maize_df, aes(x = x, y=y, fill=spam2010V2r0_global_P_MAIZ_A))+
+  theme_bw()+
+  labs(fill = "Demand (MT)")+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))
+
+
+ggsave(here("figures/presos/ifpri_demand_raster.jpg"), dpi = 600, width = 12, height = 9, units = "cm")
+
+
+nat_catch <- rast(here("data/spatial/marine_diet/production/fish oil_catch_marine_diet_NAT.tif"))
+
+nat_demand_df <- terra::as.data.frame(nat_catch, xy=TRUE)
+  
+ggplot()+
+  geom_tile(data = nat_demand_df, aes(x=x, y=y, fill=catch))+
+  scale_fill_viridis_c()+
+  theme_bw()
+
+ggsave(here("figures/presos/watson_demand_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+
+#pressures
+
+
+can_cgm <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/int/corn gluten meal_ghg_km2_CAN.tif")
+
+cancgm_df <- terra::as.data.frame(can_cgm, xy = TRUE)
+
+
+ggplot()+
+  geom_sf(data = countries_shp, fill="grey95" )+
+  geom_tile(data = cancgm_df, aes(x=x, y=y, fill=kgCO2eqkm2))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))+
+  theme_bw()+
+  labs(fill = "GWP\nkg CO2e km-2")
+
+ggsave(here("figures/presos/cgm_ghg_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+
+
+
+
+
+fo_ghg <- rast(here("data/spatial/marine_diet/int/fish oil_ghg_raw_marine_diet_NAT.tif"))
+
+fo_ghg_df <-  terra::as.data.frame(fo_disturbance, xy = TRUE)
+
+
+ggplot()+
+  geom_tile(data = fo_ghg_df, aes(x=x, y=y, fill=total_GWP_km2_fo))+
+  scale_fill_viridis_c()+
+  theme_bw()+
+  labs(fill = "GWP\nkg CO2e km-2")
+
+ggsave(here("figures/presos/fo_ghg_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+#china spc
+spc_chn_r <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/plant_diet/pressures/soy protein concentrate_disturbance_CHN.tif")
+
+spc_chn_df <- terra::as.data.frame(spc_chn_r, xy = TRUE)
+
+
+
+ggplot()+
+  geom_sf(data = ne_countries(scale = "medium", returnclass = "sf") |> filter(adm0_a3 ==  "CHN" ) |> st_transform(crs = gp_crs) , fill="grey95" )+
+  geom_tile(data = spc_chn_df, aes(x=x, y=y, fill=`soy protein concentrate_disturbance_CHN`))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))+
+  theme_bw()+
+  labs(fill = "Normalised\npressure")
+
+
+ggsave(here("figures/presos/china_spc_dis.jpg"), dpi = 600, width = 12, height = 9, units="cm")
+
+
+
+
+#fishmeal epc
+
+fm_epc_r <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/fishmeal_disturbance_EPC.tif")
+
+fm_epc_df <- terra::as.data.frame(fm_epc_r, xy = TRUE)
+
+ggplot()+
+  geom_sf(data = ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = gp_crs) , fill="grey95" )+
+  geom_tile(data = fm_epc_df, aes(x=x, y=y, fill= fishmeal_disturbance_EPC))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))+
+  theme_bw()+
+  labs(fill = "Normalised\npressure")
+
+
+ggsave(here("figures/presos/epc_fm_dis.jpg"), dpi = 600, width = 17, height = 9, units="cm")
+
+
+
+
+rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/int/fish oil_disturbance_km2_NAT.tif")
+```
+

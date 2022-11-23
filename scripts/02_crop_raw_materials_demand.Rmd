@@ -145,7 +145,7 @@ Join the ingredient demand and allocation data to generate crop raw material dem
 
 #get saved allocation data
 (allocation_factors <- read_csv(here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv")) |> 
-  select(item, ingredient, area, iso3c, mean_value, allocation_factor) |> 
+  select(item, ingredient, area, iso3c, allocation_factor) |> distinct()
   left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name")) |> 
   distinct()
 )
