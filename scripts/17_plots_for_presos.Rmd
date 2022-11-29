@@ -1,0 +1,338 @@
+---
+title: "17_plots_for_presos"
+author: "Rich Cottrell"
+date: "29/11/2022"
+output: pdf_document
+---
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(sf)
+library(terra)
+
+
+
+
+
+```
+
+
+Aquaculture producers used in this analysis
+```{r}
+
+production_fcrs <- readRDS(here("data/tidy_data/demand/global_feed_demand.rds")) |> 
+  mutate(country  = case_when(country == "United Kingdom" ~ "UK", 
+                              country == "Russian Federation" ~ "Russia",
+                              country == "United States of America" ~ "USA",
+                              TRUE ~ country))
+
+ggplot()+
+  geom_col(data = production_fcrs, aes(x = reorder(country, value), y = value), fill="dodgerblue3")+
+  geom_text(data = production_fcrs |> 
+              mutate(eFCR_min = case_when(country=="Norway" ~ 1.2,
+                                          TRUE ~ eFCR_min)), 
+            aes(x = reorder(country, value), y = value+50000, label = eFCR_min), size=5)+
+  labs(y = "Production (tonnes)", x = "")+
+  coord_flip()+
+  theme_bw()+
+  theme(text = element_text(size = 20))
+
+
+ggsave(filename = here("figures/presos/production_fcrs.jpg"), dpi = 600, width = 18, height = 15, units = "cm")
+
+```
+
+
+Random pressure plots
+```{r}
+
+can_maize_r <- rast(here("data/spatial/marine_diet/production/corn gluten meal_AllTech_CAN.tif"))
+
+us_maize_df <- terra::as.data.frame(us_maize_r, xy =TRUE)
+
+countries_shp <- ne_countries(scale = "medium", returnclass = "sf") |> filter(adm0_a3 ==  "CAN" ) |> st_transform(crs = gp_crs) 
+
+nAm_bbox <- countries_shp |> st_bbox()
+
+#nAm_bbox["xmax"] <- 
+
+# 
+# ggplot()+
+#   geom_sf(data = countries_shp, fill="grey95" )+
+#   geom_tile(data = us_maize_df, aes(x = x, y=y, fill=spam2010V2r0_global_P_MAIZ_A))+
+#   theme_bw()+
+#   labs(fill = "Demand (MT)")+
+#   scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))
+# 
+# 
+# ggsave(here("figures/presos/ifpri_demand_raster.jpg"), dpi = 600, width = 12, height = 9, units = "cm")
+# 
+# 
+# nat_catch <- rast(here("data/spatial/marine_diet/production/fish oil_catch_marine_diet_NAT.tif"))
+# 
+# nat_demand_df <- terra::as.data.frame(nat_catch, xy=TRUE)
+#   
+# ggplot()+
+#   geom_tile(data = nat_demand_df, aes(x=x, y=y, fill=catch))+
+#   scale_fill_viridis_c()+
+#   theme_bw()
+# 
+# ggsave(here("figures/presos/watson_demand_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+# 
+
+
+#Example of normalised pressures for corn gluten meal
+
+#GHG  - CGM
+
+can_cgm_ghg <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/corn gluten meal_ghg_CAN.tif")
+
+cancgm_ghg_df <- terra::as.data.frame(can_cgm_ghg, xy = TRUE)
+
+
+ggplot()+
+  geom_sf(data = countries_shp, fill="grey95" )+
+  geom_tile(data = cancgm_ghg_df, aes(x=x, y=y, fill= `corn gluten meal_ghg_CAN`))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))+
+  theme_bw()+
+  labs(fill = "Normalised\nGWP")
+
+ggsave(here("figures/presos/cgm_ghg_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+
+
+# Disturbance  - CGM
+can_cgm_dist <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/corn gluten meal_disturbance_CAN.tif")
+
+cancgm_dist_df <- terra::as.data.frame(can_cgm_dist, xy = TRUE)
+
+
+ggplot()+
+  geom_sf(data = countries_shp, fill="grey95" )+
+  geom_tile(data = cancgm_dist_df, aes(x=x, y=y, fill=`corn gluten meal_disturbance_CAN`))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "BluYl"))+
+  theme_bw()+
+  labs(fill = "Normalised\ndisturbance")
+
+ggsave(here("figures/presos/cgm_dist_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+# Nitrogen  - CGM
+can_cgm_N <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/corn gluten meal_N_CAN.tif")
+
+cancgm_N_df <- terra::as.data.frame(can_cgm_N, xy = TRUE)
+
+
+ggplot()+
+  geom_sf(data = countries_shp, fill="grey95" )+
+  geom_tile(data = cancgm_N_df, aes(x=x, y=y, fill=`corn gluten meal_N_CAN`))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "PinkYl"))+
+  theme_bw()+
+  labs(fill = "Normalised\nnitrogen")
+
+ggsave(here("figures/presos/cgm_N_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+
+
+#Phosphorus - CGM
+
+can_cgm_P <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/corn gluten meal_P_CAN.tif")
+
+cancgm_P_df <- terra::as.data.frame(can_cgm_P, xy = TRUE)
+
+
+ggplot()+
+  geom_sf(data = countries_shp, fill="grey95" )+
+  geom_tile(data = cancgm_P_df, aes(x=x, y=y, fill=`corn gluten meal_P_CAN`))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "Magenta"))+
+  theme_bw()+
+  labs(fill = "Normalised\nphosphorus")
+
+ggsave(here("figures/presos/cgm_P_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+ 
+# Water - CGM
+
+can_cgm_water <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/corn gluten meal_water_CAN.tif")
+
+cancgm_water_df <- terra::as.data.frame(can_cgm_water, xy = TRUE)
+
+
+ggplot()+
+  geom_sf(data = countries_shp, fill="grey95" )+
+  geom_tile(data = cancgm_water_df, aes(x=x, y=y, fill=`corn gluten meal_water_CAN`))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "TealGrn"))+
+  theme_bw()+
+  labs(fill = "Normalised\nwater")
+
+ggsave(here("figures/presos/cgm_water_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+ 
+
+
+#Example of cumulative pressures for fish oil
+
+#GHG - FO
+
+non_trans_rast <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/plant_diet/int/fishmeal_trawl_catch_plant_diet_NAT_prop.tif")
+
+crop_box <- st_bbox(fo_ghg)
+
+original_countries_shp <- ne_countries(scale = "medium", returnclass = "sf")
+
+crop_countries_eu <- ne_countries(scale = "medium", returnclass = "sf") |> filter(continent == "Europe") |> filter(adm0_a3!= "RUS") |> st_crop(xmin = -40, xmax = 60, ymin = 20, ymax=75)
+
+
+
+
+fo_ghg <- rast(here("data/spatial/plant_diet/pressures/fish oil_ghg_NAT.tif"))
+
+fo_ghg_df <-  terra::as.data.frame(fo_ghg, xy = TRUE)
+
+
+
+
+ggplot()+
+  geom_tile(data = fo_ghg_df, aes(x=x, y=y, fill=`fish oil_ghg_NAT`))+
+  geom_sf(data = crop_countries_eu |> st_transform(crs = gp_crs), fill = "grey95")+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))+
+  theme_bw()+
+  labs(fill = "Normalised\nGWP")
+
+ggsave(here("figures/presos/fo_ghg_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+#Disturbance - FO
+
+fo_dist <- rast(here("data/spatial/plant_diet/pressures/fish oil_disturbance_NAT.tif"))
+
+fo_dist_df <-  terra::as.data.frame(fo_dist, xy = TRUE)
+
+
+ggplot()+
+  geom_tile(data = fo_dist_df, aes(x=x, y=y, fill=`fish oil_disturbance_NAT`))+
+  geom_sf(data = crop_countries_eu |> st_transform(crs = gp_crs), fill = "grey95")+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "BluYl"))+
+  theme_bw()+
+  labs(fill = "Normalised\ndisturbance")
+
+ggsave(here("figures/presos/fo_dist_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+# Nitrogen - FO 
+
+
+fo_N <- rast(here("data/spatial/plant_diet/pressures/fish oil_N_NAT.tif"))
+
+fo_N_df <-  terra::as.data.frame(fo_N, xy = TRUE)
+
+
+ggplot()+
+  geom_tile(data = fo_N_df, aes(x=x, y=y, fill=`fish oil_N_NAT`))+
+  geom_sf(data = crop_countries_eu |> st_transform(crs = gp_crs), fill = "grey95")+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "PinkYl"))+
+  theme_bw()+
+  labs(fill = "Normalised\nNitrogen")
+
+ggsave(here("figures/presos/fo_N_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+#phosphorus - FO
+
+fo_P <- rast(here("data/spatial/plant_diet/pressures/fish oil_P_NAT.tif"))
+
+fo_P_df <-  terra::as.data.frame(fo_P, xy = TRUE)
+
+
+ggplot()+
+  geom_tile(data = fo_P_df, aes(x=x, y=y, fill=`fish oil_P_NAT`))+
+  geom_sf(data = crop_countries_eu |> st_transform(crs = gp_crs), fill = "grey95")+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "Magenta"))+
+  theme_bw()+
+  labs(fill = "Normalised\nPhosphorus")
+
+ggsave(here("figures/presos/fo_P_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+#Water - FO
+
+fo_water <- rast(here("data/spatial/plant_diet/pressures/fish oil_water_NAT.tif"))
+
+fo_water_df <-  terra::as.data.frame(fo_water, xy = TRUE)
+
+
+ggplot()+
+  geom_tile(data = fo_water_df, aes(x=x, y=y, fill=`fish oil_water_NAT`))+
+  geom_sf(data = crop_countries_eu |> st_transform(crs = gp_crs), fill = "grey95")+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "TealGrn"))+
+  theme_bw()+
+  labs(fill = "Normalised\nwater")
+
+ggsave(here("figures/presos/fo_water_raster.jpg"), dpi = 600, width = 15, height = 9, units = "cm")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#china spc
+spc_chn_r <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/plant_diet/pressures/soy protein concentrate_disturbance_CHN.tif")
+
+spc_chn_df <- terra::as.data.frame(spc_chn_r, xy = TRUE)
+
+
+
+ggplot()+
+  geom_sf(data = ne_countries(scale = "medium", returnclass = "sf") |> filter(adm0_a3 ==  "CHN" ) |> st_transform(crs = gp_crs) , fill="grey95" )+
+  geom_tile(data = spc_chn_df, aes(x=x, y=y, fill=`soy protein concentrate_disturbance_CHN`))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))+
+  theme_bw()+
+  labs(fill = "Normalised\npressure")
+
+
+ggsave(here("figures/presos/china_spc_dis.jpg"), dpi = 600, width = 12, height = 9, units="cm")
+
+
+
+
+#fishmeal epc
+
+fm_epc_r <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures/fishmeal_disturbance_EPC.tif")
+
+fm_epc_df <- terra::as.data.frame(fm_epc_r, xy = TRUE)
+
+ggplot()+
+  geom_sf(data = ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = gp_crs) , fill="grey95" )+
+  geom_tile(data = fm_epc_df, aes(x=x, y=y, fill= fishmeal_disturbance_EPC))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n=7, "SunsetDark"))+
+  theme_bw()+
+  labs(fill = "Normalised\npressure")
+
+
+ggsave(here("figures/presos/epc_fm_dis.jpg"), dpi = 600, width = 17, height = 9, units="cm")
+
+
+
+
+rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/int/fish oil_disturbance_km2_NAT.tif")
+```
+
+
+
+
