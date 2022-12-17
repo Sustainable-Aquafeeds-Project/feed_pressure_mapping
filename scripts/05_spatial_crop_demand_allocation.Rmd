@@ -29,8 +29,10 @@ crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 (crop_demand_production_compare <- 
   crop_demand |> 
-    mutate(demand_production_ratio = total_crop_demand/mean_value,
-           check = demand_production_ratio>1) |> 
+    mutate(demand_production_ratio_ms = total_crop_demand_ms/mean_value,
+           demand_production_ratio_ge = total_crop_demand_ge/mean_value,
+           check_ms = demand_production_ratio_ms>1,
+           check_ge = demand_production_ratio_ge>1) |> 
     rename(national_production = mean_value)
     )
 
@@ -38,11 +40,12 @@ crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
 crop_demand_production_compare |> 
   group_by(ingredients, diet) |> 
-  mutate(producer_order = 1:10) |> 
-  filter(check != TRUE)
+  #mutate(producer_order = 1:10) |> 
+  filter(check_ms != TRUE,
+         check_ge != TRUE)
 
 
-#saveRDS(object = crop_demand_production_compare, file = here("data/tidy_data/demand/crop_demand_production_compare.rds"))
+saveRDS(object = crop_demand_production_compare, file = here("data/tidy_data/demand/crop_demand_production_compare.rds"))
 
 
 ```

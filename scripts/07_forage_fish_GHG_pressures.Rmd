@@ -54,6 +54,17 @@ embodied_fish_new_gear <-
 #embodied_fish_new_gear |> filter(is.na(ei_kgco2_kgcatch))
 #no missing emissions intensity data - what we want.
 
+
+
+#check the embedded fish across the fm and fo per diet
+embodied_fish_new_gear |> 
+  select(diet, source_code, embodied_fish_adj_fo, embodied_fish_adj_fm) |> 
+  group_by(diet, source_code) |> 
+  summarise(fo_embedded = sum(embodied_fish_adj_fo, na.rm=TRUE),
+            fm_embedded = sum(embodied_fish_adj_fm, na.rm = TRUE))
+
+
+
 ```
 
 

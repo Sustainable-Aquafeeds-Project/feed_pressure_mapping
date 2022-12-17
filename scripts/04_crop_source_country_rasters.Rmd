@@ -38,7 +38,7 @@ crop_countries_shp <- countries_shp |> filter(iso_a3 %in% crop_countries)
 length(crop_countries_shp |> pull(iso_a3) |> unique())
 length(crop_countries)
   
-#run it on multiple cores - if it returns null it's because the file already exists
+#if it returns null it's because the file already exists
 
 map(.x = crop_countries, .f =  \(this_country){
   
