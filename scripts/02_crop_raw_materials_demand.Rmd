@@ -132,7 +132,7 @@ ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocatio
   group_by(ingredient, area) |> 
   nest() |> 
   mutate(ge_allocation_factor = map(data, ~(.$gross_energy_product/ (sum(unique(.$energy_cf_product), sum(.$energy_cf_coproduct))))),
-         mass_allocation_factor = map(data, ~(.$cf/ (sum(unique(.$cf), sum(.$coproduct_cf)))))
+         mass_allocation_factor = map(data, ~((.$cf/ (sum(unique(.$cf), sum(.$coproduct_cf))))/.$cf)) #need to divide by yield again here otherwise it is just the partitioning factor for mass allocation only
          ) |> 
   unnest(c(data, ge_allocation_factor, mass_allocation_factor)))
 
