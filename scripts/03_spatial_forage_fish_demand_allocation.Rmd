@@ -38,22 +38,25 @@ fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 rm(total_ingredient_demand)
 
 
-(embodied_fish_ratios <- read_csv(here("data/raw_data/allocation/embodied_fish_ge_allocation_tidy.csv")) |> 
+(embodied_fish_ratios <- read_csv(here("data/raw_data/allocation/embodied_fish_allocation_tidy.csv")) |> 
   filter(common_name != "Gross energy") |> 
   mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", ecosystem) ~ "North Atlantic",
                                         ecosystem == "HC" ~ "Humboldt",
                                         ecosystem == "GM" ~ "Gulf of Mexico", 
                                         ecosystem == "SO" ~ "Southern Ocean",
                                         ecosystem == "GA" ~ "Other")) |> 
-  select(common_name, sci_name, ecosystem_combined, ingredient, value) |> 
+  select(common_name, sci_name, ecosystem_combined, ingredient, ge_value, mass_value) |> 
   mutate(sci_name = case_when(sci_name == "Brevoorti patronus" ~ "Brevoortia patronus",
                               TRUE ~ sci_name)) |> distinct())
 
 
 
 #global values for later
-globalav_embodiedfish_fm <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(value)
-globalav_embodiedfish_fo <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(value)
+globalav_embodiedfish_fm_mass <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(mass_value)
+globalav_embodiedfish_fm_ge <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(ge_value)
+
+globalav_embodiedfish_fo_mass <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(mass_value)
+globalav_embodiedfish_fo_ge <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(ge_value)
 
 
 forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName))
@@ -62,8 +65,8 @@ forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.
   group_by(TaxonName, CommonName) |> 
   summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
   arrange(-total_catch) |> 
-  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf =value), by = c("TaxonName" = "sci_name")) |> 
-    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |> rename(fish_oil_cf =value), by = c("TaxonName" = "sci_name", "common_name"))
+  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf_mass = mass_value, fishmeal_cf_ge = ge_value), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |> rename(fish_oil_cf_mass = mass_value, fish_oil_cf_ge = ge_value), by = c("TaxonName" = "sci_name", "common_name"))
 )
 
 
@@ -99,7 +102,9 @@ ggplot()+
 
 #get the xyz file for each fao region sand create one data frame to join to the forage catch data by coordinates
 
-fao_xyz_of_interest <- map_df(.x = fao_areas, .f = \(this_area){
+fao_xyz_of_interest <- 
+  
+  map_df(.x = fao_areas, .f = \(this_area){
   
   this_area_shp <- FAO_regions_shp |> filter(F_AREA == this_area)
   
@@ -134,9 +139,9 @@ ggplot()+
         legend.title = element_text(size=6),
         legend.key.size = unit(0.3, "cm"))+
   new_scale_fill()+
-  geom_tile(data = catch_raster, aes(x = x, y = y, fill=log10(z+1)))+
+  geom_tile(data = catch_raster, aes(x = x, y = y, fill=(z)))+
   scale_fill_gradientn(colours = RColorBrewer::brewer.pal(9, name = "YlOrRd"))+
-  labs(fill = bquote(log[10]~Catch))+
+  labs(fill = bquote(Catch~(tonnes)))+
    theme_void()+
   theme(
         panel.background = element_rect(fill= "white", colour=NA),
@@ -191,12 +196,16 @@ forage_catch_w_prop_supply <-
   mutate(prop_source_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
   unnest(cols = c(data, prop_source_catch)) |> 
   ungroup() |> 
-  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf=value), by = c("TaxonName" = "sci_name")) |> 
-    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |> rename(fish_oil_cf=value), by = c("TaxonName" = "sci_name", "common_name")) |> 
-  mutate(fishmeal_cf = case_when(is.na(common_name) ~ globalav_embodiedfish_fm,
-                                 TRUE ~ fishmeal_cf),
-         fish_oil_cf = case_when(is.na(common_name) ~ globalav_embodiedfish_fo,
-                                 TRUE ~ fish_oil_cf)) |> 
+  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf_mass = mass_value, fishmeal_cf_ge = ge_value), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |>  rename(fish_oil_cf_mass = mass_value, fish_oil_cf_ge = ge_value), by = c("TaxonName" = "sci_name", "common_name")) |> 
+  mutate(fishmeal_cf_mass = case_when(is.na(common_name) ~ globalav_embodiedfish_fm_mass,
+                                 TRUE ~ fishmeal_cf_mass),
+         fishmeal_cf_ge = case_when(is.na(common_name) ~ globalav_embodiedfish_fm_ge,
+                                 TRUE ~ fishmeal_cf_ge),
+         fish_oil_cf_mass = case_when(is.na(common_name) ~ globalav_embodiedfish_fo_mass,
+                                 TRUE ~ fish_oil_cf_mass),
+         fish_oil_cf_ge = case_when(is.na(common_name) ~ globalav_embodiedfish_fo_ge,
+                                 TRUE ~ fish_oil_cf_ge)) |> 
   select(-common_name) 
  
 
@@ -212,10 +221,14 @@ forage_supply_demand_by_diet <-
              fo_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand),
              spp_fm_demand = fm_demand * prop_source_catch,
              spp_fo_demand = fo_demand * prop_source_catch,
-             fm_embodied_fish = spp_fm_demand * fishmeal_cf,
-             fo_embodied_fish = spp_fo_demand * fish_oil_cf,
-             total_embodied_fish = fm_embodied_fish+fo_embodied_fish) |> 
-      mutate(demand_vs_supply = total_embodied_fish/total_catch) |> 
+             fm_embodied_fish_mass = spp_fm_demand * fishmeal_cf_mass,
+             fm_embodied_fish_ge = spp_fm_demand * fishmeal_cf_ge,
+             fo_embodied_fish_mass = spp_fo_demand * fish_oil_cf_mass,
+             fo_embodied_fish_ge = spp_fo_demand * fish_oil_cf_ge,
+             total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass,
+             total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge) |> 
+      mutate(demand_vs_supply_mass = total_embodied_fish_mass/total_catch) |>
+      mutate(demand_vs_supply_ge = total_embodied_fish_ge/total_catch) |>
       relocate(diet, .before = source_code)
     
   })
@@ -226,136 +239,263 @@ Now do some checks on if demand and supply match up per record i.e. by per cell-
 
 ```{r}
 #check the demand vs supply match up - are there cells where supply is outstripped by demand? 
-forage_supply_demand_by_diet |> filter(demand_vs_supply>1) #lots of rows where demand exceeds supply - likely due to global average conversions, but by how much typically?
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1))/nrow(forage_supply_demand_by_diet) # in 6.7% of catch records demand exceed catch in 2017
-forage_supply_demand_by_diet |> filter(demand_vs_supply>1) |> pull(demand_vs_supply) |> unique() #nothing exceeding 1.3 of catch. How much does this matter- i.e. what does that equate to in tonnes and is that within a range of variation for that cell?
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply>1.1))/nrow(forage_supply_demand_by_diet) # the same 2.8% of records because this is the only value
+forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1) 
+forage_supply_demand_by_diet |> filter(demand_vs_supply_ge>1) #lots of rows where demand exceeds supply - more for gross energy than for mass beause gross energy estimates higher embodied fish from oil especially.
+
+
+
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1))/nrow(forage_supply_demand_by_diet) # in 2.8% of catch records demand exceed catch in 2017 with mass allocation
+nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply_ge>1))/nrow(forage_supply_demand_by_diet) # in 6.7% of catch records demand exceed catch in 2017 with ge_allocation
+
+forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1) |> pull(demand_vs_supply_mass) |> unique() #nothing exceeding 1.05 of catch with mass allocation
+forage_supply_demand_by_diet |> filter(demand_vs_supply_ge>1) |> pull(demand_vs_supply_ge) |> unique() #nothing exceeding 1.3 of catch with ge allocation
+
 
 #look at what quantities and proportion demand exceeded supply by
-exceedance_check <- forage_supply_demand_by_diet |> 
-        mutate(exceedance = case_when(demand_vs_supply>1 ~ (demand_vs_supply-1)*total_embodied_fish,
-                                      TRUE ~ total_embodied_fish-total_catch)) |>
-   mutate(prop_exceedance = case_when(exceedance>0 ~ exceedance/total_catch,
-                                      TRUE ~ 0))
+exceedance_check <- 
+  forage_supply_demand_by_diet |> 
+  mutate(exceedance_mass = case_when(demand_vs_supply_mass>1 ~ total_embodied_fish_mass-total_catch,
+                                     TRUE ~ 0)) |>
+  mutate(exceedance_ge = case_when(demand_vs_supply_ge>1 ~ total_embodied_fish_ge-total_catch,
+                                     TRUE ~ 0)) |>
+  mutate(prop_exceedance_mass = case_when(exceedance_mass>0 ~ demand_vs_supply_mass-1,
+                                          TRUE ~ 0),
+         prop_exceedance_ge = case_when(exceedance_ge>0 ~ demand_vs_supply_ge-1,
+                                        TRUE ~ 0))
 
-#what is the maximum exceedance in tonnage?
-max_exceedance <- exceedance_check |> pull(exceedance) |> max() #25193 tonnes - could be due to artisanal catch
+#what is the maximum exceedance in tonnage in a cell?
+(max_exceedance_mass <- exceedance_check |> pull(exceedance_mass) |> max()) #3250 tonnes 
+(max_exceedance_ge <- exceedance_check |> pull(exceedance_ge) |> max()) #19387
+
 #but what does the catch look like when max absolute exceedance occurs?
-exceedance_check |> filter(exceedance == max_exceedance) # catch is 64000 tonnes when demand exceeds catch by as much as a lot
+exceedance_check |> filter(exceedance_mass == max_exceedance_mass) # catch is 64000 tonnes when demand exceeds catch by its max 
+exceedance_check |> filter(exceedance_ge == max_exceedance_ge) # catch is 64000 tonnes when demand exceeds catch by as much - quite a lot
+
 #what is the maximum proportional exceedance?
-max_prop_exceedance <- exceedance_check |> pull(prop_exceedance) |> max() #38% this is not great
+(max_prop_exceedance_mass <- exceedance_check |> pull(prop_exceedance_mass) |> max()) #5% for mass allocation
+(max_prop_exceedance_ge <- exceedance_check |> pull(prop_exceedance_ge) |> max()) #30% for ge allocation - not great
+
 #what is the catch when proportional exceedance is this high?
-exceedance_check |> filter(prop_exceedance == max_prop_exceedance) # catch is tiny when proportional exceedance is maximised 
- 
-#plot it out to chekc the pattern
-exceedance_only_df <- 
-  exceedance_check |> filter(demand_vs_supply>1)
-
-#no  pattern to the relationshoip between size and prop of exceedance  so will have redistribute - seems the global value for FMFO embodied fish creates a constant exceedance because the values for the cell are so small and close together the proportional difference in the cell is accruate to several dp?
-ggplot(data = exceedance_only_df)+
-  aes(x=prop_exceedance, y = exceedance+1)+
-  geom_point(alpha=0.3)+
-  scale_y_continuous(trans = "log10")
+exceedance_check |> filter(prop_exceedance_ge == max_prop_exceedance_ge) # catch is typically under 100 tonnes - so 30% is not particularly problematic. We can assume catch per cell is variable.
+exceedance_check |> filter(prop_exceedance_mass == max_prop_exceedance_mass) # catch is 117 tonnes at maximum when proportional exceedance is maximised
 
 
 
-
+exceedance_check |> filter(demand_vs_supply_mass>1)
 ```
 
-Redistribute the demand in cells where it is greater than supply across other cells where there is available deficit. How to allocate can be scaled by the proportion that cell accounts for in terms of the total deficit.  Do this independently for each diet-source combo though, so need to split the data.
+Redistribute the demand in cells where it is greater than supply across other cells where there is available deficit. How to allocate can be scaled by the proportion that cell accounts for in terms of the total deficit.  Do this independently for each diet-source combo though, so need to split the data. Need to do for both mass and gross energy allocations.
 
 ```{r}
+
+###First redistributing catch across cells based on emodied fish demand using mass allocation
+
+
 #data list by source and diet
 forage_supply_demand_list <- 
   forage_supply_demand_by_diet |> 
-  mutate(fm_prop_embodied_fish = fm_embodied_fish/total_embodied_fish) |> 
-  mutate(fo_prop_embodied_fish = fo_embodied_fish/total_embodied_fish) |> 
+  mutate(fm_prop_embodied_fish_mass = fm_embodied_fish_mass/total_embodied_fish_mass) |> 
+  mutate(fo_prop_embodied_fish_mass = fo_embodied_fish_mass/total_embodied_fish_mass) |> 
+  mutate(fm_prop_embodied_fish_ge = fm_embodied_fish_ge/total_embodied_fish_mass) |> 
+  mutate(fo_prop_embodied_fish_ge = fo_embodied_fish_ge/total_embodied_fish_mass) |> 
   relocate(diet, .before = source_code) |> 
   group_split(diet, source_code)
 
+#for testing function below
+this_df <-  forage_supply_demand_list[[1]]
 
-forage_supply_demand_redistributed <- 
+forage_supply_demand_redistributed_mass <- 
+  
   map_df(.x = forage_supply_demand_list, .f = \(this_df){
     
-    exceed_supply <- this_df |> filter(demand_vs_supply>1)
-    below_supply <- this_df |> filter(demand_vs_supply<=1)
+    #Identify cells with exceedance or deficit for mass allocation methods
+    exceed_supply_mass <- this_df |> filter(demand_vs_supply_mass>1)
+    below_supply_mass <- this_df |> filter(demand_vs_supply_mass<=1)
+    
     
     this_diet_source <-  paste0(unique(this_df$diet),"_",unique(this_df$source_code))
     
-    if(nrow(exceed_supply)>0){
+   
+    
+    if(nrow(exceed_supply_mass)>0){
       
+      #which diet are we working on?
       message(this_diet_source)
       
-      exceed_supply2 <-  exceed_supply |>
-        mutate(exceedance = (demand_vs_supply-1)*total_embodied_fish)
+      exceed_supply_mass2 <-  exceed_supply_mass |>
+        mutate(exceedance_mass = total_embodied_fish_mass-total_catch)
       
-      total_exceedance <- sum(exceed_supply2$exceedance)
-      total_deficit <- below_supply |> mutate(exceedance = total_embodied_fish-total_catch) |> pull(exceedance) |> sum()
+      total_exceedance_mass <- sum(exceed_supply_mass2$exceedance_mass)
+      total_deficit_mass <- below_supply_mass |> mutate(exceedance_mass = total_embodied_fish_mass-total_catch) |> pull(exceedance_mass) |> sum()
       
-      message("Total deficit is greater than total exceedance? ", abs(total_deficit)>total_exceedance)
+      message("Total deficit is greater than total exceedance with mass allocation? ", abs(total_deficit_mass)>total_exceedance_mass)
       
-      below_supply2 <- below_supply |> 
-        mutate(exceedance = total_embodied_fish-total_catch) |> 
-        mutate(prop_exceedance = exceedance/sum(exceedance)) |> 
-        mutate(added_embodied_fish = prop_exceedance * total_exceedance) |> 
-        mutate(adj_embodied_fish = total_embodied_fish+added_embodied_fish)
+      below_supply_mass2 <- below_supply_mass |> 
+        mutate(exceedance_mass = total_embodied_fish_mass-total_catch) |> 
+        mutate(prop_exceedance_mass = exceedance_mass/sum(exceedance_mass)) |> 
+        mutate(added_embodied_fish_mass = prop_exceedance_mass * total_exceedance_mass) |> 
+        mutate(adj_embodied_fish_mass = total_embodied_fish_mass+added_embodied_fish_mass)
       
-      message("Total biomass from exceedance cells is equal to that added to deficit cells = ", round(sum(below_supply2$added_embodied_fish), digits = 0 )==round(total_exceedance, digits = 0))
+      message("Total biomass from exceedance cells is equal to that added to deficit cells = ", round(sum(below_supply_mass2$added_embodied_fish_mass), digits = 0 )==round(total_exceedance_mass, digits = 0))
       
-      exceed_supply3 <-  exceed_supply2 |> 
-        mutate(prop_exceedance = NA) |> 
-        mutate(added_embodied_fish = NA) |> 
-        mutate(adj_embodied_fish = total_embodied_fish-exceedance)
+      exceed_supply_mass3 <-  exceed_supply_mass2 |> 
+        mutate(prop_exceedance_mass = NA) |> 
+        mutate(added_embodied_fish_mass = NA) |> 
+        mutate(adj_embodied_fish_mass = total_embodied_fish_mass-exceedance_mass)
       
-      diff_after_adjustment <- sum(exceed_supply3$total_embodied_fish)-sum(exceed_supply3$adj_embodied_fish)
+      diff_after_adjustment_mass <- sum(exceed_supply_mass3$total_embodied_fish_mass)-sum(exceed_supply_mass3$adj_embodied_fish_mass)
       
-      message("Total biomass removed from exceedance cells is equal to the difference between the original and adjusted embodied fish = ", round(diff_after_adjustment, digits = 3)==round(total_exceedance, digits = 3))
+      message("Total biomass removed from exceedance cells is equal to the difference between the original and adjusted embodied fish = ", round(diff_after_adjustment_mass, digits = 3)==round(total_exceedance_mass, digits = 3))
       
       
-      message("Returns same number of rows as original df? ",  (nrow(exceed_supply3)+nrow(below_supply2))==nrow(this_df))
+      message("Returns same number of rows as original df? ",  (nrow(exceed_supply_mass3)+nrow(below_supply_mass2))==nrow(this_df))
       
-      this_df_adj <- bind_rows(below_supply2, exceed_supply3)
       
-      return(this_df_adj)
+      this_df_adj_mass <- bind_rows(below_supply_mass2, exceed_supply_mass3)
+
+      return(this_df_adj_mass)
       
     } else{
       
-      this_df <- this_df |> 
-        mutate(exceedance = 0) |> 
-        mutate(prop_exceedance = 0) |> 
-        mutate(added_embodied_fish = 0) |> 
-        mutate(adj_embodied_fish = total_embodied_fish) 
+      this_df_mass <- this_df |> 
+        mutate(exceedance_mass = 0) |> 
+        mutate(prop_exceedance_mass = 0) |> 
+        mutate(added_embodied_fish_mass = 0) |> 
+        mutate(adj_embodied_fish_mass = total_embodied_fish_mass) 
       
-      return(this_df)
+      return(this_df_mass)
+      
+    }
+    
+  })
+
+
+
+
+###########
+#Now redistribute based on gross energy allocation
+
+
+forage_supply_demand_redistributed_mass_list <- 
+  forage_supply_demand_redistributed_mass |> 
+  group_split(diet, source_code)
+
+
+this_df <- forage_supply_demand_redistributed_mass_list[[1]]
+
+
+forage_supply_demand_redistributed_mass_ge <- 
+  
+  map_df(.x = forage_supply_demand_redistributed_mass_list, .f = \(this_df){
+    
+    #Identify cells with exceedance or deficit for mass allocation methods
+    exceed_supply_ge <- this_df |> filter(demand_vs_supply_ge>1)
+    below_supply_ge <- this_df |> filter(demand_vs_supply_ge<=1)
+ 
+    
+    this_diet_source <-  paste0(unique(this_df$diet),"_",unique(this_df$source_code))
+    
+   
+    
+    if(nrow(exceed_supply_ge)>0){
+      
+      #which diet are we working on?
+      message(this_diet_source)
+      
+      exceed_supply_ge2 <-  exceed_supply_ge |>
+        mutate(exceedance_ge = total_embodied_fish_ge-total_catch)
+      
+      total_exceedance_ge <- sum(exceed_supply_ge2$exceedance_ge)
+      total_deficit_ge <- below_supply_ge |> mutate(exceedance_ge = total_embodied_fish_ge-total_catch) |> pull(exceedance_ge) |> sum()
+      
+      message("Total deficit is greater than total exceedance with gross energy allocation? ", abs(total_deficit_ge)>total_exceedance_ge)
+      #this is false for EPC with the marine diet. So gross energy allocation estimates an embodied biomass from global salmon demand greater than was caught in 2017. 
+      #Will expand on this in the methods/discussion.
+      
+      below_supply_ge2 <- below_supply_ge |> 
+        mutate(exceedance_ge = total_embodied_fish_ge-total_catch) |> 
+        mutate(prop_exceedance_ge = exceedance_ge/sum(exceedance_ge)) |> 
+        mutate(added_embodied_fish_ge = prop_exceedance_ge * total_exceedance_ge) |> 
+        mutate(adj_embodied_fish_ge = total_embodied_fish_ge+added_embodied_fish_ge)
+      
+      message("Total biomass from exceedance cells is equal to that added to deficit cells = ", round(sum(below_supply_ge2$added_embodied_fish_ge), digits = 0 )==round(total_exceedance_ge, digits = 0))
+      
+      exceed_supply_ge3 <-  exceed_supply_ge2 |> 
+        mutate(prop_exceedance_ge = NA) |> 
+        mutate(added_embodied_fish_ge = NA) |> 
+        mutate(adj_embodied_fish_ge = total_embodied_fish_ge-exceedance_ge)
+      
+      diff_after_adjustment_ge <- sum(exceed_supply_ge3$total_embodied_fish_ge)-sum(exceed_supply_ge3$adj_embodied_fish_ge)
+      
+      message("Total biomass removed from exceedance cells is equal to the difference between the original and adjusted embodied fish = ", round(diff_after_adjustment_ge, digits = 3)==round(total_exceedance_ge, digits = 3))
+      
+      
+      message("Returns same number of rows as original df? ",  (nrow(exceed_supply_ge3)+nrow(below_supply_ge2))==nrow(this_df))
+      
+      
+      this_df_adj_ge <- bind_rows(below_supply_ge2, exceed_supply_ge3)
+
+      return(this_df_adj_ge)
+      
+    } else{
+      
+      this_df_ge <- this_df |> 
+        mutate(exceedance_ge = 0) |> 
+        mutate(prop_exceedance_ge = 0) |> 
+        mutate(added_embodied_fish_ge = 0) |> 
+        mutate(adj_embodied_fish_ge = total_embodied_fish_ge) 
+      
+      return(this_df_ge)
       
     }
     
   })
 
 forage_supply_demand_redistributed_fmfo <- 
-  forage_supply_demand_redistributed |> 
-  mutate(embodied_fish_adj_fm = fm_prop_embodied_fish*adj_embodied_fish,
-         embodied_fish_adj_fo = fo_prop_embodied_fish*adj_embodied_fish)
+  forage_supply_demand_redistributed_mass_ge |> 
+  mutate(embodied_fish_adj_fm_mass = fm_prop_embodied_fish_mass*adj_embodied_fish_mass,
+         embodied_fish_adj_fo_mass = fo_prop_embodied_fish_mass*adj_embodied_fish_mass,
+         embodied_fish_adj_fm_ge = fm_prop_embodied_fish_ge*adj_embodied_fish_ge,
+         embodied_fish_adj_fo_ge = fo_prop_embodied_fish_ge*adj_embodied_fish_ge)
+
 
 fwrite(forage_supply_demand_redistributed_fmfo, file = here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
 
 
-nrow(forage_supply_demand_by_diet)==nrow(forage_supply_demand_redistributed)
 
-sum(forage_supply_demand_by_diet$total_embodied_fish) == sum(forage_supply_demand_redistributed$adj_embodied_fish, na.rm = TRUE)
+# Do some checks on the data
 
-#check marine diet - yep total embodied fish is a match between the original and redistributed sets
-forage_supply_demand_by_diet |> filter(diet=="marine_diet") |> pull(total_embodied_fish) |> sum() == forage_supply_demand_redistributed |> filter(diet=="marine_diet") |> pull(adj_embodied_fish) |> sum()
+message("Same number of rows with original and redistributed data? ", nrow(forage_supply_demand_by_diet)==nrow(forage_supply_demand_redistributed_mass_ge))
 
-#check plant diet - yep total embodied fish is a match between the original and redistributed sets
-forage_supply_demand_by_diet |> filter(diet=="plant_diet") |> pull(total_embodied_fish) |> sum() == forage_supply_demand_redistributed |> filter(diet=="plant_diet") |> pull(adj_embodied_fish) |> sum()
+message("Using mass allocation, the original embodied fish tonnage across all diets is ", sum(forage_supply_demand_by_diet$total_embodied_fish_mass), ", and with redistribution is ", sum(forage_supply_demand_redistributed_mass$adj_embodied_fish_mass, na.rm = TRUE))
+message("Is embodied tonnage equal after redistribution? ", round(sum(forage_supply_demand_by_diet$total_embodied_fish_mass)) == round(sum(forage_supply_demand_redistributed_mass$adj_embodied_fish_mass, na.rm = TRUE)))
 
 
-embodied_fish_demand_by_diet_source <- forage_supply_demand_redistributed |> 
+message("Using gross energy allocation, the original embodied fish tonnage across all diets is ", sum(forage_supply_demand_by_diet$total_embodied_fish_ge), ", and with redistribution is ", sum(forage_supply_demand_redistributed_mass_ge$adj_embodied_fish_ge, na.rm = TRUE))
+message("Is embodied tonnage equal after redistribution? ", round(sum(forage_supply_demand_by_diet$total_embodied_fish_ge)) == round(sum(forage_supply_demand_redistributed_mass_ge$adj_embodied_fish_ge, na.rm = TRUE)))
+
+
+
+#check no distribution has happened across diets
+
+message("Are marine diet totals for all locations the same as original data under mass allocation? ", forage_supply_demand_by_diet |> filter(diet=="marine_diet") |> pull(total_embodied_fish_mass) |> sum() == forage_supply_demand_redistributed_mass_ge |> filter(diet=="marine_diet") |> pull(adj_embodied_fish_mass) |> sum())
+message("Are marine diet totals for all locations the same as original data under gross energy allocation? ", forage_supply_demand_by_diet |> filter(diet=="marine_diet") |> pull(total_embodied_fish_ge) |> sum() |> round() == forage_supply_demand_redistributed_mass_ge |> filter(diet=="marine_diet") |> pull(adj_embodied_fish_ge) |> sum() |> round())
+
+
+
+#check plant diet 
+message("Are plant diet totals for all locations the same as original data under mass allocation? ", forage_supply_demand_by_diet |> filter(diet=="plant_diet") |> pull(total_embodied_fish_mass) |> sum() == forage_supply_demand_redistributed_mass_ge |> filter(diet=="plant_diet") |> pull(adj_embodied_fish_mass) |> sum())
+message("Are plant diet totals for all locations the same as original data under gross energy allocation? ", forage_supply_demand_by_diet |> filter(diet=="plant_diet") |> pull(total_embodied_fish_ge) |> sum() |> round() == forage_supply_demand_redistributed_mass_ge |> filter(diet=="plant_diet") |> pull(adj_embodied_fish_ge) |> sum() |> round())
+
+
+
+
+embodied_fish_demand_by_diet_source <- 
+  forage_supply_demand_redistributed_mass_ge |> 
   group_split(diet, source_code) |> 
   map_df(\(this_df){
     
-    return(tibble(diet = unique(this_df$diet), source_code = unique(this_df$source_code), embodied_fish_demand = sum(this_df$adj_embodied_fish)))
+    return(tibble(diet = unique(this_df$diet), source_code = unique(this_df$source_code), embodied_fish_demand_mass = sum(this_df$adj_embodied_fish_mass), embodied_fish_demand_ge = sum(this_df$adj_embodied_fish_ge)))
     
   })
 
@@ -364,22 +504,21 @@ saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_dat
 
 
 
-#For the East Pacific, supply falls short of demand based on catch for the marine diet - look into this here
+#For the East Pacific, supply falls short of demand based on catch for the marine diet using gross energy allocation - look into this here
 
 marine_EPC_checks <- 
-  forage_supply_demand_redistributed |> filter(diet == "marine_diet" & source_code == "EPC") |> #78,466 rows 
-  mutate(adj_demand_vs_supply = adj_embodied_fish/total_catch) |> 
+  forage_supply_demand_redistributed_mass_ge |> filter(diet == "marine_diet" & source_code == "EPC") |> #78,466 rows 
+  mutate(adj_demand_vs_supply = adj_embodied_fish_ge/total_catch) |> 
   filter(adj_demand_vs_supply >1) |> #51300 rows have exceedance (most)
-  mutate(actual_exceedance_adj = adj_embodied_fish-total_catch) |> 
+  mutate(actual_exceedance_adj = adj_embodied_fish_ge-total_catch) |> 
   mutate(prop_exceedance_adj = actual_exceedance_adj/total_catch)
 
-max_exceedance <- max(marine_EPC_checks$actual_exceedance_adj) #can exceed 2017 catch levels by 2400 tonnes
-max_prop_exceedance_adj <- max(marine_EPC_checks$prop_exceedance_adj) #max exceedance is 24% levels
+(max_exceedance <- max(marine_EPC_checks$actual_exceedance_adj)) #can exceed 2017 catch levels by 2073 tonnes
+(max_prop_exceedance_adj <- max(marine_EPC_checks$prop_exceedance_adj)) #max proportional exceedance is 21% 
 
 #Where it exceeds by the max value in tonnes, this is a 23% increase
-marine_EPC_checks |> filter(actual_exceedance_adj == max_exceedance)
-median(marine_EPC_checks$actual_exceedance_adj)
-median(marine_EPC_checks$prop_exceedance_adj)
+median(marine_EPC_checks$actual_exceedance_adj) #median tonnage exceedance 0.067 tonnes
+median(marine_EPC_checks$prop_exceedance_adj) #median proportional exceedance is 19.6% - so cells with low catch is where exceedance still occurs
 
 # 2 tonnes exceeded at the 90th percentile.
 
@@ -390,13 +529,13 @@ for(i in 1:length(sequence)){
   exceedance_list[[i]] <- quantile(marine_EPC_checks$actual_exceedance_adj,sequence[i])
 }
 
-#Given the variability of forage fish population biomass, for most catch (95% and 98% respectively) to be within 7 tonnes and 70 tonnes of 2017 catch and at no point exceeded 25% of that years catch, this seems reasonable.
+#Given the variability of forage fish population biomass, for most catch (95% and 98% respectively) to be within 7 tonnes and 70 tonnes of 2017 catch and at no point exceeded 25% of that years catch, this seems reasonable. No exceedance over 100 tonnes until the 99.9th percentile.
 
 ggplot(data = tibble(percentile = sequence, exceedance_tonnes = exceedance_list))+
   aes(x = percentile, y = exceedance_tonnes)+
   geom_point()+
   theme_bw()+
-  labs(x = "Exceedance percentile", y= "Exceedance (tonnes)")+
+  labs(x = "Percentile", y= "Exceedance (tonnes)")+
   theme(text = element_text(size=8))
 
 
@@ -411,12 +550,16 @@ Create an FMFO embodied fish demand by source and ingredient
 embodied_fish_by_dietsource <- readRDS(file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
 
 embodied_fish_by_dietsource |> 
+  pivot_longer(names_to = "allocation_method", values_to = "embodied_fish_demand", cols = -c(diet, source_code)) |> 
+  mutate(allocation_method = case_when(allocation_method == "embodied_fish_demand_mass" ~ "Mass allocation",
+                                       TRUE ~ "Gross energy allocation")) |> 
   ggplot()+
   aes(x = diet, y = embodied_fish_demand/1000, fill = source_code)+
   geom_bar(stat= "identity", position = "dodge")+
   labs(fill = "Source", y = "Embodied fish demand (1000s T)")+
   scale_fill_manual(values = c("#edf8b1", "#7fcdbb", "#2c7fb8"))+
   theme_bw()+
+  facet_wrap(~allocation_method, scales = "fixed")+
   theme(legend.position = c(0.8, 0.8),
         legend.background = element_rect(fill="transparent"), 
         axis.title.x = element_blank(),

@@ -587,7 +587,7 @@ Geartypes:
  - squid_jigger: squid jiggers, mostly large industrial pelagic operating vessels
 
 
-The influence of unknown fishing gears ('fishing' above) was addressed in Halpern et al as a small source of   uncertainty. See issue here https://github.com/OHI-Science/global_food_issues/issues/303
+The influence of unknown fishing gears ('fishing' above) was addressed in Halpern et al as a small source of uncertainty. See issue here https://github.com/OHI-Science/global_food_issues/issues/303
 
 ```{r}
 
@@ -705,7 +705,7 @@ writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/
 
 ```
 
-# Pull in allocation data from Kok et al (economic allocation on forage fish) and synthesised data from Teams for gross energy calculation.
+# Pull in allocation data from Kok et al (economic allocation on forage fish) and synthesised data from Teams for gross energy and mass calculation.
 
 Interesting paper by Ayer, Tyedmers et al on the benefits of gross energy allocation https://link.springer.com/content/pdf/10.1065/lca2006.11.284.pdf
 
