@@ -113,7 +113,7 @@ cf_coproduct_data <- read_csv(here("data/raw_data/allocation/coproduct_conversio
 all_cf_data <- 
   cf_data |> 
   select(-X7) |> 
-  filter(!ingredient %in% c("tapioca starch", "lupins")) |> 
+  filter(!ingredient %in% c("tapioca starch", "lupins")) |> #not included in the diet information
   left_join(cf_coproduct_data, by = c("ingredient", "iso3c"="country"))
 
 

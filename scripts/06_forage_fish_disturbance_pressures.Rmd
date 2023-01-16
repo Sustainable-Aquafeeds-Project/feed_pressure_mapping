@@ -27,6 +27,8 @@ library(doParallel)
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
+select <- dplyr::select
+
 ```
 
 Equal area projection resources
