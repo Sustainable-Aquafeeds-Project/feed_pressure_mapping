@@ -191,16 +191,28 @@ map(trawl_forage_catch_list, \(this_df){
   
   this_source <- unique(this_df$source_code)
   
-  this_summary_df <- 
+  #Mass allocation
+  this_summary_df_mass <- 
     this_df |> 
     group_by(LonCentre, LatCentre) |> 
-    summarise(forage_catch = sum(embodied_fish_adj_fm, na.rm=TRUE))
+    summarise(forage_catch_mass = sum(embodied_fish_adj_fm_mass, na.rm=TRUE))
+
+  this_rast_mass <- rast(this_summary_df_mass, type="xyz", crs="EPSG:4326")
+  this_rast_resampled_mass <- resample(this_rast_mass, rast(res=0.5))
   
+  writeRaster(x = this_rast_resampled_mass, filename = sprintf(here("data/spatial/%s/int/fishmeal_trawl_catch_%s_%s_mass_allocation.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
   
-  this_rast <- rast(this_summary_df, type="xyz", crs="EPSG:4326")
-  this_rast_resampled <- resample(this_rast, rast(res=0.5))
+  #Gross energy allocation
+   this_summary_df_ge <- 
+    this_df |> 
+    group_by(LonCentre, LatCentre) |> 
+    summarise(forage_catch_ge = sum(embodied_fish_adj_fm_ge, na.rm=TRUE))
+
+  this_rast_ge <- rast(this_summary_df_ge, type="xyz", crs="EPSG:4326")
+  this_rast_resampled_ge <- resample(this_rast_ge, rast(res=0.5))
   
-  writeRaster(x = this_rast_resampled, filename = sprintf(here("data/spatial/%s/int/fishmeal_trawl_catch_%s_%s.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
+  writeRaster(x = this_rast_resampled_ge, filename = sprintf(here("data/spatial/%s/int/fishmeal_trawl_catch_%s_%s_ge_allocation.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
+  
   
 })
 
@@ -222,10 +234,10 @@ Now we need to work out what proportion of all trawling each one of the trawling
 #marine diets 
 
 fm_catch_r_list_int_md <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_trawl_catch", full.names = TRUE)
-fm_catch_r_list_md <- fm_catch_r_list_int_md[!grepl("_prop", fm_catch_r_list_int_md)]
+fm_catch_r_list_md <- fm_catch_r_list_int_md[!grepl("_prop", fm_catch_r_list_int_md) & grepl("_allocation", fm_catch_r_list_int_md)]
 
 #test
-this_file <- fm_catch_r_list_md[[3]]
+this_file <- fm_catch_r_list_md[[5]]
 
 #calculate the proportion of all trawl catch is this diet scenario
 map(.x = fm_catch_r_list_md, .f = \(this_file){
@@ -251,7 +263,7 @@ map(.x = fm_catch_r_list_md, .f = \(this_file){
 #plant diets 
 
 fm_catch_r_list_int_pd <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "fishmeal_trawl_catch", full.names = TRUE)
-fm_catch_r_list_pd <- fm_catch_r_list_int_pd[!grepl("_prop", fm_catch_r_list_int_pd)]
+fm_catch_r_list_pd <- fm_catch_r_list_int_pd[!grepl("_prop", fm_catch_r_list_int_pd) & grepl("_allocation", fm_catch_r_list_int_pd)]
 
 #test
 
@@ -297,7 +309,7 @@ FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?serv
 #MARINE DIETS
 
 #proportional catch raster for forage fish trawling
-prop_raster_files_md <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_prop.tif", full.names = TRUE)
+prop_raster_files_md <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "allocation_prop.tif", full.names = TRUE)
 prop_raster_files_md <- prop_raster_files_md[!grepl(pattern = "fish oil|forage", x = prop_raster_files_md)]
 
 
@@ -315,7 +327,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
   
   if(!file.exists(saveName)){
     
-  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
+  this_source <- str_extract(fileName, "EPC|NAT|OTH")
   
   #get the FAO regions shp for masking the raster to the relevant ones
   this_shp_extent <- FAO_regions_shp |> filter(source_code ==this_source)
@@ -329,7 +341,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
   
   this_rast[is.na(this_rast)] <- avg_trawl_correction
   
-  this_cropped_rast <- terra::mask(this_rast, vect(this_shp_extent))
+  this_cropped_rast <- terra::mask(x = this_rast, mask =vect(this_shp_extent))
    
   this_resampled_rast <- resample(this_cropped_rast, gfw_native_r)
   
@@ -343,7 +355,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
 #PLANT DIETS
 
 #proportional catch raster for forage fish trawling
-prop_raster_files_pd <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_prop.tif", full.names = TRUE)
+prop_raster_files_pd <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "allocation_prop.tif", full.names = TRUE)
 prop_raster_files_pd <- prop_raster_files_pd[!grepl(pattern = "fish oil|forage", x = prop_raster_files_pd)]
 
 #for testing function below
@@ -360,7 +372,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   if(!file.exists(saveName)){
     
-  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
+  this_source <- str_extract(fileName, "EPC|NAT|OTH")
   
   #get the FAO regions shp for masking the raster to the relevant ones
   this_shp_extent <- FAO_regions_shp |> filter(source_code ==this_source)
@@ -397,13 +409,13 @@ Now we need to bring in the effort rasters and aggregate to half a degree and ad
 #Marine Diets
 
 fm_effort_files_int_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "fishmeal_trawl_effort", full.names=TRUE)
-fm_effort_files_md <- fm_effort_files_int_md[!grepl("0.5D_km2", fm_effort_files_int_md)]
+fm_effort_files_md <- fm_effort_files_int_md[!grepl("0.5D_km2", fm_effort_files_int_md) & grepl("_allocation", fm_effort_files_int_md)]
 
-this_file <- forage_effort_files_md[[1]]
+this_file <- fm_effort_files_md[[1]]
 
 #aggregate the effort data to 0;5 degrees and adjust to effort for km2
 
-map(.x = fm_effort_files_int_md, .f = \(this_file){
+map(.x = fm_effort_files_md, .f = \(this_file){
   
   fileName <- paste0(gsub(pattern = "catch", replacement = "effort", tools::file_path_sans_ext(basename(this_file))), "_0.5D_km2")
   
@@ -432,9 +444,9 @@ map(.x = fm_effort_files_int_md, .f = \(this_file){
 #Plant diets
 
 fm_effort_files_int_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "fishmeal_trawl_effort", full.names=TRUE)
-fm_effort_files_pd <- fm_effort_files_int_pd[!grepl("0.5D_km2", fm_effort_files_int_pd)]
+fm_effort_files_pd <- fm_effort_files_int_pd[!grepl("0.5D_km2", fm_effort_files_int_pd) & grepl("_allocation", fm_effort_files_int_md)]
 
-#this_file <- forage_effort_files[[3]]
+this_file <- fm_effort_files_pd[[3]]
 
 #aggregate the effort data to 0.5 degrees and adjust to effort for km2
 
@@ -478,13 +490,17 @@ For the final step in the destruction layer of disturbance, we need to normalise
 
 #marine diets
 
-
 md_fm_effort_km2_r_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_0.5D_km2", full.names = TRUE) 
-md_fm_effort_km2_r_files <- md_fm_effort_km2_r_files[grepl("fishmeal", md_fm_effort_km2_r_files)]
+md_fm_effort_km2_r_files <- md_fm_effort_km2_r_files[grepl("fishmeal", md_fm_effort_km2_r_files) & grepl("allocation", md_fm_effort_km2_r_files)]
+
 
 #get all the values for the forage trawl effort rasters
 
-md_fm_effort_km2_r_list <- map(md_fm_effort_km2_r_files, \(this_file){
+#gross energy allocation
+
+md_fm_effort_km2_r_list_ge_allocation <- 
+  
+  map(md_fm_effort_km2_r_files[grepl("ge_allocation", md_fm_effort_km2_r_files)], \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -495,10 +511,32 @@ md_fm_effort_km2_r_list <- map(md_fm_effort_km2_r_files, \(this_file){
 
 
 #check for outliers
-hist(unlist(md_fm_effort_km2_r_list))
-abline(v=quantile(unlist(md_fm_effort_km2_r_list), 0.999), lty=2)
+hist(unlist(md_fm_effort_km2_r_list_ge_allocation))
+abline(v=quantile(unlist(md_fm_effort_km2_r_list_ge_allocation), 0.999), lty=2)
 
 
+#Mass allocation
+md_fm_effort_km2_r_list_mass_allocation <- 
+  
+  map(md_fm_effort_km2_r_files[grepl("mass_allocation", md_fm_effort_km2_r_files)], \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_values <- c(terra::values(this_rast, na.rm=TRUE))
+  
+  return(these_values)
+})
+
+
+#check for outliers
+hist(unlist(md_fm_effort_km2_r_list_mass_allocation))
+abline(v=quantile(unlist(md_fm_effort_km2_r_list_mass_allocation), 0.999), lty=2)
+
+
+
+
+#testing the function
+this_file <- md_fm_effort_km2_r_files[[1]]
 
 md_fm_rescaled_benthic_list <- 
   
@@ -512,39 +550,72 @@ md_fm_rescaled_benthic_list <-
     
     if(!file.exists(saveName)){
       
-      all_effort_values <- unlist(md_fm_effort_km2_r_list)
-      
-      this_rast <- rast(this_file)
-      
-      rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
-      
-      this_rescaled_rast <- 
-        app(x = this_rast, fun = \(x){
-          if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
-      
-      
-      writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
-      
-      return(this_rescaled_rast)
-    }
+      if(grepl("ge_allocation", saveName)){
+        
+        all_effort_values <- unlist(md_fm_effort_km2_r_list_ge_allocation)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
+        
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+        
+        
+      } else {
+        
+        all_effort_values <- unlist(md_fm_effort_km2_r_list_mass_allocation)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
+        
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+      }
+      }
     
   })
 
 #check the rasters
-plot(rast(md_fm_rescaled_benthic_list))
+#plot(rast(md_fm_rescaled_benthic_list))
 
 
 
 #plant diets
-
-
 pd_fm_effort_km2_r_files <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_0.5D_km2", full.names = TRUE) 
-pd_fm_effort_km2_r_files <- pd_fm_effort_km2_r_files[grepl("fishmeal", pd_fm_effort_km2_r_files)]
+pd_fm_effort_km2_r_files <- pd_fm_effort_km2_r_files[grepl("fishmeal", pd_fm_effort_km2_r_files) & grepl("allocation", pd_fm_effort_km2_r_files)]
 
 
 #get all the values for the forage trawl effort rasters
 
-pd_fm_effort_km2_r_list <- map(pd_fm_effort_km2_r_files, \(this_file){
+pd_fm_effort_km2_r_list_ge_allocation <- 
+  
+  map(pd_fm_effort_km2_r_files[grepl("ge_allocation",pd_fm_effort_km2_r_files)], \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_values <- c(terra::values(this_rast, na.rm=TRUE))
+  
+  return(these_values)
+})
+
+
+pd_fm_effort_km2_r_list_mass_allocation <- 
+  
+  map(pd_fm_effort_km2_r_files[grepl("mass_allocation",pd_fm_effort_km2_r_files)], \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -555,7 +626,7 @@ pd_fm_effort_km2_r_list <- map(pd_fm_effort_km2_r_files, \(this_file){
 
 
 
-#this run returns "Error in (function (x) : attempt to apply non-function" the first time. It is related to this issue with terra https://github.com/rspatial/terra/issues/30. It can be ignored everything runs fine. Also rasters should be there on cloned project.
+#If using multicore this run returns "Error in (function (x) : attempt to apply non-function" the first time. It is related to this issue with terra https://github.com/rspatial/terra/issues/30. It can be ignored everything runs fine. Also rasters should be there on cloned project.
 
 pd_fm_rescaled_benthic_list <- 
   
@@ -569,30 +640,53 @@ pd_fm_rescaled_benthic_list <-
     
     if(!file.exists(saveName)){
       
-      all_effort_values <- unlist(pd_fm_effort_km2_r_list)
-      
-      this_rast <- rast(this_file)
-      
-      rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
-      
-      this_rescaled_rast <- 
-        app(x = this_rast, fun = \(x){
-          if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
-      
-      
-      writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
-      
-      return(this_rescaled_rast)
-    }
+      if(grepl("ge_allocation", saveName)){
+        
+        all_effort_values <- unlist(pd_fm_effort_km2_r_list_ge_allocation)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
+        
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+        
+        
+      } else {
+        
+        all_effort_values <- unlist(pd_fm_effort_km2_r_list_mass_allocation)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
+        
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+        
+        
+      }
+      }
     
   })
 
 #check the rasters
-plot(rast(pd_fm_rescaled_benthic_list))
-
-
-md_fm_effort_km2_r_files |> rast()
-pd_fm_effort_km2_r_files |> rast()
+# plot(rast(pd_fm_rescaled_benthic_list))
+# 
+# 
+# md_fm_effort_km2_r_files |> rast()
+# pd_fm_effort_km2_r_files |> rast()
 ```
 
 
@@ -608,10 +702,14 @@ The next step is understand the biomass removal component of disturbance. To do 
 fm_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
   group_by(diet, source_code, LonCentre, LatCentre) |> 
-  summarise(catch = sum(embodied_fish_adj_fm, na.rm=TRUE)) |> 
+  summarise(mass_allocation = sum(embodied_fish_adj_fm_mass, na.rm=TRUE),
+            ge_allocation = sum(embodied_fish_adj_fm_ge, na.rm=TRUE)) |> 
   as_tibble() |> 
-  group_split(diet, source_code)
+  pivot_longer(names_to = "allocation_method", values_to = "catch", cols = -c(diet, source_code, LonCentre, LatCentre)) |> 
+  group_split(diet, source_code, allocation_method)
   
+
+this_df <- fm_catch_list[[1]]
 
 #create the rasters
 map(fm_catch_list, \(this_df){
@@ -620,11 +718,13 @@ map(fm_catch_list, \(this_df){
   
   this_source <- unique(this_df$source_code)
   
-  saveName <- sprintf(here("data/spatial/%s/production/fishmeal_catch_%s_%s.tif"), this_diet, this_diet, this_source)
+  this_allocation_method <- unique(this_df$allocation_method)
+  
+  saveName <- sprintf(here("data/spatial/%s/production/fishmeal_catch_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
   if(!file.exists(saveName)){
     
-    this_xy <- this_df |> select(-c(diet, source_code))
+    this_xy <- this_df |> select(-c(diet, source_code, allocation_method))
   
     this_r <- rast(this_xy, type = "xyz", crs = crs(rast(res=0.5))) |> extend(ext(rast(res=0.5)))
     
@@ -642,9 +742,9 @@ npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_g
 # marine diet
 
 fm_catch_r_list_int_md <- list.files(here("data/spatial/marine_diet/production"), pattern = "fishmeal_catch", full.names = TRUE)
-fm_catch_r_list_md <- fm_catch_r_list_int_md[!grepl("ea_npp", fm_catch_r_list_int_md)]
+fm_catch_r_list_md <- fm_catch_r_list_int_md[!grepl("ea_npp", fm_catch_r_list_int_md) & grepl("allocation", fm_catch_r_list_int_md)]
 
-
+#testing function 
 this_file <- fm_catch_r_list_md[1]
 
 #Convert to equal area, adjust by npp and save
@@ -670,7 +770,7 @@ map(fm_catch_r_list_md, \(this_file){
 # plant diet
 
 fm_catch_r_list_int_pd <- list.files(here("data/spatial/plant_diet/production"), pattern = "fishmeal_catch", full.names = TRUE)
-fm_catch_r_list_pd <- fm_catch_r_list_int_pd[!grepl("ea_npp", fm_catch_r_list_int_pd)]
+fm_catch_r_list_pd <- fm_catch_r_list_int_pd[!grepl("ea_npp", fm_catch_r_list_int_pd) & grepl("allocation", fm_catch_r_list_int_pd)]
 
 this_file <- fm_catch_r_list_pd[1]
 #Convert to equal area, adjust by npp and save
@@ -696,14 +796,18 @@ map(fm_catch_r_list_pd, \(this_file){
 
 
 #bring the npp adjusted catch back in and rescale it for marine diets
-adjusted_fm_catch_r_list_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "ea_npp", full.names = TRUE) 
+adjusted_fm_catch_r_list_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "allocation_ea_npp", full.names = TRUE) 
 adjusted_fm_catch_r_list_md <- adjusted_fm_catch_r_list_md[grepl("fishmeal", adjusted_fm_catch_r_list_md)]
 
-adjusted_fm_catch_r_list_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "ea_npp", full.names = TRUE) 
+adjusted_fm_catch_r_list_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "allocation_ea_npp", full.names = TRUE) 
 adjusted_fm_catch_r_list_pd <- adjusted_fm_catch_r_list_pd[grepl("fishmeal", adjusted_fm_catch_r_list_pd)] 
 
 
-adjusted_fm_catch_r_list_all <- c(adjusted_fm_catch_r_list_md, adjusted_fm_catch_r_list_pd) |> map(rast)
+adjusted_fm_catch_list_all <- c(adjusted_fm_catch_r_list_md, adjusted_fm_catch_r_list_pd)
+adjusted_fm_catch_r_list_all <- adjusted_fm_catch_list_all |> map(rast)
+adjusted_fm_catch_r_list_ge <- adjusted_fm_catch_list_all[grepl("ge_allocation", adjusted_fm_catch_list_all)] |> map(rast)
+adjusted_fm_catch_r_list_mass <- adjusted_fm_catch_list_all[grepl("mass_allocation", adjusted_fm_catch_list_all)] |> map(rast)
+
 
 this_r <- adjusted_fm_catch_r_list_all[[1]]
 
@@ -716,24 +820,47 @@ fm_rescaled_biomass_list <-
   
   fileName <- tools::file_path_sans_ext(basename(gsub(pattern = "_ea_npp", replacement = "", sources(this_r))))
   
-  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName))
+  this_source <- str_extract(fileName, pattern = "EPC|NAT|OTH")
   
-  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_biomass_removal_rescaled_%s_%s.tif"), this_diet, this_diet, this_source)
+  this_allocation_method <- str_extract(fileName, pattern = "mass_allocation|ge_allocation")
+  
+  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_biomass_removal_rescaled_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
   if(!file.exists(saveName)){
     
-    all_catch_values <- unlist(map(adjusted_fm_catch_r_list_all, \(this_r){return(c(terra::values(this_r, na.rm=TRUE)))}))
-
-    rescale_value <- quantile(x = all_catch_values, 0.9999)
+    if(this_allocation_method=="ge_allocation"){
+      
+      all_catch_values <- unlist(map(adjusted_fm_catch_r_list_ge, \(this_r){return(c(terra::values(this_r, na.rm=TRUE)))}))
+      
+      rescale_value <- quantile(x = all_catch_values, 1)
+      
+      this_rescaled_rast <- 
+        app(x = this_r, fun = \(x){
+          if_else(x<0, true = 0, false = 
+                    if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+      
+      writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_rescaled_rast)
+      
+    } else {
+      
+      all_catch_values <- unlist(map(adjusted_fm_catch_r_list_mass, \(this_r){return(c(terra::values(this_r, na.rm=TRUE)))}))
+      
+      rescale_value <- quantile(x = all_catch_values, 1)
+      
+      this_rescaled_rast <- 
+        app(x = this_r, fun = \(x){
+          if_else(x<0, true = 0, false = 
+                    if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+      
+      writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_rescaled_rast)
+      
+    }
     
-    this_rescaled_rast <- 
-      app(x = this_r, fun = \(x){
-        if_else(x<0, true = 0, false = 
-                  if_else(x>rescale_value, true = 1, false = x/rescale_value))})
-    
-    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
-    
-    return(this_rescaled_rast)
+   
   }
   
 })
@@ -751,7 +878,10 @@ Finally, combine benthic disturbance with biomass removal to get a joint pressur
 
 #marine-diet
 fm_benthic_destruction_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "fishmeal_benthic", full=TRUE) 
+fm_benthic_destruction_md <- fm_benthic_destruction_md[grepl("allocation", fm_benthic_destruction_md)]
+
 fm_biomass_removal_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "fishmeal_biomass", full=TRUE) 
+fm_biomass_removal_md <- fm_biomass_removal_md[grepl("allocation", fm_biomass_removal_md)]
 
 this_benthic_file <- fm_benthic_destruction_md[[1]]
 this_biomass_file <- fm_biomass_removal_md[[1]]
@@ -759,7 +889,8 @@ this_biomass_file <- fm_biomass_removal_md[[1]]
 combined_raster_list <- 
   map2(.x = fm_benthic_destruction_md, .y = fm_biomass_removal_md, .f = \(this_benthic_file, this_biomass_file){
   
-  this_source <- substr(tools::file_path_sans_ext(this_benthic_file), nchar(tools::file_path_sans_ext(this_benthic_file))-2, nchar(tools::file_path_sans_ext(this_benthic_file)))  
+  this_source <- str_extract(string = this_benthic_file, pattern = "EPC|NAT|OTH") 
+  this_allocation_method <- str_extract(this_benthic_file, pattern = "ge_allocation|mass_allocation")
     
   this_benthic_r <- rast(this_benthic_file)
   this_biomass_r <- rast(this_biomass_file)
@@ -770,7 +901,7 @@ combined_raster_list <-
   
   this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
   
-  writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/marine_diet/int/fishmeal_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
+  writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/marine_diet/int/fishmeal_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method), overwrite=TRUE)
   
   return(this_km2_combined_r)
   
@@ -780,7 +911,10 @@ combined_raster_list <-
 
 #plant-diet 
 fm_benthic_destruction_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "fishmeal_benthic", full=TRUE)
+fm_benthic_destruction_pd <- fm_benthic_destruction_pd[grepl("allocation", fm_benthic_destruction_pd)]
+
 fm_biomass_removal_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "fishmeal_biomass", full=TRUE) 
+fm_biomass_removal_pd <- fm_biomass_removal_pd[grepl("allocation", fm_biomass_removal_pd)]
 
 this_benthic_file <- fm_benthic_destruction_pd[[1]]
 this_biomass_file <- fm_biomass_removal_pd[[1]]
@@ -788,20 +922,20 @@ this_biomass_file <- fm_biomass_removal_pd[[1]]
   
 combined_raster_list2 <- 
   map2(.x = fm_benthic_destruction_pd, .y = fm_biomass_removal_pd, .f = \(this_benthic_file, this_biomass_file){
-  
-  this_source <- substr(tools::file_path_sans_ext(this_benthic_file), nchar(tools::file_path_sans_ext(this_benthic_file))-2, nchar(tools::file_path_sans_ext(this_benthic_file)))  
-      
     
-  this_benthic_r <- rast(this_benthic_file)
-  this_biomass_r <- rast(this_biomass_file)
-  
-  this_combined_r <- (this_benthic_r+this_biomass_r)/2
-  
-  this_combined_r_reproj <- project(this_combined_r, gall_peters)
-  
-  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
-  
- writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/plant_diet/int/fishmeal_disturbance_km2_%s.tif"), this_source), overwrite=TRUE)
+    this_source <- str_extract(string = this_benthic_file, pattern = "EPC|NAT|OTH") 
+    this_allocation_method <- str_extract(this_benthic_file, pattern = "ge_allocation|mass_allocation")
+
+    this_benthic_r <- rast(this_benthic_file)
+    this_biomass_r <- rast(this_biomass_file)
+    
+    this_combined_r <- (this_benthic_r+this_biomass_r)/2
+    
+    this_combined_r_reproj <- project(this_combined_r, gall_peters)
+    
+    this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
+    
+    writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/plant_diet/int/fishmeal_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method), overwrite=TRUE)
   
   
   return(this_km2_combined_r)
@@ -848,22 +982,34 @@ map(trawl_forage_catch_list, \(this_df){
   
   this_source <- unique(this_df$source_code)
   
-  this_summary_df <- 
+  #Mass allocation
+  this_summary_df_mass <- 
     this_df |> 
     group_by(LonCentre, LatCentre) |> 
-    summarise(forage_catch = sum(embodied_fish_adj_fo, na.rm=TRUE))
+    summarise(forage_catch_mass = sum(embodied_fish_adj_fo_mass, na.rm=TRUE))
+
+  this_rast_mass <- rast(this_summary_df_mass, type="xyz", crs="EPSG:4326")
+  this_rast_resampled_mass <- resample(this_rast_mass, rast(res=0.5))
+  
+  writeRaster(x = this_rast_resampled_mass, filename = sprintf(here("data/spatial/%s/int/fish oil_trawl_catch_%s_%s_mass_allocation.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
+  
+  #Gross energy allocation
+   this_summary_df_ge <- 
+    this_df |> 
+    group_by(LonCentre, LatCentre) |> 
+    summarise(forage_catch_ge = sum(embodied_fish_adj_fo_ge, na.rm=TRUE))
+
+  this_rast_ge <- rast(this_summary_df_ge, type="xyz", crs="EPSG:4326")
+  this_rast_resampled_ge <- resample(this_rast_ge, rast(res=0.5))
   
   
-  this_rast <- rast(this_summary_df, type="xyz", crs="EPSG:4326")
-  this_rast_resampled <- resample(this_rast, rast(res=0.5))
-  
-  writeRaster(x = this_rast_resampled, filename = sprintf(here("data/spatial/%s/int/fish oil_trawl_catch_%s_%s.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
+  writeRaster(x = this_rast_resampled_ge, filename = sprintf(here("data/spatial/%s/int/fish oil_trawl_catch_%s_%s_ge_allocation.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
   
 })
 
 # now look at dredging - but there is no catch for dredging so we can disregard
 
-trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+dredge_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
   filter(VBDesc %in% dredge_types) |> 
   as_tibble()
@@ -879,7 +1025,7 @@ Now we need to work out what proportion of all trawling each one of the trawling
 #marine diets 
 
 fo_catch_r_list_int_md <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_trawl_catch", full.names = TRUE)
-fo_catch_r_list_md <- fo_catch_r_list_int_md[!grepl("_prop", fo_catch_r_list_int_md)]
+fo_catch_r_list_md <- fo_catch_r_list_int_md[!grepl("_prop", fo_catch_r_list_int_md) & grepl("allocation", fo_catch_r_list_int_md)]
 
 #test
 this_file <- fo_catch_r_list_md[[3]]
@@ -908,7 +1054,7 @@ map(.x = fo_catch_r_list_md, .f = \(this_file){
 #plant diets 
 
 fo_catch_r_list_int_pd <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "fish oil_trawl_catch", full.names = TRUE)
-fo_catch_r_list_pd <- fo_catch_r_list_int_pd[!grepl("_prop", fo_catch_r_list_int_pd)]
+fo_catch_r_list_pd <- fo_catch_r_list_int_pd[!grepl("_prop", fo_catch_r_list_int_pd) & grepl("allocation", fo_catch_r_list_int_pd)]
 
 #test
 
@@ -955,7 +1101,7 @@ FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?serv
 
 #proportional catch raster for forage fish trawling
 prop_raster_files_md <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_prop.tif", full.names = TRUE)
-prop_raster_files_md <- prop_raster_files_md[grepl(pattern = "fish oil", x = prop_raster_files_md)]
+prop_raster_files_md <- prop_raster_files_md[grepl(pattern = "fish oil", x = prop_raster_files_md) & grepl("allocation", prop_raster_files_md)]
 
 
 #for testing function below
@@ -971,7 +1117,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
   
   if(!file.exists(saveName)){
     
-  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
+  this_source <- str_extract(string = saveName, pattern = "EPC|NAT|OTH")
   
   #get the FAO regions shp for masking the raster to the relevant ones
   this_shp_extent <- FAO_regions_shp |> filter(source_code ==this_source)
@@ -1000,7 +1146,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
 
 #proportional catch raster for forage fish trawling
 prop_raster_files_pd <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_prop.tif", full.names = TRUE)
-prop_raster_files_pd <- prop_raster_files_pd[grepl(pattern = "fish oil", x = prop_raster_files_pd)]
+prop_raster_files_pd <- prop_raster_files_pd[grepl(pattern = "fish oil", x = prop_raster_files_pd) & grepl("allocation", prop_raster_files_pd)]
 
 #for testing function below
 this_file <- prop_raster_files_pd[[1]]
@@ -1016,7 +1162,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   if(!file.exists(saveName)){
     
-  this_source <- substr(fileName, nchar(fileName)-3+1, nchar(fileName) )
+  this_source <- str_extract(string = saveName, pattern = "EPC|NAT|OTH")
   
   #get the FAO regions shp for masking the raster to the relevant ones
   this_shp_extent <- FAO_regions_shp |> filter(source_code ==this_source)
@@ -1025,7 +1171,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   this_rast <- rast(this_file)
   
-  #add average value where 
+  #add average value where there are NA values
   avg_trawl_correction <- terra::global(this_rast, na.rm = TRUE) |> pull(mean)
   
   this_rast[is.na(this_rast)] <- avg_trawl_correction
@@ -1053,7 +1199,7 @@ Now we need to bring in the effort rasters and aggregate to half a degree and ad
 #Marine Diets
 
 fo_effort_files_int_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "fish oil_trawl_effort", full.names=TRUE)
-fo_effort_files_md <- fo_effort_files_int_md[!grepl("0.5D_km2", fo_effort_files_int_md)]
+fo_effort_files_md <- fo_effort_files_int_md[!grepl("0.5D_km2", fo_effort_files_int_md) & grepl("allocation", fo_effort_files_int_md)]
 
 this_file <- fo_effort_files_md[[1]]
 
@@ -1088,7 +1234,7 @@ map(.x = fo_effort_files_md, .f = \(this_file){
 #Plant diets
 
 fo_effort_files_int_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "fish oil_trawl_effort", full.names=TRUE)
-fo_effort_files_pd <- fo_effort_files_int_pd[!grepl("0.5D_km2", fo_effort_files_int_pd)]
+fo_effort_files_pd <- fo_effort_files_int_pd[!grepl("0.5D_km2", fo_effort_files_int_pd) & grepl("allocation", fo_effort_files_int_pd)]
 
 #this_file <- forage_effort_files[[3]]
 
@@ -1136,11 +1282,13 @@ For the final step in the destruction layer of disturbance, we need to normalise
 
 
 md_fo_effort_km2_r_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_0.5D_km2", full.names = TRUE) 
-md_fo_effort_km2_r_files <- md_fo_effort_km2_r_files[grepl("fish oil", md_fo_effort_km2_r_files)]
+md_fo_effort_km2_r_files <- md_fo_effort_km2_r_files[grepl("fish oil", md_fo_effort_km2_r_files) & grepl("allocation", md_fo_effort_km2_r_files)]
 
 #get all the values for the forage trawl effort rasters
 
-md_fo_effort_km2_r_list <- map(md_fo_effort_km2_r_files, \(this_file){
+md_fo_effort_km2_r_list_ge <- 
+  
+  map(md_fo_effort_km2_r_files[grepl("ge_allocation", md_fo_effort_km2_r_files)], \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -1151,8 +1299,26 @@ md_fo_effort_km2_r_list <- map(md_fo_effort_km2_r_files, \(this_file){
 
 
 #check for outliers
-hist(unlist(md_fo_effort_km2_r_list))
-abline(v=quantile(unlist(md_fo_effort_km2_r_list), 0.999), lty=2)
+hist(unlist(md_fo_effort_km2_r_list_ge))
+abline(v=quantile(unlist(md_fo_effort_km2_r_list_ge), 0.999), lty=2)
+
+
+md_fo_effort_km2_r_list_mass <- 
+  
+  map(md_fo_effort_km2_r_files[grepl("mass_allocation", md_fo_effort_km2_r_files)], \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_values <- c(terra::values(this_rast, na.rm=TRUE))
+  
+  return(these_values)
+})
+
+
+#check for outliers
+hist(unlist(md_fo_effort_km2_r_list_mass))
+abline(v=quantile(unlist(md_fo_effort_km2_r_list_mass), 0.999), lty=2)
+
 
 
 
@@ -1168,21 +1334,42 @@ md_fo_rescaled_benthic_list <-
     
     if(!file.exists(saveName)){
       
-      all_effort_values <- unlist(md_fo_effort_km2_r_list)
+      if(grepl("ge_allocation", saveName)){
+        
+        all_effort_values <- unlist(md_fo_effort_km2_r_list_ge)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
       
-      this_rast <- rast(this_file)
-      
-      rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
-      
-      this_rescaled_rast <- 
-        app(x = this_rast, fun = \(x){
-          if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
-      
-      
-      writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
-      
-      return(this_rescaled_rast)
-    }
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+        
+        
+      } else {
+        
+        all_effort_values <- unlist(md_fo_effort_km2_r_list_mass)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
+        
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+      }
+      }
     
   })
 
@@ -1193,14 +1380,15 @@ plot(rast(md_fo_rescaled_benthic_list))
 
 #plant diets
 
-
 pd_fo_effort_km2_r_files <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_0.5D_km2", full.names = TRUE) 
-pd_fo_effort_km2_r_files <- pd_fo_effort_km2_r_files[grepl("fish oil", pd_fo_effort_km2_r_files)]
+pd_fo_effort_km2_r_files <- pd_fo_effort_km2_r_files[grepl("fish oil", pd_fo_effort_km2_r_files) & grepl("allocation", pd_fo_effort_km2_r_files)]
 
 
 #get all the values for the forage trawl effort rasters
 
-pd_fo_effort_km2_r_list <- map(pd_fo_effort_km2_r_files, \(this_file){
+pd_fo_effort_km2_r_list_ge <- 
+  
+  map(pd_fo_effort_km2_r_files[grepl("ge_allocation", pd_fo_effort_km2_r_files)], \(this_file){
   
   this_rast <- rast(this_file)
   
@@ -1209,6 +1397,16 @@ pd_fo_effort_km2_r_list <- map(pd_fo_effort_km2_r_files, \(this_file){
   return(these_values)
 })
 
+pd_fo_effort_km2_r_list_mass <- 
+  
+  map(pd_fo_effort_km2_r_files[grepl("mass_allocation", pd_fo_effort_km2_r_files)], \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  these_values <- c(terra::values(this_rast, na.rm=TRUE))
+  
+  return(these_values)
+})
 
 
 
@@ -1224,21 +1422,42 @@ pd_fo_rescaled_benthic_list <-
     
     if(!file.exists(saveName)){
       
-      all_effort_values <- unlist(pd_fo_effort_km2_r_list)
-      
-      this_rast <- rast(this_file)
-      
-      rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
-      
-      this_rescaled_rast <- 
-        app(x = this_rast, fun = \(x){
-          if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
-      
-      
-      writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
-      
-      return(this_rescaled_rast)
-    }
+        if(grepl("ge_allocation", saveName)){
+        
+        all_effort_values <- unlist(pd_fo_effort_km2_r_list_ge)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
+        
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+        
+        
+      } else {
+        
+        all_effort_values <- unlist(pd_fo_effort_km2_r_list_mass)
+        
+        this_rast <- rast(this_file)
+        
+        rescale_value <- quantile(all_effort_values, 1, na.rm=TRUE)
+        
+        this_rescaled_rast <- 
+          app(x = this_rast, fun = \(x){
+            if_else(x<0, true = 0, false = if_else(x>rescale_value, true = 1, false = x/rescale_value))})
+        
+        
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite = TRUE)
+        
+        return(this_rescaled_rast)
+      }
+      }
     
   })
 
