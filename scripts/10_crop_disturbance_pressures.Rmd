@@ -10,13 +10,13 @@ Here we use the MAPSPAM physical area parameter as our disturbance metric for cr
 ```{r}
 library(tidyverse)
 library(terra)
+library(tidyterra)
 library(here)
 library(countrycode)
 
-
-
-
 source(here("src/directories.R"))
+
+select <- dplyr::select
 
 ```
 
@@ -79,14 +79,14 @@ demand_production_compare_w_sources <-
   
   sources <- crop_sources |> filter(FAOSTAT_name == unique(this_crop$FAOSTAT_name)) |> pull(iso3c)
   
-  this_crop_adj <- this_crop |> filter(iso3c %in% sources)
+  this_crop_adj <- this_crop |> filter(source_iso3c %in% sources)
 }) |> 
   #filter(!(FAOSTAT_name == "Linseed" & source_iso3c %in% c("CHN", "GBR"))) |> 
-  filter(demand_production_ratio>0)
+  filter(demand_production_ratio_ge>0 | demand_production_ratio_ms>0)
 
 ```
 
-Check the area harvested from FAOSTAT with physical area from MAPSPAM to identify the discrepencies and fix by adjustment factors based on the greatest area harvested in either 2010 or 2017.
+Check the area harvested from FAOSTAT with physical area from MAPSPAM to identify any discrepencies see if it plausible to fix by adjustment factors based on the greatest area harvested in either 2010 or 2017.
 
 ```{r}
 
@@ -110,7 +110,7 @@ hist(crop_area_data_countries$rel_change) |>
 
 quantile(crop_area_data_countries$rel_change, c(0.9, 0.95, 0.99))
 summary(crop_area_data_countries$rel_change) # highly skewed so those values greater than the mean get the mean value (mean is greater than the 90th percentile)
-area_adj_value <- max(crop_area_data_countries$rel_change)
+area_adj_value <- mean(crop_area_data_countries$rel_change)
 
 crop_area_data <- crop_area_data_countries |> 
   mutate(rel_change = case_when(rel_change > area_adj_value ~ area_adj_value,
@@ -131,20 +131,20 @@ mapspam_rel_change <-
   message("Calculating area for ", "'", this_mapsam_code, "'", " in ", this_iso3)
   
   this_country_rast <- rast(country_rast_files[grep(this_iso3, country_rast_files)])
-  vals <- values(this_country_rast)
+  vals <- terra::values(this_country_rast)
   
   (this_global_crop_rast <- rast(crop_area_files[grep(this_mapsam_code, crop_area_files)]))
   
   (this_country_crop_rast <- this_global_crop_rast*this_country_rast)
   
-  mapspam_value <- sum(values(this_country_crop_rast), na.rm=TRUE)
+  mapspam_value <- sum(terra::values(this_country_crop_rast), na.rm=TRUE)
   
   return(this_country_crop |> mutate(mapspam_value = mapspam_value))
 
 }) 
 ```
 
-
+#Alternative approach
 Adjust area rasters by the demand_production ratio and save in the int folder for each diet.
 
 ```{r}
@@ -155,8 +155,11 @@ country_rast_files <- list.files(here("data/spatial/country-rasters"), full.name
 
 scalar_source_list <- 
   demand_production_compare_w_sources |> 
-  left_join( y = mapspam_rel_change, by = c("source_country" = "area", "iso3c", "FAOSTAT_name" = "item")) |> 
-  group_split(ingredients, diet, FAOSTAT_name, source_iso3c) 
+  left_join( y = mapspam_rel_change, by = c("source_country" = "area", "source_iso3c" = "iso3c", "FAOSTAT_name" = "item")) |> 
+  select(-c(ge_allocation_factor, mass_allocation_factor, total_crop_demand_ge, total_crop_demand_ms, check_ge, check_ms)) |> 
+  rename(ge_allocation = demand_production_ratio_ge, mass_allocation = demand_production_ratio_ms) |> 
+  pivot_longer(cols = c(ge_allocation, mass_allocation), names_to = "allocation_method", values_to = "demand_production_ratio") |> 
+  group_split(ingredients, diet, FAOSTAT_name, source_iso3c, allocation_method) 
   
 this_file <- scalar_source_list[[1]]
 
@@ -172,13 +175,17 @@ map(.x = scalar_source_list, \(this_file){
   
   this_country <- this_file$source_iso3c
   
+  this_allocation_method <- this_file$allocation_method
+  
   this_demand_scalar <- this_file$demand_production_ratio
   
   this_raster_scalar <- this_file$rel_change
   
-  saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s.tif"), this_diet, this_ingredient, this_country)
+  saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s_%s.tif"), this_diet, this_ingredient, this_country, this_allocation_method)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
+    
+    message("Processing ",  basename(tools::file_path_sans_ext(saveName)))
     
     #raw area rasters are already in km2 so no need to convert
     this_raw_rast <- rast(crop_area_files[grepl(this_mapspam_code, crop_area_files)]) 
@@ -189,7 +196,13 @@ map(.x = scalar_source_list, \(this_file){
     
     this_country_crop_adj_rast <- this_country_crop_rast*this_raster_scalar #increases the area associated with production
     
-    this_country_crop_demand_rast <- this_country_crop_adj_rast*this_demand_scalar #scales the area produced by the demand:production ratio
+    this_country_crop_demand_rast <- this_country_crop_adj_rast*this_demand_scalar
+    
+    corrected_area_raster <- lapp(c(this_country_crop_demand_rast,cellSize(this_country_crop_demand_rast)), \(x,y){
+      
+      if_else(condition = x<y, true = x, false = y) #scales the area produced by the demand:production ratio but limits to cellSize
+    })
+  
     
     writeRaster(x= this_country_crop_demand_rast, filename = saveName, overwrite=TRUE)
 

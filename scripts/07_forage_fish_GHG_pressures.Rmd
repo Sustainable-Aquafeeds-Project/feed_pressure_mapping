@@ -16,6 +16,7 @@ library(here)
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
+select <- dplyr::select
 
 ```
 
@@ -46,10 +47,14 @@ embodied_fish_new_gear <-
   left_join(parker_gear_join, by="Gear") |> 
   left_join(ei_data, by = c("Taxonkey", "Descript", "ParkerGearName")) |> 
   as_tibble() |> 
-  mutate(fm_adj_embodied_fish_kg = embodied_fish_adj_fm *1000,
-         fo_adj_embodied_fish_kg = embodied_fish_adj_fo *1000) |> 
-  mutate(ei_kg_CO2_eq_fm = fm_adj_embodied_fish_kg*ei_kgco2_kgcatch,
-         ei_kg_CO2_eq_fo = fo_adj_embodied_fish_kg*ei_kgco2_kgcatch)
+  mutate(fm_adj_embodied_fish_kg_ge = embodied_fish_adj_fm_ge *1000,
+         fm_adj_embodied_fish_kg_mass = embodied_fish_adj_fm_mass *1000,
+         fo_adj_embodied_fish_kg_ge = embodied_fish_adj_fo_ge *1000,
+         fo_adj_embodied_fish_kg_mass = embodied_fish_adj_fo_mass *1000) |> 
+  mutate(ei_kg_CO2_eq_fm_ge = fm_adj_embodied_fish_kg_ge*ei_kgco2_kgcatch,
+         ei_kg_CO2_eq_fm_mass = fm_adj_embodied_fish_kg_mass*ei_kgco2_kgcatch,
+         ei_kg_CO2_eq_fo_ge = fo_adj_embodied_fish_kg_ge*ei_kgco2_kgcatch,
+         ei_kg_CO2_eq_fo_mass = fo_adj_embodied_fish_kg_mass*ei_kgco2_kgcatch)
 
 #embodied_fish_new_gear |> filter(is.na(ei_kgco2_kgcatch))
 #no missing emissions intensity data - what we want.
@@ -58,10 +63,12 @@ embodied_fish_new_gear <-
 
 #check the embedded fish across the fm and fo per diet
 embodied_fish_new_gear |> 
-  select(diet, source_code, embodied_fish_adj_fo, embodied_fish_adj_fm) |> 
+  select(diet, source_code, embodied_fish_adj_fo_ge, embodied_fish_adj_fm_ge, embodied_fish_adj_fo_mass, embodied_fish_adj_fm_mass) |> 
   group_by(diet, source_code) |> 
-  summarise(fo_embedded = sum(embodied_fish_adj_fo, na.rm=TRUE),
-            fm_embedded = sum(embodied_fish_adj_fm, na.rm = TRUE))
+  summarise(fo_embedded_ge = sum(embodied_fish_adj_fo_ge, na.rm=TRUE),
+            fm_embedded_ge = sum(embodied_fish_adj_fm_ge, na.rm = TRUE),
+            fo_embedded_mass = sum(embodied_fish_adj_fo_mass, na.rm=TRUE),
+            fm_embedded_mass = sum(embodied_fish_adj_fm_mass, na.rm = TRUE))
 
 
 
@@ -72,13 +79,16 @@ embodied_fish_new_gear |>
 ```{r}
 
 ghg_list_fm <- embodied_fish_new_gear |> 
-  select(diet, source_code, LonCentre, LatCentre, ei_kg_CO2_eq_fm) |> 
-  group_by(diet, source_code, LonCentre, LatCentre) |> 
+  select(diet, source_code, LonCentre, LatCentre, ei_kg_CO2_eq_fm_ge, ei_kg_CO2_eq_fm_mass) |> 
+  rename(ge_allocation = ei_kg_CO2_eq_fm_ge, mass_allocation = ei_kg_CO2_eq_fm_mass) |> 
+  pivot_longer(names_to = "allocation_method", values_to = "ei_kg_CO2_eq_fm", cols = -c(diet, source_code, LonCentre, LatCentre)) |> 
+  group_by(diet, source_code, LonCentre, LatCentre, allocation_method) |> 
   summarise(total_GWP_km2_fm = sum(ei_kg_CO2_eq_fm, na.rm=TRUE)) |> 
   ungroup() |> 
-  group_split(diet, source_code)
+  group_split(diet, source_code, allocation_method)
 
-
+#testing function
+#this_df <- ghg_list_fm[[1]]
 
 ghg_raw_r_list_fm <- 
   
@@ -88,7 +98,9 @@ ghg_raw_r_list_fm <-
   
   this_diet <- unique(this_df$diet)
   
-  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_raw_%s_%s.tif"), this_diet, this_diet, this_source)
+  this_allocation_method <- unique(this_df$allocation_method)
+  
+  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
   if(!file.exists(saveName)){
     
@@ -114,11 +126,13 @@ plot(rast(ghg_raw_r_list_fm))
 ```{r}
 
 ghg_list_fo <- embodied_fish_new_gear |> 
-  select(diet, source_code, LonCentre, LatCentre, ei_kg_CO2_eq_fo) |> 
-  group_by(diet, source_code, LonCentre, LatCentre) |> 
+  select(diet, source_code, LonCentre, LatCentre, ei_kg_CO2_eq_fo_ge, ei_kg_CO2_eq_fo_mass) |> 
+  rename(ge_allocation = ei_kg_CO2_eq_fo_ge, mass_allocation = ei_kg_CO2_eq_fo_mass) |> 
+  pivot_longer(names_to = "allocation_method", values_to = "ei_kg_CO2_eq_fo", cols = -c(diet, source_code, LonCentre, LatCentre)) |> 
+  group_by(diet, source_code, LonCentre, LatCentre, allocation_method) |> 
   summarise(total_GWP_km2_fo = sum(ei_kg_CO2_eq_fo, na.rm=TRUE)) |> 
   ungroup() |> 
-  group_split(diet, source_code)
+  group_split(diet, source_code, allocation_method)
 
 
 
@@ -130,7 +144,9 @@ ghg_raw_r_list_fo <-
   
   this_diet <- unique(this_df$diet)
   
-  saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_raw_%s_%s.tif"), this_diet, this_diet, this_source)
+  this_allocation_method <- unique(this_df$allocation_method)
+  
+  saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
   if(!file.exists(saveName)){
     

@@ -72,7 +72,7 @@ crop_main_pressures |>
 
 #match up country-specific pressure data with country production/demand data. Want to constrain the countries used for LCA variability by those that can plausibly source demand
 
-(plausible_crop_sourcing_list <- crop_demand_production_compare |> select(ingredients, diet, FAOSTAT_name, source_iso3c, total_crop_demand, national_production, demand_production_ratio, check) |>  filter(check == FALSE & total_crop_demand>0) |> group_split(ingredients))
+(plausible_crop_sourcing_list <- crop_demand_production_compare |> select(ingredients, diet, FAOSTAT_name, source_iso3c, total_crop_demand_ge, total_crop_demand_ms, national_production, demand_production_ratio_ge, demand_production_ratio_ms, check_ge, check_ms) |>  filter((check_ge == FALSE | check_ms == FALSE) & (total_crop_demand_ms>0 | total_crop_demand_ge>0)) |> group_split(ingredients))
 
 which_crop_countries <- \(this_df){
   
@@ -84,12 +84,12 @@ which_crop_countries <- \(this_df){
 
 (plausible_crop_sourcing <- map_df(.x = plausible_crop_sourcing_list, .f = which_crop_countries) |> distinct() |> add_row(FAOSTAT_name = "Pulses nes", iso3c = "IND", plausible = TRUE))
 
-#filter impact information for those it is plausible to source from. USA is conspicuously missing from soybeans - need to follow up.
+#filter impact information for those it is plausible to source from. 
 plausible_crops_w_impact <- crop_main_pressures |> filter(raw_material != "Lupins") |> 
   left_join(plausible_crop_sourcing,  by = c("iso3c", "FAOSTAT_name")) |> 
   drop_na(plausible) 
 
-#are at least 3 countries available where they can plausibly sourcing demand and with which we have impacts?
+#are at least 3 countries available where they can plausibly source demand and with which we have impacts?
 #No - guar and linseed have 1 and 2 respectively so can adjust so that
 plausible_crops_w_impact |> 
   group_by(raw_material, impact_category) |> 
@@ -98,7 +98,8 @@ plausible_crops_w_impact |>
 #for each raw material and country  - add impact category values as an indicator of total footprint variability among countries to get at the large differences, then get the min, median and max
 
 #first get guar cumulative score to add later down (the one value causing problems in if_else statement)
-guar_seed_cum_value <- plausible_crops_w_impact |> 
+guar_seed_cum_value <- 
+  plausible_crops_w_impact |> 
   filter(raw_material == "Guar seed") |> 
   group_by(raw_material, FAOSTAT_name, iso3c) |> 
   summarise(cum_value = sum(value)) |> pull(cum_value)
@@ -140,6 +141,8 @@ ingredient_per_country_per_diet_all <-
   crop_demand_production_compare |>  filter(total_ingredient_demand != 0) |> group_split(diet, ingredients, FAOSTAT_name)
 
 
+this_raw_material_source <- ingredient_per_country_per_diet_all[[1]]
+
 #filter each combo of diet, ingredient and raw-material by the source countries decided above
 ingredient_per_country_per_diet <- 
   
@@ -149,13 +152,15 @@ ingredient_per_country_per_diet <-
   
   these_sources <- crop_sourcing_countries |> filter(FAOSTAT_name == this_raw_material) |> pull(iso3c) 
   
-  filter_df <-  this_raw_material_source|> filter(source_iso3c %in% these_sources)
+  filter_df <-  this_raw_material_source|> filter(source_iso3c %in% these_sources) |> 
+    rename(ge_allocation = total_crop_demand_ge, mass_allocation = total_crop_demand_ms) |> 
+    pivot_longer(cols = c(ge_allocation, mass_allocation), names_to = "allocation_method", values_to = "total_crop_demand")
   
 }) |> 
-  group_split(diet, ingredients, FAOSTAT_name, source_iso3c)
+  group_split(diet, ingredients, FAOSTAT_name, source_iso3c, allocation_method)
 
 #for testing the function below
-#this_ingredient_source <- ingredient_per_country_per_diet[[5]]
+this_ingredient_source <- ingredient_per_country_per_diet[[5]]
 
 #allocating demand on spatial production layers by diet, ingredient, and source country
 AllocateSpatialCropDemand <- \(this_ingredient_source){
@@ -169,34 +174,62 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   
   this_mapspam_code <- unique(this_ingredient_source$map_spam_code)
   
-  this_demand_quantity <- unique(this_ingredient_source$total_crop_demand)
-  
-  this_country_production <- unique(this_ingredient_source$national_production)
-  
-  this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio)
-
+  this_allocation_method <- unique(this_ingredient_source$allocation_method)
   
   #the file_name of interest for this diet, ingredient, and country
-  this_demand_raster_filename <- here(sprintf("data/spatial/%s/production/%s_AllTech_%s.tif", this_diet, this_ingredient, this_country))
+  this_demand_raster_filename <- here(sprintf("data/spatial/%s/production/%s_AllTech_%s_%s.tif", this_diet, this_ingredient, this_allocation_method, this_country))
   
-  message("processing ", this_diet, ", ", this_ingredient, ", ", this_country)
+  message("processing ", this_diet, ", ", this_ingredient, ", ", this_allocation_method, ", ", this_country )
   
   #if the file doesn't exist, create it
   if(!file.exists(this_demand_raster_filename)){
     
-    #spatial adjustments of production data by current production
-    this_country_raster <- rast(here(sprintf("data/spatial/country-rasters/%s.tif", this_country)))
-    
-    this_global_production_raster <- rast(list.files(here("data/spatial/crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
-    
-    this_country_production_raster <- this_global_production_raster*this_country_raster
-    
-    this_updated_country_production_raster <-  this_country_production_raster* this_country_production/sum(c(terra::values(this_country_production_raster, na.rm=TRUE)))
-
-  
-    this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
+    if(this_allocation_method == "ge_allocation"){
       
-    terra::writeRaster(x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
+      this_demand_quantity <- unique(this_ingredient_source$total_crop_demand)
+      
+      this_country_production <- unique(this_ingredient_source$national_production)
+      
+      this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio_ge)
+      
+      this_country_raster <- rast(here(sprintf("data/spatial/country-rasters/%s.tif", this_country)))
+      
+      this_global_production_raster <- rast(list.files(here("data/spatial/crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
+      
+      this_country_production_raster <- this_global_production_raster*this_country_raster
+      
+      this_updated_country_production_raster <-  this_country_production_raster* this_country_production/sum(c(terra::values(this_country_production_raster, na.rm=TRUE)))
+      
+      this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
+      
+      terra::writeRaster(x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
+      
+    } else {
+      
+      this_demand_quantity <- unique(this_ingredient_source$total_crop_demand)
+      
+      this_country_production <- unique(this_ingredient_source$national_production)
+      
+      this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio_ms)
+      
+      this_country_raster <- rast(here(sprintf("data/spatial/country-rasters/%s.tif", this_country)))
+      
+      this_global_production_raster <- rast(list.files(here("data/spatial/crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
+      
+      this_country_production_raster <- this_global_production_raster*this_country_raster
+      
+      this_updated_country_production_raster <-  this_country_production_raster* this_country_production/sum(c(terra::values(this_country_production_raster, na.rm=TRUE)))
+      
+      this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
+      
+      terra::writeRaster(x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
+      
+      
+    }
+    
+    
+    #spatial adjustments of production data by current production
+    
     
   }
 }
