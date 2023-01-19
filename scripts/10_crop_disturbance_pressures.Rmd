@@ -144,7 +144,7 @@ mapspam_rel_change <-
 }) 
 ```
 
-#Alternative approach
+
 Adjust area rasters by the demand_production ratio and save in the int folder for each diet.
 
 ```{r}
@@ -181,7 +181,7 @@ map(.x = scalar_source_list, \(this_file){
   
   this_raster_scalar <- this_file$rel_change
   
-  saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s_%s.tif"), this_diet, this_ingredient, this_country, this_allocation_method)
+  saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s_%s.tif"), this_diet, this_ingredient,  this_allocation_method, this_country)
   
   if(!file.exists(saveName)){
     

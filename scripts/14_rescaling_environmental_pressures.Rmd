@@ -42,17 +42,17 @@ ext(base_rast) <- c(-180, 180, -90, 90)
 
 ## Disturbance
 
-Bring in  forage fish and crop layers for disturbance for both diets. Reproject onto the equal area mollweide projection. These do not need to be normalised by km2 as the units are simply km2. Then look at the values to establish a percentile to use for rescaling.
+Bring in  forage fish and crop layers for disturbance for both diets. Reproject onto the equal area gall-peters projection. Then look at the values to establish a percentile to use for rescaling.
 
 ```{r}
 
 #ID files for disturbance for marine and plant diets
 marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
-marine_diet_disturbance <- marine_diet_disturbance[!grepl("forage_fish|_gp", marine_diet_disturbance)]
+marine_diet_disturbance <- marine_diet_disturbance[!grepl("forage_fish|_gp", marine_diet_disturbance) & grepl("allocation", marine_diet_disturbance)]
 
 #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA
 
-this_file <- marine_diet_disturbance[[2]]
+this_file <- marine_diet_disturbance[[7]]
 
 
 #marine diets
@@ -62,13 +62,15 @@ md_reprojected_rasters <-
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- str_sub(base, start = nchar(base)-2, end = nchar(base))
+    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
     this_ingredient <- str_extract(base, "[^_]+")
     
-    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_disturbance_km2_gp_%s.tif"), this_ingredient, this_country)
+    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_disturbance_km2_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -89,7 +91,7 @@ md_reprojected_rasters <-
 
 #plant diets
 plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
-plant_diet_disturbance <- plant_diet_disturbance[!grepl("forage_fish|_gp", plant_diet_disturbance)]
+plant_diet_disturbance <- plant_diet_disturbance[!grepl("forage_fish|_gp", plant_diet_disturbance) & grepl("allocation", plant_diet_disturbance)]
 
 
 this_file <- plant_diet_disturbance[[1]]
@@ -100,14 +102,15 @@ pd_reprojected_rasters <-
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- str_sub(base, start = nchar(base)-2, end = nchar(base))
+    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
     this_ingredient <- str_extract(base, "[^_]+")
     
-    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_km2_gp_%s.tif"), this_ingredient, this_country)
+    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_km2_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -129,22 +132,33 @@ pd_reprojected_rasters <- list.files(path = here("data/spatial/plant_diet/int"),
 
 
 #which diet has the highest disturbance values
-marine_disturbance_vals <- md_reprojected_rasters |> map(rast) |> map(no_na_values) |> unlist()
-plant_disturbance_vals <-  pd_reprojected_rasters |> map(rast) |> map(no_na_values) |> unlist()
+marine_disturbance_vals_ge <- md_reprojected_rasters[grepl("ge_allocation", md_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+plant_disturbance_vals_ge <-  pd_reprojected_rasters[grepl("ge_allocation", pd_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+
+marine_disturbance_vals_mass <- md_reprojected_rasters[grepl("mass_allocation", md_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+plant_disturbance_vals_mass <-  pd_reprojected_rasters[grepl("mass_allocation", pd_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+
 
 #check marine is appearing more intense (given forage fish distrubance values are much higher)
-summary(marine_disturbance_vals)
-summary(plant_disturbance_vals)
+summary(marine_disturbance_vals_ge)
+summary(plant_disturbance_vals_ge)
 
-all_disturbance_vals <- c(marine_disturbance_vals, plant_disturbance_vals)
+summary(marine_disturbance_vals_mass)
+summary(plant_disturbance_vals_mass)
+
+all_disturbance_vals_ge <- c(marine_disturbance_vals_ge, plant_disturbance_vals_ge)
+all_disturbance_vals_mass <- c(marine_disturbance_vals_mass, plant_disturbance_vals_mass)
 
 
 #determine the quantile for rescaling
-hist(unlist(all_disturbance_vals), main = "", xlab = "Disturbance values") |> 
-abline(v = quantile(all_disturbance_vals, 0.999), lty=2)
+hist(unlist(all_disturbance_vals_ge), main = "", xlab = "Disturbance values") |> 
+abline(v = quantile(all_disturbance_vals_ge, 0.999), lty=2)
 
+hist(unlist(all_disturbance_vals_mass), main = "", xlab = "Disturbance values") |> 
+abline(v = quantile(all_disturbance_vals_mass, 0.999), lty=2)
 
-disturbance_rescale_val <- quantile(all_disturbance_vals, 0.999) |> as.numeric()
+disturbance_rescale_val_ge <- quantile(all_disturbance_vals_ge, 0.999) |> as.numeric()
+disturbance_rescale_val_mass <- quantile(all_disturbance_vals_mass, 0.999) |> as.numeric()
 
 
 #rescale all rasters by the 99.9th percentile
@@ -162,22 +176,40 @@ rescaled_marine_disturbance_rasters <-
     
     this_basename <- str_replace(basename(this_file), pattern = "_km2_gp", replacement = "")
     
+    this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+    
     saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
     
-    if(file.exists(saveName)){
-    
-    message("Processing ", "'", this_basename, "'")  
+    if(!file.exists(saveName)){
       
-      this_rescaled_rast <- 
-        app(x = this_rast, fun = \(x){
-          if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))
-        })
+      message("Processing ", "'", this_basename, "'") 
       
-      names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val_ge, true = 1, false = x/disturbance_rescale_val_ge))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
       
-      writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
       
-      return(this_rescaled_rast)
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+        this_rescaled_rast <- app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val_mass, true = 1, false = x/disturbance_rescale_val_mass))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+        
+        }
     }
   })
 
@@ -192,28 +224,42 @@ rescaled_plant_disturbance_rasters <-
   
   this_basename <- str_replace(basename(this_file), pattern = "_km2_gp", replacement = "")
   
+  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
    message("Processing ", "'", this_basename, "'")
-    
-    this_rescaled_rast <- 
-      app(x = this_rast, fun = \(x){
-        if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val, true = 1, false = x/disturbance_rescale_val))
-    })
-    
-    names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
-    
-    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
-    
-    return(this_rescaled_rast)
+    if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val_ge, true = 1, false = x/disturbance_rescale_val_ge))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+        this_rescaled_rast <- app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>disturbance_rescale_val_mass, true = 1, false = x/disturbance_rescale_val_mass))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        }
   }
-  
 })
 
 
-# compare rescaled rasters
+# compare scales on rescaled rasters
 
 plot(rast(rescaled_marine_disturbance_rasters))
 plot(rast(rescaled_plant_disturbance_rasters))
@@ -221,8 +267,6 @@ plot(rast(rescaled_plant_disturbance_rasters))
 ```
 
 # Greenhouse gas pressures
-
-Need to remove the email raster layers. Due the slow nature of reprojecting rasters
 
 ```{r}
 
@@ -232,7 +276,8 @@ marine_diet_ghg <- marine_diet_ghg[!grepl("forage_fish|_gp", marine_diet_ghg)]
 plant_diet_ghg <- list.files(here("data/spatial/plant_diet/int"), pattern = "ghg", full.names = TRUE)
 plant_diet_ghg <- plant_diet_ghg[!grepl("forage_fish|_gp|linseed oil_ghg_km2_GBR|linseed oil_ghg_km2_CHN", plant_diet_ghg)]
 
-
+# marine_ghg_remove <- marine_diet_ghg[!grepl("allocation", marine_diet_ghg)]
+# plant_ghg_remove <- plant_diet_ghg[!grepl("allocation", plant_diet_ghg)]
 
 #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
 
@@ -245,13 +290,15 @@ map(.x = marine_diet_ghg, .f = \(this_file){
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- str_sub(base, start = nchar(base)-2, end = nchar(base))
+    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
     this_ingredient <- str_extract(base, "[^_]+")
     
-    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_ghg_gp_%s.tif"), this_ingredient, this_country)
+    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_ghg_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -279,13 +326,15 @@ map(.x = plant_diet_ghg, .f = \(this_file){
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- str_sub(base, start = nchar(base)-2, end = nchar(base))
+    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
     this_ingredient <- str_extract(base, "[^_]+")
     
-    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_ghg_gp_%s.tif"), this_ingredient, this_country)
+    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_ghg_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -314,21 +363,35 @@ md_reprojected_rasters_ghg <- list.files(path = here("data/spatial/marine_diet/i
 pd_reprojected_rasters_ghg <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "ghg_gp", full=TRUE)
 
 #get the raster values from files
-marine_ghg_vals <- md_reprojected_rasters_ghg |> map(rast) |> map(no_na_values) |> unlist()
-plant_ghg_vals <- pd_reprojected_rasters_ghg |> map(rast) |> map(no_na_values) |> unlist()
+marine_ghg_vals_ge <- md_reprojected_rasters_ghg[grepl("ge_allocation", md_reprojected_rasters_ghg)] |> map(rast) |> map(no_na_values) |> unlist()
+plant_ghg_vals_ge <- pd_reprojected_rasters_ghg[grepl("ge_allocation", pd_reprojected_rasters_ghg)] |> map(rast) |> map(no_na_values) |> unlist()
+
+marine_ghg_vals_mass <- md_reprojected_rasters_ghg[grepl("mass_allocation", md_reprojected_rasters_ghg)] |> map(rast) |> map(no_na_values) |> unlist()
+plant_ghg_vals_mass <- pd_reprojected_rasters_ghg[grepl("mass_allocation", pd_reprojected_rasters_ghg)] |> map(rast) |> map(no_na_values) |> unlist()
 
 #compare marine and plant ghgs
-summary(marine_ghg_vals)
-summary(plant_ghg_vals)
+summary(marine_ghg_vals_ge)
+summary(plant_ghg_vals_ge)
 
-all_ghg_vals <- c(marine_ghg_vals, plant_ghg_vals)
+summary(marine_ghg_vals_mass)
+summary(plant_ghg_vals_mass)
+
+all_ghg_vals_ge <- c(marine_ghg_vals_ge, plant_ghg_vals_ge)
+all_ghg_vals_mass <- c(marine_ghg_vals_mass, plant_ghg_vals_mass)
 
 #explore a reasonable rescale value
-hist(all_ghg_vals, main = "", xlab = "GHG values") |> 
-abline(v=quantile(all_ghg_vals, 0.999), lty = 2)
+hist(all_ghg_vals_ge, main = "", xlab = "GHG values") |> 
+abline(v=quantile(all_ghg_vals_ge, 0.999), lty = 2)
+
+hist(all_ghg_vals_mass, main = "", xlab = "GHG values") |> 
+abline(v=quantile(all_ghg_vals_mass, 0.999), lty = 2)
+
+
 
 #select the 99.9th percentile for rescaling
-ghg_rescale_val <- quantile(all_ghg_vals, 0.999) |> as.numeric()
+ghg_rescale_vals_ge <- quantile(all_ghg_vals_ge, 0.999) |> as.numeric()
+ghg_rescale_vals_mass <- quantile(all_ghg_vals_mass, 0.999) |> as.numeric()
+
 
 #test file
 this_file <- md_reprojected_rasters_ghg[[1]]
@@ -342,19 +405,37 @@ rescaled_marine_ghg_rasters <-
   
   this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
   
+  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
   if(file.exists(saveName)){
     
-    this_rescaled_rast <- 
-      app(x = this_rast, fun = \(x){
-        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_val, true = 1, false = x/ghg_rescale_val))
-                  })
-    names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
-    
-    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
-    
-    return(this_rescaled_rast)
+  message("Processing ", "'", this_basename, "'") 
+   if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_vals_ge, true = 1, false = x/ghg_rescale_vals_ge))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+        this_rescaled_rast <- app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_vals_mass, true = 1, false = x/ghg_rescale_vals_mass))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        }
   }
   
 })
@@ -375,20 +456,37 @@ rescaled_plant_ghg_rasters <-
   
   this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
   
+  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
-    this_rescaled_rast <- 
-      app(x = this_rast, fun = \(x){
-        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_val, true = 1, false = x/ghg_rescale_val))
-    })
-    
-    names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
-    
-    writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
-    
-    return(this_rescaled_rast)
+    message("Processing ", "'", this_basename, "'") 
+   if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_vals_ge, true = 1, false = x/ghg_rescale_vals_ge))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+        this_rescaled_rast <- app(x = this_rast, fun = \(x){
+                                        if_else(x<0, true = 0, false = if_else(x>ghg_rescale_vals_mass, true = 1, false = x/ghg_rescale_vals_mass))})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        }
     
   }
   

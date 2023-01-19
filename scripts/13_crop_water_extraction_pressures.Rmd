@@ -26,6 +26,7 @@ Marine diets
 ```{r}
 
 md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = "AllTech", full.names = TRUE)
+md_crop_r_list <- md_crop_r_list[grepl("allocation", md_crop_r_list)]
 
 this_file <- md_crop_r_list[[1]]
 
@@ -44,7 +45,9 @@ map(md_crop_r_list, \(this_file){
   
   this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
   
-  saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s.tif"), this_diet, this_ingredient, this_source)
+  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     
@@ -74,6 +77,8 @@ Plant diets
 ```{r}
 
 pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
+pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
+
 
 this_file <- pd_crop_r_list[[1]]
 
@@ -92,9 +97,11 @@ map(pd_crop_r_list, \(this_file){
   
   this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
   
-   saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s.tif"), this_diet, this_ingredient, this_source)
+  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
   
-  if(file.exists(saveName)){
+   saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
