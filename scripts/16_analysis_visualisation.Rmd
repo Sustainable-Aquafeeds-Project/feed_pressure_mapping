@@ -14,6 +14,7 @@ library(here)
 library(sf)
 library(terra)
 library(rnaturalearth)
+#library(rnaturalearthdata)
 library(RColorBrewer)
 library(gameofthrones)
 library(parallel)
@@ -45,10 +46,9 @@ final_palette <- c(light_gray, continuous_pal, red)
 source(here("src/fxns.R"))
 
 #spatial products
-countries <- ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
-bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf")|> st_transform(crs = moll_crs)
+countries <-    ne_coastline(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = moll_crs)
 coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
-
 
 select <- dplyr::select
 values <- terra::values
