@@ -299,23 +299,32 @@ marine_source_ingredient <-
 #test dataframe
 this_df <- marine_source_ingredient[[3]]
 
-sources <- c("source_1", "source_2", "source_3")
-
-marine_source_file_list <- list()
-
 
 #Now prepare the files corresponding to the first source for each ingredient for each pressure
 
+
+sources <- c("source_1", "source_2", "source_3")
+
+source = "source_1"
+
+#gross energy allocation 
+
+marine_source_file_list_ge <- list()
+
+
 for(source in sources){
     
-    marine_diet_files <- 
+    marine_diet_files_ge <- 
       map(.x = marine_source_ingredient, .f = \(this_df){
+        
+        this_allocation_method <- "gross energy allocation"
         
         this_ingredient <- this_df$ingredient
         
-        message("processing...", this_ingredient)
+        message("processing...", this_ingredient, " (", this_allocation_method, ") ", source)
         
         these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -342,7 +351,7 @@ for(source in sources){
       }) |> 
       unlist()
     
-    marine_source_file_list[[source]] <- marine_diet_files
+    marine_source_file_list_ge[[source]] <- marine_diet_files_ge
     
   }
   
@@ -353,11 +362,11 @@ for(source in sources){
 #this_file <- marine_diet_files[[6]]
 
 
-marine_source_rast_list <- list()
+marine_source_rast_list_ge <- list()
 
 for(source in sources){
   
-  marine_rast_list <- 
+  marine_rast_list_ge <- 
 
   map(.x = marine_source_file_list[[source]], .f = \(this_file){
   
@@ -370,7 +379,7 @@ for(source in sources){
   return(this_rast)
 })
   
-  marine_source_rast_list[[source]] <- marine_rast_list
+  marine_source_rast_list_ge[[source]] <- marine_rast_list_ge
   
 }
 
@@ -378,20 +387,26 @@ for(source in sources){
 
 #stack and sum the pressures for all ingredients and source combinations
 
-marine_diet_raster <- list()
+marine_diet_raster_ge <- list()
 
 options(warn = 0)
 for(source in sources){
   
   #stack rasters for each sourcing combination
-  marine_diet_raster[[source]] <- app(rast(marine_source_rast_list[[source]]), sum)
-  marine_diet_raster[[source]][marine_diet_raster[[source]]==0] <- NA
+  marine_diet_raster_ge[[source]] <- app(rast(marine_source_rast_list_ge[[source]]), sum)
+  marine_diet_raster_ge[[source]][marine_diet_raster_ge[[source]]==0] <- NA
   
   #reproject raster 
-  marine_diet_raster[[source]] <- project(marine_diet_raster[[source]], moll_crs)
+  marine_diet_raster_ge[[source]] <- project(marine_diet_raster_ge[[source]], moll_crs)
   
 }
 options(warn = 1)
+
+
+
+# MASS ALLOCATION
+
+
 
 
 ```
@@ -733,6 +748,15 @@ ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisa
 
 
 ```
+
+
+
+
+
+
+
+
+
 
 #Permutation analysis
 

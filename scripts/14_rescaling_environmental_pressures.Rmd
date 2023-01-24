@@ -397,6 +397,9 @@ ghg_rescale_vals_mass <- quantile(all_ghg_vals_mass, 0.999) |> as.numeric()
 this_file <- md_reprojected_rasters_ghg[[1]]
 
 #Rescale all ghg rasters to the 99.9th percentile
+
+#MARINE DIETS 
+
 rescaled_marine_ghg_rasters <- 
   
   map(.x= md_reprojected_rasters_ghg, .f = \(this_file){
@@ -409,7 +412,7 @@ rescaled_marine_ghg_rasters <-
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   message("Processing ", "'", this_basename, "'") 
    if(this_allocation_method=="ge_allocation"){

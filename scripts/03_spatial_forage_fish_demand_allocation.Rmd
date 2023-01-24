@@ -43,7 +43,7 @@ rm(total_ingredient_demand)
   mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", ecosystem) ~ "North Atlantic",
                                         ecosystem == "HC" ~ "Humboldt",
                                         ecosystem == "GM" ~ "Gulf of Mexico", 
-                                        ecosystem == "SO" ~ "Southern Ocean",
+                                        ecosystem == "SO" ~ "Southern Ocean",   
                                         ecosystem == "GA" ~ "Other")) |> 
   select(common_name, sci_name, ecosystem_combined, ingredient, ge_value, mass_value) |> 
   mutate(sci_name = case_when(sci_name == "Brevoorti patronus" ~ "Brevoortia patronus",
@@ -59,7 +59,7 @@ globalav_embodiedfish_fo_mass <- embodied_fish_ratios |> filter(common_name == "
 globalav_embodiedfish_fo_ge <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(ge_value)
 
 
-forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName))
+forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName)) |> filter(total_ind >0)
 
 (forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
@@ -183,7 +183,7 @@ source_production_potential <-
 
 
 #now distribute fishmeal and oil demand by the proportion of catch the species make up in each source region
-forage_catch_w_prop_supply <- 
+forage_catch_w_prop_fmfo_supply <- 
   forage_catch |> 
   left_join(fao_xyz_of_interest |> rename(fao_area_code = layer, fao_area_name = area_name), 
             by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
@@ -191,11 +191,6 @@ forage_catch_w_prop_supply <-
   mutate(source_code = case_when(fao_area_name == "Atlantic, Northeast" ~ "NAT",
                                  fao_area_name %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
                                                       TRUE ~ "OTH")) |> 
-  group_by(source_code) |> 
-  nest() |> 
-  mutate(prop_source_catch = map(data, ~(.$total_catch/sum(.$total_catch)))) |> 
-  unnest(cols = c(data, prop_source_catch)) |> 
-  ungroup() |> 
   left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf_mass = mass_value, fishmeal_cf_ge = ge_value), by = c("TaxonName" = "sci_name")) |> 
     left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |>  rename(fish_oil_cf_mass = mass_value, fish_oil_cf_ge = ge_value), by = c("TaxonName" = "sci_name", "common_name")) |> 
   mutate(fishmeal_cf_mass = case_when(is.na(common_name) ~ globalav_embodiedfish_fm_mass,
@@ -205,33 +200,105 @@ forage_catch_w_prop_supply <-
          fish_oil_cf_mass = case_when(is.na(common_name) ~ globalav_embodiedfish_fo_mass,
                                  TRUE ~ fish_oil_cf_mass),
          fish_oil_cf_ge = case_when(is.na(common_name) ~ globalav_embodiedfish_fo_ge,
-                                 TRUE ~ fish_oil_cf_ge)) |> 
-  select(-common_name) 
- 
+                                 TRUE ~ fish_oil_cf_ge),
+         fm_available_ge = total_ind/fishmeal_cf_ge,
+         fo_available_ge = total_ind/fish_oil_cf_ge,
+         fm_available_mass = total_ind/fishmeal_cf_mass,
+         fo_available_mass = total_ind/fish_oil_cf_mass) |> 
+  select(-common_name) |> 
+  group_by(source_code) |> 
+  nest() |> 
+  mutate(prop_available_fm_ge = map(data, ~(.$fm_available_ge/sum(.$fm_available_ge, na.rm=TRUE))),
+         prop_available_fm_mass = map(data, ~(.$fm_available_mass/sum(.$fm_available_mass, na.rm=TRUE))),
+         prop_available_fo_ge = map(data, ~(.$fo_available_ge/sum(.$fo_available_ge,  na.rm=TRUE))),
+         prop_available_fo_mass = map(data, ~(.$fo_available_mass/sum(.$fo_available_mass, na.rm=TRUE)))) |> 
+  unnest(cols = c(data, prop_available_fm_ge, prop_available_fm_mass, prop_available_fo_ge, prop_available_fo_mass)) |> 
+  ungroup() |> 
+  filter(TaxonName != "Euphausia superba")
+  
 
+#Find out how much fishmeal and oil is available globally
+ 
+(total_fm_available_ge <- forage_catch_w_prop_fmfo_supply$fm_available_ge |> sum())
+(total_fo_available_ge <- forage_catch_w_prop_fmfo_supply$fo_available_ge |> sum())
+
+(total_fm_available_mass <- forage_catch_w_prop_fmfo_supply$fm_available_mass |> sum())
+(total_fo_available_mass <- forage_catch_w_prop_fmfo_supply$fo_available_mass |> sum())
+
+
+fmfo_demand
 
 #use the proportions for each region to divide the demand up and work out how the spp_based demand converts to embodied fish
 
 forage_supply_demand_by_diet <- 
   map_df(.x =  c("marine_diet", "plant_diet"), .f = \(this_diet){
     
-    this_df <- forage_catch_w_prop_supply |> 
+    this_df <- forage_catch_w_prop_fmfo_supply |> 
       mutate(diet = this_diet,
-             fm_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
-             fo_demand = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand),
-             spp_fm_demand = fm_demand * prop_source_catch,
-             spp_fo_demand = fo_demand * prop_source_catch,
-             fm_embodied_fish_mass = spp_fm_demand * fishmeal_cf_mass,
-             fm_embodied_fish_ge = spp_fm_demand * fishmeal_cf_ge,
-             fo_embodied_fish_mass = spp_fo_demand * fish_oil_cf_mass,
-             fo_embodied_fish_ge = spp_fo_demand * fish_oil_cf_ge,
-             total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass,
-             total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge) |> 
-      mutate(demand_vs_supply_mass = total_embodied_fish_mass/total_catch) |>
-      mutate(demand_vs_supply_ge = total_embodied_fish_ge/total_catch) |>
+             #extract total fmfo demand for each diet
+             total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
+             total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand),
+             #distribute fishmeal and oil demand according to its distribution
+             applied_fm_demand_ge = total_fm_needed_for_diet * prop_available_fm_ge,
+             applied_fo_demand_ge = total_fo_needed_for_diet * prop_available_fo_ge,
+             applied_fm_demand_mass = total_fm_needed_for_diet * prop_available_fm_mass,
+             applied_fo_demand_mass = total_fo_needed_for_diet * prop_available_fo_mass,
+             #calculate embodied demand
+             fm_embodied_fish_ge = applied_fm_demand_ge * fishmeal_cf_ge,
+             fo_embodied_fish_ge = applied_fo_demand_ge * fish_oil_cf_ge,
+             fm_embodied_fish_mass = applied_fm_demand_mass * fishmeal_cf_mass,
+             fo_embodied_fish_mass = applied_fo_demand_mass * fish_oil_cf_mass,
+             total_fmfo_demand_ge = applied_fm_demand_ge + applied_fo_demand_ge,
+             total_fmfo_demand_mass = applied_fm_demand_mass + applied_fo_demand_mass,
+             total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge,
+             total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass
+             ) |> 
+      mutate(demand_vs_supply_mass = total_embodied_fish_mass/total_ind) |>
+      mutate(demand_vs_supply_ge = total_embodied_fish_ge/total_ind) |>
       relocate(diet, .before = source_code)
     
   })
+
+
+
+fwrite(forage_supply_demand_by_diet, file = here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
+
+
+#Create a total embodied fish demand by diet and source
+embodied_fish_demand_by_diet_source <- 
+  forage_supply_demand_by_diet |> 
+  group_split(diet, source_code) |> 
+  map_df(\(this_df){
+    
+    return(tibble(diet = unique(this_df$diet), 
+                  source_code = unique(this_df$source_code), 
+                  embodied_fish_demand_from_fm_ge = sum(this_df$fm_embodied_fish_ge),
+                  embodied_fish_demand_from_fo_ge = sum(this_df$fo_embodied_fish_ge),
+                  embodied_fish_demand_from_fm_mass = sum(this_df$fm_embodied_fish_mass),
+                  embodied_fish_demand_from_fo_mass = sum(this_df$fo_embodied_fish_mass),
+                  embodied_fish_demand_ge = sum(this_df$total_embodied_fish_ge),
+                  embodied_fish_demand_mass = sum(this_df$total_embodied_fish_mass)))
+    
+  }) |> 
+  pivot_longer(cols = -c(diet, source_code), names_to = "demand_from", values_to = "embodied_fish" ) |> 
+  mutate(allocation = case_when(grepl("_ge", demand_from) ~ "Energetic allocation",
+                                TRUE ~ "Mass allocation"
+                                )) |> 
+  mutate(demand_from = case_when(grepl("from_fm", demand_from) ~ "Fishmeal",
+                                 grepl("from_fo", demand_from) ~ "Fish oil",
+                                 TRUE ~ "Total")) |> arrange(diet, source_code, allocation)
+
+
+
+saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
+
+source_production_potential
+embodied_fish_demand_by_diet_source
+
+
+
+
+
 ```
 
 
@@ -239,51 +306,46 @@ Now do some checks on if demand and supply match up per record i.e. by per cell-
 
 ```{r}
 #check the demand vs supply match up - are there cells where supply is outstripped by demand? 
-forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1) 
-forage_supply_demand_by_diet |> filter(demand_vs_supply_ge>1) #lots of rows where demand exceeds supply - more for gross energy than for mass beause gross energy estimates higher embodied fish from oil especially.
-
-
-
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1))/nrow(forage_supply_demand_by_diet) # in 2.8% of catch records demand exceed catch in 2017 with mass allocation
-nrow(forage_supply_demand_by_diet |> filter(demand_vs_supply_ge>1))/nrow(forage_supply_demand_by_diet) # in 6.7% of catch records demand exceed catch in 2017 with ge_allocation
-
-forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1) |> pull(demand_vs_supply_mass) |> unique() #nothing exceeding 1.05 of catch with mass allocation
-forage_supply_demand_by_diet |> filter(demand_vs_supply_ge>1) |> pull(demand_vs_supply_ge) |> unique() #nothing exceeding 1.3 of catch with ge allocation
-
-
-#look at what quantities and proportion demand exceeded supply by
-exceedance_check <- 
-  forage_supply_demand_by_diet |> 
-  mutate(exceedance_mass = case_when(demand_vs_supply_mass>1 ~ total_embodied_fish_mass-total_catch,
-                                     TRUE ~ 0)) |>
-  mutate(exceedance_ge = case_when(demand_vs_supply_ge>1 ~ total_embodied_fish_ge-total_catch,
-                                     TRUE ~ 0)) |>
-  mutate(prop_exceedance_mass = case_when(exceedance_mass>0 ~ demand_vs_supply_mass-1,
-                                          TRUE ~ 0),
-         prop_exceedance_ge = case_when(exceedance_ge>0 ~ demand_vs_supply_ge-1,
-                                        TRUE ~ 0))
-
-#what is the maximum exceedance in tonnage in a cell?
-(max_exceedance_mass <- exceedance_check |> pull(exceedance_mass) |> max()) #3250 tonnes 
-(max_exceedance_ge <- exceedance_check |> pull(exceedance_ge) |> max()) #19387
-
-#but what does the catch look like when max absolute exceedance occurs?
-exceedance_check |> filter(exceedance_mass == max_exceedance_mass) # catch is 64000 tonnes when demand exceeds catch by its max 
-exceedance_check |> filter(exceedance_ge == max_exceedance_ge) # catch is 64000 tonnes when demand exceeds catch by as much - quite a lot
-
-#what is the maximum proportional exceedance?
-(max_prop_exceedance_mass <- exceedance_check |> pull(prop_exceedance_mass) |> max()) #5% for mass allocation
-(max_prop_exceedance_ge <- exceedance_check |> pull(prop_exceedance_ge) |> max()) #30% for ge allocation - not great
-
-#what is the catch when proportional exceedance is this high?
-exceedance_check |> filter(prop_exceedance_ge == max_prop_exceedance_ge) # catch is typically under 100 tonnes - so 30% is not particularly problematic. We can assume catch per cell is variable.
-exceedance_check |> filter(prop_exceedance_mass == max_prop_exceedance_mass) # catch is 117 tonnes at maximum when proportional exceedance is maximised
-
-
-
-exceedance_check |> filter(demand_vs_supply_mass>1)
+forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1)  #in no cell is demand higher than the supply
 ```
 
+
+
+Create an FMFO embodied fish demand by source and ingredient for supplementary information
+
+```{r}
+embodied_fish_by_dietsource <- readRDS(file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
+
+embodied_fish_by_dietsource |> 
+  mutate(diet = if_else(condition = diet == "marine_diet", true = "Marine diet", false = "Plant diet")) |> 
+  ggplot()+
+  aes(x = demand_from, y = embodied_fish/1000, fill = source_code)+
+  geom_bar(stat= "identity", position = "dodge")+
+  facet_grid(rows = vars(diet), cols = vars(allocation), scales = "fixed")+
+  
+  labs(fill = "Origin", y = "Embodied fish demand (1000s T)")+
+  scale_fill_manual(values = c("#edf8b1", "#7fcdbb", "#2c7fb8"))+
+  theme_bw()+
+  theme(legend.position = c(0.75, 0.43),
+        legend.background = element_rect(fill="transparent"), 
+        legend.direction = "horizontal",
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(), 
+        text = element_text(size=12),
+        legend.text = element_text(size = 10))+
+  guides(fill = guide_legend(title.position = "top"))
+
+
+ggsave(filename = here("figures/presos/embodied_forage_fish_demand.jpg"), device="jpg", dpi = 600, width = 18, height = 15, units="cm")
+ggsave(filename = here("figures/supplementary/embodied_forage_fish_demand.jpg"), device="jpg", dpi = 600, width = 18, height = 15, units="cm")
+
+```
+
+
+
+
+
+#THIS IS NO LONGER NEEDED AFTER TAKING AN DIFFERENT APPROACH WHICH DOES NOT REQUIRE REDISTRIBUTION
 Redistribute the demand in cells where it is greater than supply across other cells where there is available deficit. How to allocate can be scaled by the proportion that cell accounts for in terms of the total deficit.  Do this independently for each diet-source combo though, so need to split the data. Need to do for both mass and gross energy allocations.
 
 ```{r}
@@ -495,7 +557,9 @@ embodied_fish_demand_by_diet_source <-
   group_split(diet, source_code) |> 
   map_df(\(this_df){
     
-    return(tibble(diet = unique(this_df$diet), source_code = unique(this_df$source_code), embodied_fish_demand_mass = sum(this_df$adj_embodied_fish_mass), embodied_fish_demand_ge = sum(this_df$adj_embodied_fish_ge)))
+    return(tibble(diet = unique(this_df$diet), source_code = unique(this_df$source_code), 
+                  embodied_fish_demand_mass = sum(this_df$adj_embodied_fish_mass), 
+                  embodied_fish_demand_ge = sum(this_df$adj_embodied_fish_ge)))
     
   })
 
@@ -544,32 +608,3 @@ ggsave(filename = here("figures/supplementary/cell_catch_exceedance_for_marinedi
 
 ```
   
-Create an FMFO embodied fish demand by source and ingredient
-
-```{r}
-embodied_fish_by_dietsource <- readRDS(file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
-
-embodied_fish_by_dietsource |> 
-  pivot_longer(names_to = "allocation_method", values_to = "embodied_fish_demand", cols = -c(diet, source_code)) |> 
-  mutate(allocation_method = case_when(allocation_method == "embodied_fish_demand_mass" ~ "Mass allocation",
-                                       TRUE ~ "Gross energy allocation")) |> 
-  ggplot()+
-  aes(x = diet, y = embodied_fish_demand/1000, fill = source_code)+
-  geom_bar(stat= "identity", position = "dodge")+
-  labs(fill = "Source", y = "Embodied fish demand (1000s T)")+
-  scale_fill_manual(values = c("#edf8b1", "#7fcdbb", "#2c7fb8"))+
-  theme_bw()+
-  facet_wrap(~allocation_method, scales = "fixed")+
-  theme(legend.position = c(0.9, 0.8),
-        legend.background = element_rect(fill="transparent"), 
-        axis.title.x = element_blank(),
-        panel.grid = element_blank(), 
-        text = element_text(size=12),
-        legend.text = element_text(size = 10))
-
-
-ggsave(filename = here("figures/presos/embodied_forage_fish_demand.jpg"), device="jpg", dpi = 600, width = 18, height = 10, units="cm")
-ggsave(filename = here("figures/supplementary/embodied_forage_fish_demand.jpg"), device="jpg", dpi = 600, width = 18, height = 10, units="cm")
-
-```
-

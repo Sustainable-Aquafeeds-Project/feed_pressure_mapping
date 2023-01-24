@@ -421,6 +421,30 @@ write_csv(forage_list, here("data/raw_data/fisheries/fao_forage_fish_spp_list.cs
 ```
 
 
+
+# Pull in allocation data from Kok et al (economic allocation on forage fish) and synthesised data from Teams for gross energy and mass calculation.
+
+Interesting paper by Ayer, Tyedmers et al on the benefits of gross energy allocation https://link.springer.com/content/pdf/10.1065/lca2006.11.284.pdf
+
+
+```{r}
+
+ingredient_cf_data <- read_csv("/mnt/rdsi/raw_data/allocation/top_crop_producers_conversions.csv")
+write_csv(ingredient_cf_data, here("data/tidy_data/production-data/top_crop_producers_conversions.csv"))  
+
+cf_coproduct_data <- read_csv("/mnt/rdsi/raw_data/allocation/coproduct_conversions.csv") |> select(ingredient, coproduct,country, coproduct_cf)
+write_csv(x = cf_coproduct_data, file = here("data/raw_data/allocation/coproduct_conversions.csv"))
+
+ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv") |> 
+  mutate(coproduct = if_else(ingredient == "guar meal", true = "guar gum", false = coproduct)) 
+write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv"))
+
+
+
+```
+
+
+
 #Tidy embodied fish data from FMFO for different forage fish species from Kok et al 'Fish as feed: Using economic allocation to quantify the Fish In : Fish Out ratio of major fed aquaculture species' in Aquaculture. 
 
 Data source: https://www.sciencedirect.com/science/article/pii/S0044848620309741 Appendix A Supplementary Data
@@ -501,9 +525,11 @@ forage_catch <- catch |>
 
 #23 million tonnes, represented by 46 species across industrial and non industrial sources
 sum(forage_catch$total_catch)
-sum(forage_catch$total_ind) #22.5 mill is from industrial
+sum(forage_catch$total_ind) #23.1 mill is from industrial
 sum(forage_catch$total_nind) #1.3 mill is from non-industrial
 unique(forage_catch$TaxonName) 
+
+tibble(Common_name = unique(forage_catch$CommonName), Species_binomial = unique(forage_catch$TaxonName) )
 
 saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2017.rds"))
 
@@ -701,27 +727,6 @@ The raster has been gapfilled to make all the NA values mean porductivity values
 npp_r <- rast(file.path(rdsi_raw_data_dir, "food-systems-project/annal_mean_npp_2015_gf_wgs.tif"))
 plot(npp_r)
 writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/annal_mean_npp_2015_gf_wgs.tif"))
-
-
-```
-
-# Pull in allocation data from Kok et al (economic allocation on forage fish) and synthesised data from Teams for gross energy and mass calculation.
-
-Interesting paper by Ayer, Tyedmers et al on the benefits of gross energy allocation https://link.springer.com/content/pdf/10.1065/lca2006.11.284.pdf
-
-
-```{r}
-
-ingredient_cf_data <- read_csv("/mnt/rdsi/raw_data/allocation/top_crop_producers_conversions.csv")
-write_csv(ingredient_cf_data, here("data/tidy_data/production-data/top_crop_producers_conversions.csv"))  
-
-cf_coproduct_data <- read_csv("/mnt/rdsi/raw_data/allocation/coproduct_conversions.csv") |> select(ingredient, coproduct,country, coproduct_cf)
-write_csv(x = cf_coproduct_data, file = here("data/raw_data/allocation/coproduct_conversions.csv"))
-
-ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv") |> 
-  mutate(coproduct = if_else(ingredient == "guar meal", true = "guar gum", false = coproduct)) 
-write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv"))
-
 
 
 ```
