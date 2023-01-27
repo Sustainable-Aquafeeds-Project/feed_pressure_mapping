@@ -12,7 +12,7 @@ The disturbance metric established in Halpern et al is composed of two elements:
 
 We need to calculate this separately for fishmeal and oil as we are interested in the allocation of pressures to ingredients
   
-```{r}
+```{r, setup}
 
 library(tidyverse)
 library(here)
@@ -195,7 +195,7 @@ map(trawl_forage_catch_list, \(this_df){
   this_summary_df_mass <- 
     this_df |> 
     group_by(LonCentre, LatCentre) |> 
-    summarise(forage_catch_mass = sum(embodied_fish_adj_fm_mass, na.rm=TRUE))
+    summarise(forage_catch_mass = sum(fm_embodied_fish_mass, na.rm=TRUE))
 
   this_rast_mass <- rast(this_summary_df_mass, type="xyz", crs="EPSG:4326")
   this_rast_resampled_mass <- resample(this_rast_mass, rast(res=0.5))
@@ -206,7 +206,7 @@ map(trawl_forage_catch_list, \(this_df){
    this_summary_df_ge <- 
     this_df |> 
     group_by(LonCentre, LatCentre) |> 
-    summarise(forage_catch_ge = sum(embodied_fish_adj_fm_ge, na.rm=TRUE))
+    summarise(forage_catch_ge = sum(fm_embodied_fish_ge, na.rm=TRUE))
 
   this_rast_ge <- rast(this_summary_df_ge, type="xyz", crs="EPSG:4326")
   this_rast_resampled_ge <- resample(this_rast_ge, rast(res=0.5))
@@ -218,7 +218,8 @@ map(trawl_forage_catch_list, \(this_df){
 
 # now look at dredging - but there is no catch for dredging so we can disregard
 
-trawl_forage_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+dredge_forage_catch_list <- 
+  fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
   filter(VBDesc %in% dredge_types) |> 
   as_tibble()
@@ -325,7 +326,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/int/%s.tif"), fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_source <- str_extract(fileName, "EPC|NAT|OTH")
   
@@ -370,7 +371,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/int/%s.tif"), fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_source <- str_extract(fileName, "EPC|NAT|OTH")
   
@@ -423,7 +424,7 @@ map(.x = fm_effort_files_md, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -444,7 +445,7 @@ map(.x = fm_effort_files_md, .f = \(this_file){
 #Plant diets
 
 fm_effort_files_int_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "fishmeal_trawl_effort", full.names=TRUE)
-fm_effort_files_pd <- fm_effort_files_int_pd[!grepl("0.5D_km2", fm_effort_files_int_pd) & grepl("_allocation", fm_effort_files_int_md)]
+fm_effort_files_pd <- fm_effort_files_int_pd[!grepl("0.5D_km2", fm_effort_files_int_pd) & grepl("_allocation", fm_effort_files_int_pd)]
 
 this_file <- fm_effort_files_pd[[3]]
 
@@ -458,7 +459,7 @@ map(.x = fm_effort_files_pd, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -511,7 +512,7 @@ md_fm_effort_km2_r_list_ge_allocation <-
 
 
 #check for outliers
-hist(unlist(md_fm_effort_km2_r_list_ge_allocation))
+hist(unlist(md_fm_effort_km2_r_list_ge_allocation)) |> 
 abline(v=quantile(unlist(md_fm_effort_km2_r_list_ge_allocation), 0.999), lty=2)
 
 
@@ -529,7 +530,7 @@ md_fm_effort_km2_r_list_mass_allocation <-
 
 
 #check for outliers
-hist(unlist(md_fm_effort_km2_r_list_mass_allocation))
+hist(unlist(md_fm_effort_km2_r_list_mass_allocation)) |> 
 abline(v=quantile(unlist(md_fm_effort_km2_r_list_mass_allocation), 0.999), lty=2)
 
 
@@ -548,7 +549,7 @@ md_fm_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       if(grepl("ge_allocation", saveName)){
         
@@ -638,7 +639,7 @@ pd_fm_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       if(grepl("ge_allocation", saveName)){
         
@@ -702,8 +703,8 @@ The next step is understand the biomass removal component of disturbance. To do 
 fm_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
   group_by(diet, source_code, LonCentre, LatCentre) |> 
-  summarise(mass_allocation = sum(embodied_fish_adj_fm_mass, na.rm=TRUE),
-            ge_allocation = sum(embodied_fish_adj_fm_ge, na.rm=TRUE)) |> 
+  summarise(mass_allocation = sum(fm_embodied_fish_ge, na.rm=TRUE),
+            ge_allocation = sum(fm_embodied_fish_mass, na.rm=TRUE)) |> 
   as_tibble() |> 
   pivot_longer(names_to = "allocation_method", values_to = "catch", cols = -c(diet, source_code, LonCentre, LatCentre)) |> 
   group_split(diet, source_code, allocation_method)
@@ -722,7 +723,7 @@ map(fm_catch_list, \(this_df){
   
   saveName <- sprintf(here("data/spatial/%s/production/fishmeal_catch_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_xy <- this_df |> select(-c(diet, source_code, allocation_method))
   
@@ -752,7 +753,7 @@ map(fm_catch_r_list_md, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -778,7 +779,7 @@ map(fm_catch_r_list_pd, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -826,7 +827,7 @@ fm_rescaled_biomass_list <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fishmeal_biomass_removal_rescaled_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     if(this_allocation_method=="ge_allocation"){
       
@@ -986,7 +987,7 @@ map(trawl_forage_catch_list, \(this_df){
   this_summary_df_mass <- 
     this_df |> 
     group_by(LonCentre, LatCentre) |> 
-    summarise(forage_catch_mass = sum(embodied_fish_adj_fo_mass, na.rm=TRUE))
+    summarise(forage_catch_mass = sum(fo_embodied_fish_mass, na.rm=TRUE))
 
   this_rast_mass <- rast(this_summary_df_mass, type="xyz", crs="EPSG:4326")
   this_rast_resampled_mass <- resample(this_rast_mass, rast(res=0.5))
@@ -997,7 +998,7 @@ map(trawl_forage_catch_list, \(this_df){
    this_summary_df_ge <- 
     this_df |> 
     group_by(LonCentre, LatCentre) |> 
-    summarise(forage_catch_ge = sum(embodied_fish_adj_fo_ge, na.rm=TRUE))
+    summarise(forage_catch_ge = sum(fo_embodied_fish_ge, na.rm=TRUE))
 
   this_rast_ge <- rast(this_summary_df_ge, type="xyz", crs="EPSG:4326")
   this_rast_resampled_ge <- resample(this_rast_ge, rast(res=0.5))
@@ -1115,7 +1116,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/int/%s.tif"), fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_source <- str_extract(string = saveName, pattern = "EPC|NAT|OTH")
   
@@ -1160,7 +1161,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/int/%s.tif"), fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_source <- str_extract(string = saveName, pattern = "EPC|NAT|OTH")
   
@@ -1213,7 +1214,7 @@ map(.x = fo_effort_files_md, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -1248,7 +1249,7 @@ map(.x = fo_effort_files_pd, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -1299,7 +1300,7 @@ md_fo_effort_km2_r_list_ge <-
 
 
 #check for outliers
-hist(unlist(md_fo_effort_km2_r_list_ge))
+hist(unlist(md_fo_effort_km2_r_list_ge)) |> 
 abline(v=quantile(unlist(md_fo_effort_km2_r_list_ge), 0.999), lty=2)
 
 
@@ -1316,7 +1317,7 @@ md_fo_effort_km2_r_list_mass <-
 
 
 #check for outliers
-hist(unlist(md_fo_effort_km2_r_list_mass))
+hist(unlist(md_fo_effort_km2_r_list_mass)) |> 
 abline(v=quantile(unlist(md_fo_effort_km2_r_list_mass), 0.999), lty=2)
 
 
@@ -1332,7 +1333,7 @@ md_fo_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       if(grepl("ge_allocation", saveName)){
         
@@ -1420,7 +1421,7 @@ pd_fo_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
         if(grepl("ge_allocation", saveName)){
         
@@ -1479,11 +1480,12 @@ The next step is understand the biomass removal component of disturbance. To do 
 #Create catch rasters for all diets and sources
 
 #split the embodied fish from fishmeal xy file by diet and source
-fo_catch_list <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+fo_catch_list <- 
+  fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
   group_by(diet, source_code, LonCentre, LatCentre) |> 
-  summarise(ge_allocation = sum(embodied_fish_adj_fo_ge, na.rm=TRUE),
-            mass_allocation = sum(embodied_fish_adj_fo_mass, na.rm=TRUE)) |> 
+  summarise(ge_allocation = sum(fo_embodied_fish_ge, na.rm=TRUE),
+            mass_allocation = sum(fo_embodied_fish_mass, na.rm=TRUE)) |> 
   as_tibble() |> 
   pivot_longer(names_to = "allocation_method", values_to = "catch", cols = -c(diet, source_code, LonCentre, LatCentre)) |> 
   group_split(diet, source_code, allocation_method)
@@ -1502,7 +1504,7 @@ map(fo_catch_list, \(this_df){
   
   saveName <- sprintf(here("data/spatial/%s/production/fish oil_catch_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_xy <- this_df |> select(-c(diet, source_code, allocation_method))
   
@@ -1517,7 +1519,7 @@ map(fo_catch_list, \(this_df){
 #import npp raster
 npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
 
-# Import the catch rasters by marine and plant diets
+# Import the catch rasters by marine and plant diets and adjust them by npp in each cell
 
 # marine diet
 
@@ -1532,7 +1534,7 @@ map(fo_catch_r_list_md, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -1558,7 +1560,7 @@ map(fo_catch_r_list_pd, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -1605,7 +1607,7 @@ fo_rescaled_biomass_list <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fish oil_biomass_removal_rescaled_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     
     if(this_allocation_method == "ge_allocation"){
