@@ -326,7 +326,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/int/%s.tif"), fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_source <- str_extract(fileName, "EPC|NAT|OTH")
   
@@ -371,7 +371,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/int/%s.tif"), fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_source <- str_extract(fileName, "EPC|NAT|OTH")
   
@@ -424,7 +424,7 @@ map(.x = fm_effort_files_md, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -459,7 +459,7 @@ map(.x = fm_effort_files_pd, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -549,7 +549,7 @@ md_fm_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       if(grepl("ge_allocation", saveName)){
         
@@ -639,7 +639,7 @@ pd_fm_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       if(grepl("ge_allocation", saveName)){
         
@@ -723,7 +723,7 @@ map(fm_catch_list, \(this_df){
   
   saveName <- sprintf(here("data/spatial/%s/production/fishmeal_catch_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_xy <- this_df |> select(-c(diet, source_code, allocation_method))
   
@@ -753,7 +753,7 @@ map(fm_catch_r_list_md, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -779,7 +779,7 @@ map(fm_catch_r_list_pd, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -827,7 +827,7 @@ fm_rescaled_biomass_list <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fishmeal_biomass_removal_rescaled_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     if(this_allocation_method=="ge_allocation"){
       
@@ -1116,7 +1116,7 @@ map(.x = prop_raster_files_md, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/int/%s.tif"), fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_source <- str_extract(string = saveName, pattern = "EPC|NAT|OTH")
   
@@ -1161,7 +1161,7 @@ map(.x = prop_raster_files_pd, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/int/%s.tif"), fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_source <- str_extract(string = saveName, pattern = "EPC|NAT|OTH")
   
@@ -1214,7 +1214,7 @@ map(.x = fo_effort_files_md, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -1249,7 +1249,7 @@ map(.x = fo_effort_files_pd, .f = \(this_file){
   
   message("Processing ", fileName)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_r <- rast(this_file)
     
@@ -1333,7 +1333,7 @@ md_fo_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       if(grepl("ge_allocation", saveName)){
         
@@ -1421,7 +1421,7 @@ pd_fo_rescaled_benthic_list <-
     
     saveName <- sprintf(here("data/spatial/%s/int/%s.tif"),this_diet, fileName)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
         if(grepl("ge_allocation", saveName)){
         
@@ -1504,7 +1504,7 @@ map(fo_catch_list, \(this_df){
   
   saveName <- sprintf(here("data/spatial/%s/production/fish oil_catch_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_xy <- this_df |> select(-c(diet, source_code, allocation_method))
   
@@ -1534,7 +1534,7 @@ map(fo_catch_r_list_md, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -1560,7 +1560,7 @@ map(fo_catch_r_list_pd, \(this_file){
   
   saveName <- gsub(pattern = "production", replacement = "int", gsub(pattern = ".tif", replacement = "_ea_npp.tif", this_file))
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
   this_r <- rast(this_file)
     
@@ -1607,7 +1607,7 @@ fo_rescaled_biomass_list <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fish oil_biomass_removal_rescaled_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     
     if(this_allocation_method == "ge_allocation"){

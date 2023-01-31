@@ -314,19 +314,41 @@ map(.x = production_sector_list, .f = function(this_element){
 
 ```{r}
 
+#bring in all LCA files from RDSI (prepped in Teams) and save in this project
+
+list.files(file.path(rdsi_raw_data_dir, "LCA/Crops - ReCiPe 2016 Midpoint"), pattern = ".csv", full.names =TRUE) |> 
+  map(\(each_file){
+    
+    saveName <- basename(each_file)
+    
+    this_file <- read_csv(each_file)
+    
+    write_csv(this_file, file = sprintf(here("data/raw_data/LCA/%s"), saveName))
+  })
+
+each_file <- list.files(here("data/raw_data/LCA"), pattern = "allocation", full.names = TRUE)[[1]]
+
 lca_all_crops <- 
-  list.files(here("data/raw_data/LCA"), full.names = TRUE) |> 
+  list.files(here("data/raw_data/LCA"), pattern = "allocation", full.names = TRUE) |> 
   map_df(\(each_file){
-    this_file <- read_csv(each_file) |> rename_at(vars(1:3), make_clean_names)
+    
+    message("Processing", each_file)
+  
+    this_allocation_method <- case_when(grepl("ge_allocation", each_file) ~ "Energetic allocation",
+                                      TRUE ~ "Mass allocation")
+    
+    
+    this_file <- read_csv(each_file) #|> rename_at(vars(1:3), make_clean_names)
     this_long_file <- this_file |> 
-      pivot_longer( names_to = "iso2c", values_to = "value" , cols = -c(raw_material, impact_category, unit)) |> 
+      pivot_longer(names_to = "iso2c", values_to = "value" , cols = -c(raw_material, impact, unit)) |> 
       mutate(iso3c = countrycode(sourcevar = iso2c, origin = "iso2c", destination = "iso3c", warn = TRUE)) |> 
-      mutate(iso3c = case_when(iso2c == "UK" ~ "GBR",
-                               grepl("US-", iso2c) ~ "USA",
-                               TRUE ~ iso3c))
+      mutate(allocation = this_allocation_method)
+      # mutate(iso3c = case_when(iso2c == "UK" ~ "GBR",
+      #                          grepl("US-", iso2c) ~ "USA",
+      #                          TRUE ~ iso3c))
     }) %>% 
   mutate(FAOSTAT_name = case_when(raw_material == "Broad bean" ~ "Broad beans, horse beans, dry",
-                                  raw_material == "Guar seed" ~ "Pulses nes",
+                                  raw_material == "Guar bean" ~ "Pulses nes",
                                   raw_material == "Lupins" ~ "Pulses nes - Lupins",
                                   raw_material == "Peas" ~ "Peas, dry",
                                   raw_material == "Wheat grain" ~ "Wheat",
@@ -337,7 +359,7 @@ lca_all_crops <-
 saveRDS(object = lca_all_crops, file = here("data/tidy_data/LCA/crop_lca.rds"))
 
 
-unique(lca_all_crops$raw_material)
+unique(lca_all_crops$FAOSTAT_name)
 ```
 
 

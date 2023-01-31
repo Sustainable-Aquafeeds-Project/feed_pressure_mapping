@@ -83,7 +83,7 @@ saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-d
 ```
 
 
-Now we have the top 20 producers for each crop that is used as a raw material in feed, we need to get conversion factors (yields) from ingredients to  each of these raw materials in different places and also the gross energy values of each ingredient and co-product so that energetic allocation can be achieved. This was done separately in the Sustainable Aquafeeds Project Teams interface. 
+Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors (yields) from ingredients to  each of these raw materials in different places and also the gross energy values of each ingredient and co-product so that energetic allocation and mass allocation conversion to embodied raw material can be achieved. This was done separately in the Sustainable Aquafeeds Project Teams interface and imported here. 
 
 ```{r}
 #import codes that will be compatible with MAPSPAM layers
@@ -122,6 +122,8 @@ ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocatio
   select(-c(unit,reference, notes)) |> 
   filter(!ingredient %in% c("fishmeal", "fish oil")) |> 
   mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))
+
+#calculate the allocation factors for gross energy and mass allocation
 
 (allocation_raw <- 
   ge_values |> 
@@ -170,3 +172,4 @@ saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/to
 
 rm(list = ls(all.names = TRUE))
 ```
+

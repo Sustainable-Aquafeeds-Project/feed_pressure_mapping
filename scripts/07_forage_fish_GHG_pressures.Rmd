@@ -47,14 +47,14 @@ embodied_fish_new_gear <-
   left_join(parker_gear_join, by="Gear") |> 
   left_join(ei_data, by = c("Taxonkey", "Descript", "ParkerGearName")) |> 
   as_tibble() |> 
-  mutate(fm_adj_embodied_fish_kg_ge = embodied_fish_adj_fm_ge *1000,
-         fm_adj_embodied_fish_kg_mass = embodied_fish_adj_fm_mass *1000,
-         fo_adj_embodied_fish_kg_ge = embodied_fish_adj_fo_ge *1000,
-         fo_adj_embodied_fish_kg_mass = embodied_fish_adj_fo_mass *1000) |> 
-  mutate(ei_kg_CO2_eq_fm_ge = fm_adj_embodied_fish_kg_ge*ei_kgco2_kgcatch,
-         ei_kg_CO2_eq_fm_mass = fm_adj_embodied_fish_kg_mass*ei_kgco2_kgcatch,
-         ei_kg_CO2_eq_fo_ge = fo_adj_embodied_fish_kg_ge*ei_kgco2_kgcatch,
-         ei_kg_CO2_eq_fo_mass = fo_adj_embodied_fish_kg_mass*ei_kgco2_kgcatch)
+  mutate(fm_embodied_fish_kg_ge = fm_embodied_fish_ge *1000,
+         fm_embodied_fish_kg_mass = fm_embodied_fish_mass *1000,
+         fo_embodied_fish_kg_ge = fo_embodied_fish_ge *1000,
+         fo_embodied_fish_kg_mass = fo_embodied_fish_mass *1000) |> 
+  mutate(ei_kg_CO2_eq_fm_ge = fm_embodied_fish_kg_ge*ei_kgco2_kgcatch,
+         ei_kg_CO2_eq_fm_mass = fm_embodied_fish_kg_mass*ei_kgco2_kgcatch,
+         ei_kg_CO2_eq_fo_ge = fo_embodied_fish_kg_ge*ei_kgco2_kgcatch,
+         ei_kg_CO2_eq_fo_mass = fo_embodied_fish_kg_mass*ei_kgco2_kgcatch)
 
 #embodied_fish_new_gear |> filter(is.na(ei_kgco2_kgcatch))
 #no missing emissions intensity data - what we want.
@@ -63,12 +63,12 @@ embodied_fish_new_gear <-
 
 #check the embedded fish across the fm and fo per diet
 embodied_fish_new_gear |> 
-  select(diet, source_code, embodied_fish_adj_fo_ge, embodied_fish_adj_fm_ge, embodied_fish_adj_fo_mass, embodied_fish_adj_fm_mass) |> 
+  select(diet, source_code, fm_embodied_fish_ge, fm_embodied_fish_mass, fo_embodied_fish_ge, fo_embodied_fish_mass) |> 
   group_by(diet, source_code) |> 
-  summarise(fo_embedded_ge = sum(embodied_fish_adj_fo_ge, na.rm=TRUE),
-            fm_embedded_ge = sum(embodied_fish_adj_fm_ge, na.rm = TRUE),
-            fo_embedded_mass = sum(embodied_fish_adj_fo_mass, na.rm=TRUE),
-            fm_embedded_mass = sum(embodied_fish_adj_fm_mass, na.rm = TRUE))
+  summarise(fo_embedded_ge = sum(fo_embodied_fish_ge, na.rm=TRUE),
+            fm_embedded_ge = sum(fm_embodied_fish_ge, na.rm = TRUE),
+            fo_embedded_mass = sum(fo_embodied_fish_mass, na.rm=TRUE),
+            fm_embedded_mass = sum(fm_embodied_fish_mass, na.rm = TRUE))
 
 
 
