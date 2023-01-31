@@ -225,6 +225,8 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   #if the file doesn't exist, create it
   if(!file.exists(this_demand_raster_filename)){
     
+    #spatial adjustments of production rasters by current production and applying demand for each diet
+    
     if(this_allocation_method == "ge_allocation"){
       
       this_demand_quantity <- unique(this_ingredient_source$total_crop_demand)
@@ -268,8 +270,6 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
       
     }
     
-    
-    #spatial adjustments of production data by current production
     
     
   }

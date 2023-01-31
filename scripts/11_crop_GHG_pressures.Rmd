@@ -49,13 +49,15 @@ map(md_crop_r_list, \(this_file){
   
   this_allocation_method <- str_extract(this_filename,"ge_allocation|mass_allocation")
   
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
   saveName <- sprintf(here("data/spatial/%s/int/%s_ghg_km2_%s_%s.tif"), this_diet, this_ingredient,this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
-    this_ghg_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact_category %in% c("Global warming", "Climate change")) |> pull(value) |> mean()
+    this_ghg_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact== "Global warming" & allocation == this_allocation_method_for_df) |> pull(value)
     
     this_ghg_value_tonne <- this_ghg_value_kg*1000
     
@@ -92,7 +94,7 @@ map(pd_crop_r_list, \(this_file){
   this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
   
   this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
-  
+
   this_filename <- tools::file_path_sans_ext(basename(this_file))
   
   this_diet <- "plant_diet"
@@ -101,13 +103,15 @@ map(pd_crop_r_list, \(this_file){
   
   this_allocation_method <- str_extract(this_filename,"ge_allocation|mass_allocation")
   
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
   saveName <- sprintf(here("data/spatial/%s/int/%s_ghg_km2_%s_%s.tif"), this_diet, this_ingredient,this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
-    this_ghg_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact_category %in% c("Global warming", "Climate change")) |> pull(value) |> mean()
+   this_ghg_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact== "Global warming" & allocation == this_allocation_method_for_df) |> pull(value)
     
     this_ghg_value_tonne <- this_ghg_value_kg*1000
     
