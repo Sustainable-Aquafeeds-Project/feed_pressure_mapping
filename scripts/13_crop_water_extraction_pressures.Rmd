@@ -47,13 +47,15 @@ map(md_crop_r_list, \(this_file){
   
   this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
   
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
   saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
-    this_h2o_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact_category %in% c("Water consumption", "Water use")) |> pull(value) |> mean()
+    this_h2o_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Water consumption", "Water use") & allocation == this_allocation_method_for_df) |> pull(value) 
     
     this_h2o_value_tonne <- this_h2o_value_kg*1000
     
@@ -99,13 +101,15 @@ map(pd_crop_r_list, \(this_file){
   
   this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
   
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
    saveName <- sprintf(here("data/spatial/%s/int/%s_water_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
-    this_h2o_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact_category %in% c("Water consumption", "Water use")) |> pull(value) |> mean()
+    this_h2o_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Water consumption", "Water use") & allocation == this_allocation_method_for_df) |> pull(value) |> mean()
     
     this_h2o_value_tonne <- this_h2o_value_kg*1000
     

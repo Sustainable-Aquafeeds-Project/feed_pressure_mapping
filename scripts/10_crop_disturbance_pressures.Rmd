@@ -59,32 +59,6 @@ max(crop_area$rel_change, na.rm = TRUE)
 
 ```
 
-Import the demand-production comparisons for crops to adjust the physical area (under the assumption it is yields that have increased).
-
-```{r}
-
-crop_sources <- readRDS(here("data/tidy_data/demand/crop_sourcing_countries_plausible_impacts.rds")) 
-
-demand_production_compare <- readRDS(here("data/tidy_data/demand/crop_demand_production_compare.rds")) |>
-  filter(total_ingredient_demand > 0) |> 
-  group_split(ingredients, diet, map_spam_code)
-
-this_crop <- demand_production_compare[[1]]
-
-#filter the production compare by the sources used in the analysis
-
-demand_production_compare_w_sources <- 
-  
-  map_df(demand_production_compare, \(this_crop){
-  
-  sources <- crop_sources |> filter(FAOSTAT_name == unique(this_crop$FAOSTAT_name)) |> pull(iso3c)
-  
-  this_crop_adj <- this_crop |> filter(source_iso3c %in% sources)
-}) |> 
-  #filter(!(FAOSTAT_name == "Linseed" & source_iso3c %in% c("CHN", "GBR"))) |> 
-  filter(demand_production_ratio_ge>0 | demand_production_ratio_ms>0)
-
-```
 
 Check the area harvested from FAOSTAT with physical area from MAPSPAM to identify any discrepencies see if it plausible to fix by adjustment factors based on the greatest area harvested in either 2010 or 2017.
 
@@ -153,11 +127,15 @@ crop_area_files <- list.files(here("data/spatial/crop-layers-reprojected"), patt
 
 country_rast_files <- list.files(here("data/spatial/country-rasters"), full.names = TRUE)
 
+demand_production_compare_w_sources <- readRDS(here("data/tidy_data/demand/sourcing_countries_crops.rds"))
+
 scalar_source_list <- 
   demand_production_compare_w_sources |> 
   left_join( y = mapspam_rel_change, by = c("source_country" = "area", "source_iso3c" = "iso3c", "FAOSTAT_name" = "item")) |> 
-  select(-c(ge_allocation_factor, mass_allocation_factor, total_crop_demand_ge, total_crop_demand_ms, check_ge, check_ms)) |> 
+  select(-c(ge_allocation_factor, mass_allocation_factor, total_crop_demand)) |> 
   rename(ge_allocation = demand_production_ratio_ge, mass_allocation = demand_production_ratio_ms) |> 
+  filter(allocation_method == "ge_allocation") |> 
+  select(-allocation_method) |> 
   pivot_longer(cols = c(ge_allocation, mass_allocation), names_to = "allocation_method", values_to = "demand_production_ratio") |> 
   group_split(ingredients, diet, FAOSTAT_name, source_iso3c, allocation_method) 
   
@@ -183,10 +161,10 @@ map(.x = scalar_source_list, \(this_file){
   
   saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s_%s.tif"), this_diet, this_ingredient,  this_allocation_method, this_country)
   
+   message("Processing ", this_diet, ", ", basename(tools::file_path_sans_ext(saveName)))
+  
   if(!file.exists(saveName)){
-    
-    message("Processing ",  basename(tools::file_path_sans_ext(saveName)))
-    
+ 
     #raw area rasters are already in km2 so no need to convert
     this_raw_rast <- rast(crop_area_files[grepl(this_mapspam_code, crop_area_files)]) 
   

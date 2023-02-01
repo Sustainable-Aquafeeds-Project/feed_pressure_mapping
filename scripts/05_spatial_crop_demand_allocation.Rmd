@@ -200,6 +200,10 @@ ingredient_per_country_per_diet <-
 }) |> 
   group_split(diet, ingredients, FAOSTAT_name, source_iso3c, allocation_method)
 
+
+saveRDS(bind_rows(ingredient_per_country_per_diet), file = here("data/tidy_data/demand/sourcing_countries_crops.rds"))
+
+
 #for testing the function below
 this_ingredient_source <- ingredient_per_country_per_diet[[5]]
 
