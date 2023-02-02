@@ -871,7 +871,7 @@ fm_rescaled_biomass_list <-
 
 ```
 
-# Will need to revisit this if all rescaling needs to be done within the context of a feed (i.e. rescaled per cell against the highest value for all ingredients across both diets in that cell).
+# Will need to revisit this if all rescaling does not need to be done within the context of a feed (i.e. rescaled per cell against the highest value for all ingredients across both diets in that cell).
 
 Finally, combine benthic disturbance with biomass removal to get a joint pressure metric.
 
@@ -889,24 +889,30 @@ this_biomass_file <- fm_biomass_removal_md[[1]]
 
 combined_raster_list <- 
   map2(.x = fm_benthic_destruction_md, .y = fm_biomass_removal_md, .f = \(this_benthic_file, this_biomass_file){
-  
-  this_source <- str_extract(string = this_benthic_file, pattern = "EPC|NAT|OTH") 
-  this_allocation_method <- str_extract(this_benthic_file, pattern = "ge_allocation|mass_allocation")
     
-  this_benthic_r <- rast(this_benthic_file)
-  this_biomass_r <- rast(this_biomass_file)
-  
-  this_combined_r <- (this_benthic_r+this_biomass_r)/2
-  
-  this_combined_r_reproj <- project(this_combined_r, gall_peters)
-  
-  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
-  
-  writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/marine_diet/int/fishmeal_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method), overwrite=TRUE)
-  
-  return(this_km2_combined_r)
-  
-})
+    this_source <- str_extract(string = this_benthic_file, pattern = "EPC|NAT|OTH") 
+    this_allocation_method <- str_extract(this_benthic_file, pattern = "ge_allocation|mass_allocation")
+    
+    saveName <- sprintf(here("data/spatial/marine_diet/int/fishmeal_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method)
+    
+    message("Processing, ", basename(saveName))
+    
+    if(file.exists(saveName)){
+      
+      this_benthic_r <- rast(this_benthic_file)
+      this_biomass_r <- rast(this_biomass_file)
+      
+      this_combined_r <- (this_benthic_r+this_biomass_r)/2
+      
+      this_combined_r_reproj <- project(this_combined_r, gall_peters)
+      
+      this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
+      
+      writeRaster(x = this_km2_combined_r, filename = saveName, overwrite=TRUE)
+      
+      return(this_km2_combined_r)
+    }
+  })
 
 
 
@@ -926,21 +932,27 @@ combined_raster_list2 <-
     
     this_source <- str_extract(string = this_benthic_file, pattern = "EPC|NAT|OTH") 
     this_allocation_method <- str_extract(this_benthic_file, pattern = "ge_allocation|mass_allocation")
+    
+    saveName <- sprintf(here("data/spatial/plant_diet/int/fishmeal_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method)
+    
+    message("Processing, ",  basename(saveName))
+    
+    if(file.exists(saveName)){
+      
+      this_benthic_r <- rast(this_benthic_file)
+      this_biomass_r <- rast(this_biomass_file)
+      
+      this_combined_r <- (this_benthic_r+this_biomass_r)/2
+      
+      this_combined_r_reproj <- project(this_combined_r, gall_peters)
+      
+      this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
+      
+      writeRaster(x = this_km2_combined_r, filename = saveName, overwrite=TRUE)
+      
+      return(this_km2_combined_r)
 
-    this_benthic_r <- rast(this_benthic_file)
-    this_biomass_r <- rast(this_biomass_file)
-    
-    this_combined_r <- (this_benthic_r+this_biomass_r)/2
-    
-    this_combined_r_reproj <- project(this_combined_r, gall_peters)
-    
-    this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
-    
-    writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/plant_diet/int/fishmeal_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method), overwrite=TRUE)
-  
-  
-  return(this_km2_combined_r)
-  
+    }
 })
 
 
@@ -1671,20 +1683,28 @@ combined_raster_list <-
   
   this_source <- str_extract(this_benthic_file, pattern = "EPC|NAT|OTH")
   this_allocation_method <- str_extract(this_benthic_file, pattern = "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/int/fish oil_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method)
+  
+  if(file.exists(saveName)){
     
-  this_benthic_r <- rast(this_benthic_file)
-  this_biomass_r <- rast(this_biomass_file)
-  
-  this_combined_r <- (this_benthic_r+this_biomass_r)/2
-  
-   this_combined_r_reproj <- project(this_combined_r, gall_peters)
-  
-  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
-  
-  writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/marine_diet/int/fish oil_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method), overwrite=TRUE)
-  
-  return(this_km2_combined_r)
-  
+    message("Processing, ", basename(saveName))
+    
+    this_benthic_r <- rast(this_benthic_file)
+    this_biomass_r <- rast(this_biomass_file)
+    
+    this_combined_r <- (this_benthic_r+this_biomass_r)/2
+    
+    this_combined_r_reproj <- project(this_combined_r, gall_peters)
+    
+    this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
+    
+    writeRaster(x = this_km2_combined_r, filename = saveName, overwrite=TRUE)
+    
+    return(this_km2_combined_r)
+    
+    
+  }
 })
 
 
@@ -1705,21 +1725,28 @@ combined_raster_list2 <-
   
   this_source <- str_extract(this_benthic_file, pattern = "EPC|NAT|OTH")
   this_allocation_method <- str_extract(this_benthic_file, pattern = "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/int/fish oil_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method)
+  
+  message("Processing, ", basename(saveName))
+  
+  if(file.exists(saveName)){
     
-  this_benthic_r <- rast(this_benthic_file)
-  this_biomass_r <- rast(this_biomass_file)
-  
-  this_combined_r <- (this_benthic_r+this_biomass_r)/2
-  
-   this_combined_r_reproj <- project(this_combined_r, gall_peters)
-  
-  this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
-  
- writeRaster(x = this_km2_combined_r, filename = sprintf(here("data/spatial/plant_diet/int/fish oil_disturbance_km2_%s_%s.tif"), this_source, this_allocation_method), overwrite=TRUE)
-  
-  
-  return(this_km2_combined_r)
-  
+    this_benthic_r <- rast(this_benthic_file)
+    this_biomass_r <- rast(this_biomass_file)
+    
+    this_combined_r <- (this_benthic_r+this_biomass_r)/2
+    
+    this_combined_r_reproj <- project(this_combined_r, gall_peters)
+    
+    this_km2_combined_r <- this_combined_r_reproj*cellSize(this_combined_r_reproj, unit="km")
+    
+    writeRaster(x = this_km2_combined_r, filename = saveName, overwrite=TRUE)
+    
+    return(this_km2_combined_r)
+    
+  }
+
 })
 
 

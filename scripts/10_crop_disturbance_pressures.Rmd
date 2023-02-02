@@ -176,13 +176,13 @@ map(.x = scalar_source_list, \(this_file){
     
     this_country_crop_demand_rast <- this_country_crop_adj_rast*this_demand_scalar
     
-    corrected_area_raster <- lapp(c(this_country_crop_demand_rast,cellSize(this_country_crop_demand_rast)), \(x,y){
+    this_corrected_area_raster <- lapp(c(this_country_crop_demand_rast,cellSize(this_country_crop_demand_rast)), \(x,y){
       
       if_else(condition = x<y, true = x, false = y) #scales the area produced by the demand:production ratio but limits to cellSize
     })
   
     
-    writeRaster(x= this_country_crop_demand_rast, filename = saveName, overwrite=TRUE)
+    writeRaster(x= this_corrected_area_raster, filename = saveName, overwrite=TRUE)
 
   }
 })
