@@ -1626,7 +1626,7 @@ fo_rescaled_biomass_list <-
       
       all_catch_values <- unlist(map(adjusted_fo_catch_r_list_ge, \(this_r){return(c(terra::values(this_r, na.rm=TRUE)))}))
 
-      rescale_value <- quantile(x = all_catch_values, 0.9999)
+      rescale_value <- quantile(x = all_catch_values, 0.999)
       
       this_rescaled_rast <- 
         app(x = this_r, fun = \(x){
