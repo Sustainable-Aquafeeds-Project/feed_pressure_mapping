@@ -32,23 +32,34 @@ Now iterate different versions of diet based on sources - the gtools::permutatio
 Doing this first for marine diets
 
 ```{r}
-md_ingredient_source_list <- crossing(ingredient = marine_diet, source = 1:3) |> group_split(ingredient)
+md_ingredient_source_list <- crossing(ingredient = marine_diet, source = 1:5) |> group_by(ingredient) |> group_split()
 
 set.seed(7)
 
-md_df_list <- vector(mode="list", length = 1000)
+md_df_list <- vector(mode="list", length = 2500)
 
-#iterate a random pull from each ingredient source 1000 times and isolate non duplicates
-for(i in 1:1000){
+#iterate a random pull from each ingredient source 2000 times and isolate non duplicates
+for(i in 1:2500){
   
-  message(i, "/1000")
+  message(i, "/2500")
   
   this_diet_df <- 
     map_df(md_ingredient_source_list, \(this_df){
+      
+    this_ingredient <- this_df |> pull(ingredient) |> unique()
+      
+    if(this_ingredient != "fishmeal"  & this_ingredient != "fish oil"){
+      
+      source_select <- sample(x=1:5, replace = FALSE, size=1)
+      
+      this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
+      
+    } else {
     
     source_select <- sample(x=1:3, replace = FALSE, size=1) 
     
     this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
+    }
     
     })
     
@@ -64,24 +75,34 @@ source_combinations_md <- source_combinations_md[!duplicated(as.list(source_comb
 
 Now repeat the iteration for plant diets
 ```{r}
-pd_ingredient_source_list <- crossing(ingredient = plant_diet, source = 1:3) |> group_split(ingredient)
+pd_ingredient_source_list <- crossing(ingredient = plant_diet, source = 1:5) |> group_split(ingredient)
 
 set.seed(7)
 
-pd_df_list <- vector(mode="list", length = 1000)
+pd_df_list <- vector(mode="list", length = 2500)
 
 #iterate a random pull from each ingredient source 1000 times and isolate non duplicates
-for(i in 1:1000){
+for(i in 1:2500){
   
-  message("iteration ", i, "/1000")
+  message("iteration ", i, "/2500")
   
   this_diet_df <- 
     map_df(pd_ingredient_source_list, \(this_df){
+      
+    this_ingredient <- this_df |> pull(ingredient) |> unique()
+ 
+    if(this_ingredient != "fishmeal"  & this_ingredient != "fish oil"){
+      
+      source_select <- sample(x=1:5, replace = FALSE, size=1)
+      
+      this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
+      
+    } else {
     
     source_select <- sample(x=1:3, replace = FALSE, size=1) 
     
     this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
-    
+    }
     })
     
   pd_df_list[[i]] <- this_diet_df
@@ -94,13 +115,13 @@ source_combinations_pd <- source_combinations_pd[!duplicated(as.list(source_comb
 
 ```
 
-Given the number of unique combinations varies from marine to plant diet - here I take the first 500 diets generated from each and save them for future use.
+Given the number of unique combinations varies from marine to plant diet - here I take the first 2000 diets generated from each and save them for future use.
 
 ```{r}
 
-source_combinations_md <- source_combinations_md |> select(1:501)
+source_combinations_md <- source_combinations_md |> select(1:2001)
 
-source_combinations_pd <-  source_combinations_pd |> select(1:501)
+source_combinations_pd <-  source_combinations_pd |> select(1:2001)
 
 
 #save marine and plant diet combinations for reuse during calculations
