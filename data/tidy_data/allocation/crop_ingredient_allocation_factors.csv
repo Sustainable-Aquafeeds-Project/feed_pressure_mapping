@@ -259,26 +259,26 @@ linseed oil,Ethiopia,linseed meal,39,20.7,Linseed,ETH,88428.5,0.34,0.45,13.26000
 linseed oil,Ukraine,linseed meal,39,20.7,Linseed,UKR,48539.83333,0.32,0.6,12.48,12.42,1.566265060240964,1.0869565217391306
 linseed oil,France,linseed meal,39,20.7,Linseed,FRA,44965,0.35,0.62,13.649999999999999,12.834,1.4725872224739467,1.0309278350515465
 linseed oil,United Kingdom of Great Britain and Northern Ireland,linseed meal,39,20.7,Linseed,GBR,41666.66667,0.35,0.64,13.649999999999999,13.248,1.449921927280839,1.0101010101010102
-guar meal,India,guar gum,20.5,20.5,Pulses nes,IND,959858.6,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Kenya,guar gum,20.5,20.5,Pulses nes,KEN,122352.4,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Ethiopia,guar gum,20.5,20.5,Pulses nes,ETH,111388,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,United Republic of Tanzania,guar gum,20.5,20.5,Pulses nes,TZA,105882.6,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Sudan,guar gum,20.5,20.5,Pulses nes,SDN,90451,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Sierra Leone,guar gum,20.5,20.5,Pulses nes,SLE,77381.8,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Nigeria,guar gum,20.5,20.5,Pulses nes,NGA,65753.8,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Pakistan,guar gum,20.5,20.5,Pulses nes,PAK,63128.6,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Guinea,guar gum,20.5,20.5,Pulses nes,GIN,57544.8,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-guar meal,Central African Republic,guar gum,20.5,20.5,Pulses nes,CAF,46728.6,0.5,0.42,10.25,8.61,1.0869565217391304,1.0869565217391306
-faba beans,"China, mainland",faba beans,18.7,18.7,"Broad beans, horse beans, dry",CHN,1698146.6,1,0,18.7,0,1,1
-faba beans,Ethiopia,faba beans,18.7,18.7,"Broad beans, horse beans, dry",ETH,940411,1,0,18.7,0,1,1
-faba beans,United Kingdom of Great Britain and Northern Ireland,faba beans,18.7,18.7,"Broad beans, horse beans, dry",GBR,567047.4,1,0,18.7,0,1,1
-faba beans,Australia,faba beans,18.7,18.7,"Broad beans, horse beans, dry",AUS,367982.6,1,0,18.7,0,1,1
-faba beans,France,faba beans,18.7,18.7,"Broad beans, horse beans, dry",FRA,193958.4,1,0,18.7,0,1,1
-faba beans,Germany,faba beans,18.7,18.7,"Broad beans, horse beans, dry",DEU,159200,1,0,18.7,0,1,1
-faba beans,Sudan,faba beans,18.7,18.7,"Broad beans, horse beans, dry",SDN,139287,1,0,18.7,0,1,1
-faba beans,Egypt,faba beans,18.7,18.7,"Broad beans, horse beans, dry",EGY,125229.4,1,0,18.7,0,1,1
-faba beans,Italy,faba beans,18.7,18.7,"Broad beans, horse beans, dry",ITA,104060.4,1,0,18.7,0,1,1
-faba beans,Morocco,faba beans,18.7,18.7,"Broad beans, horse beans, dry",MAR,86345.4,1,0,18.7,0,1,1
+guar meal,India,guar gum,20.5,17.5,Pulses nes,IND,959858.6,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Kenya,guar gum,20.5,17.5,Pulses nes,KEN,122352.4,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Ethiopia,guar gum,20.5,17.5,Pulses nes,ETH,111388,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,United Republic of Tanzania,guar gum,20.5,17.5,Pulses nes,TZA,105882.6,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Sudan,guar gum,20.5,17.5,Pulses nes,SDN,90451,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Sierra Leone,guar gum,20.5,17.5,Pulses nes,SLE,77381.8,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Nigeria,guar gum,20.5,17.5,Pulses nes,NGA,65753.8,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Pakistan,guar gum,20.5,17.5,Pulses nes,PAK,63128.6,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Guinea,guar gum,20.5,17.5,Pulses nes,GIN,57544.8,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+guar meal,Central African Republic,guar gum,20.5,17.5,Pulses nes,CAF,46728.6,0.58,0.42,11.889999999999999,7.35,1.0654885654885655,1
+faba beans,"China, mainland",faba beans,18.7,18.7,"Broad beans, horse beans, dry",CHN,1698146.6,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,Ethiopia,faba beans,18.7,18.7,"Broad beans, horse beans, dry",ETH,940411,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,United Kingdom of Great Britain and Northern Ireland,faba beans,18.7,18.7,"Broad beans, horse beans, dry",GBR,567047.4,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,Australia,faba beans,18.7,18.7,"Broad beans, horse beans, dry",AUS,367982.6,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,France,faba beans,18.7,18.7,"Broad beans, horse beans, dry",FRA,193958.4,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,Germany,faba beans,18.7,18.7,"Broad beans, horse beans, dry",DEU,159200,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,Sudan,faba beans,18.7,18.7,"Broad beans, horse beans, dry",SDN,139287,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,Egypt,faba beans,18.7,18.7,"Broad beans, horse beans, dry",EGY,125229.4,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,Italy,faba beans,18.7,18.7,"Broad beans, horse beans, dry",ITA,104060.4,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
+faba beans,Morocco,faba beans,18.7,18.7,"Broad beans, horse beans, dry",MAR,86345.4,0.89,0,16.643,0,1.1235955056179774,1.1235955056179776
 canola oil,Canada,canola meal,39.3,19.3,Rapeseed,CAN,19911740,0.41,0.61,16.113,11.773,1.40930933084702,0.9803921568627451
 canola oil,"China, mainland",canola meal,39.3,19.3,Rapeseed,CHN,13405400,0.35,0.63,13.754999999999999,12.159,1.5165547580458438,1.0204081632653061
 canola oil,India,canola meal,39.3,19.3,Rapeseed,IND,7736348,0.35,0.6,13.754999999999999,11.58,1.551213735938425,1.0526315789473684

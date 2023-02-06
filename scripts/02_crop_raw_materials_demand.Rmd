@@ -121,7 +121,8 @@ all_cf_data <-
 ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv")) |> 
   select(-c(unit,reference, notes)) |> 
   filter(!ingredient %in% c("fishmeal", "fish oil")) |> 
-  mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))
+  mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))# |> 
+  #mutate(gross_energy_coproduct = if_else(coproduct == "guar gum", true = 1.7, false = gross_energy_coproduct))
 
 #calculate the allocation factors for gross energy and mass allocation
 

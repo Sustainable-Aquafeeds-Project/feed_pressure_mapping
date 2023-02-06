@@ -46,7 +46,7 @@ final_palette <- c(light_gray, continuous_pal, red)
 source(here("src/fxns.R"))
 
 #spatial products
-countries <-    ne_coastline(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
+countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
 bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = moll_crs)
 coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
 
@@ -154,7 +154,7 @@ unique(forage_fish$CommonName)
 sum(forage_fish_md$total_catch)
 
 #Number of countries for crops
-pressure_files <-
+countries_regions <-
   c(list.files("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/pressures", full.names = TRUE), list.files("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/plant_diet/pressures", full.names = TRUE)) |>
   map(.f = \(this_element){
     sans_ext <- tools::file_path_sans_ext(this_element)
@@ -164,10 +164,9 @@ pressure_files <-
   }) |> 
   unlist() |> 
   unique() 
-  
-(countries_regions <- pressure_files[pressure_files!="les"])
 
-length(countries_regions[!countries_regions %in% c("EPC", "NAT", "OTH")]) # 14 countries used excluding the 3 marine regions
+
+length(countries_regions[!countries_regions %in% c("EPC", "NAT", "OTH")]) # 18 countries used and 3 marine regions
 
 
 #number of crop types
@@ -191,45 +190,59 @@ embodied_fish_bysource <- readRDS(here("data/tidy_data/demand/embodied_fish_dema
 #how much more embodied fish does a marine diet create relative to plant?
 source_codes <- unique(embodied_fish_bysource$source_code) |> as.character()
 
-diff_list <- list()
+diff_list_ge <- list()
+diff_list_mass <- list()
 amount_list <- list()
 
 for(s in source_codes){
  
-  marine_plant_ratio <-  (embodied_fish_bysource |> filter(source_code == s) |> slice(1) |> pull(embodied_fish_demand))/(embodied_fish_bysource |> filter(source_code == s) |> slice(2) |> pull(embodied_fish_demand))
+  marine_plant_ratio_ge <-  (embodied_fish_bysource |> filter(source_code == s & allocation == "Energetic allocation" & diet == "Marine-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))/(embodied_fish_bysource |> filter(source_code == s & allocation == "Energetic allocation" & diet == "Plant-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))
   
- diff_list[which(source_codes==s)] <- marine_plant_ratio
+  marine_plant_ratio_mass <-  (embodied_fish_bysource |> filter(source_code == s & allocation == "Mass allocation" & diet == "Marine-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))/(embodied_fish_bysource |> filter(source_code == s & allocation == "Mass allocation" & diet == "Plant-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))
+  
+  
+ diff_list_ge[which(source_codes==s)] <- marine_plant_ratio_ge
+ 
+ diff_list_mass[which(source_codes==s)] <- marine_plant_ratio_mass
  
 }
-unlist(diff_list) #~2.2 across all regions
+unlist(diff_list_ge) #~2.2 across all regions and allocation methods=
+unlist(diff_list_mass)
 
 #Differences among regions within marine-dominant feed
 embodied_fish_bysource |> 
-  filter(diet == "Marine-dominant\nfeed") |> 
-  arrange(-embodied_fish_demand) |> 
-  mutate(region_diff = max(embodied_fish_demand)-embodied_fish_demand)
+  filter(diet == "Marine-dominant\nfeed" & demand_from == "Total") |> 
+  arrange(-embodied_fish) |> 
+  mutate(region_diff = max(embodied_fish)-embodied_fish)
 
 
-embodied_fish_bysource |> 
-  group_by(diet) |> 
-  summarise(mean = mean(embodied_fish_demand, na.rm=TRUE),
-            sd = sd(embodied_fish_demand, na.rm=TRUE))
+embodied_fish_bysource |>
+  filter(demand_from =="Total") |> 
+  group_by(diet, allocation) |> 
+  summarise(mean = mean(embodied_fish, na.rm=TRUE),
+            sd = sd(embodied_fish, na.rm=TRUE))
 
 
+ggplot(data = embodied_fish_bysource) +
+  aes(x = demand_from, y = embodied_fish/1000, fill = source_code)+
+  geom_bar(stat= "identity", position = "dodge")+
+  facet_grid(rows = vars(diet), cols = vars(allocation), scales = "fixed")+
+  
+  labs(fill = "Origin", y = "Embodied fish demand (1000s T)")+
+  scale_fill_manual(values = c("#edf8b1", "#7fcdbb", "#2c7fb8"))+
+  theme_bw()+
+  theme(legend.position = c(0.75, 0.43),
+        legend.background = element_rect(fill="transparent"), 
+        legend.direction = "horizontal",
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(), 
+        text = element_text(size=12),
+        legend.text = element_text(size = 10))+
+  guides(fill = guide_legend(title.position = "top"))
 
-ggplot(data = embodied_fish_bysource,
-       aes(x = diet, y = embodied_fish_demand, fill = source_code))+
-  geom_col(position = "dodge")+
-  scale_fill_manual(values = rcartocolor::carto_pal(n=3, name = "Safe"))+
-  scale_y_continuous(breaks = c(0e+6, 2e+6, 4e+6, 6e+6), labels = c(0, 2, 4, 6))+
-  theme_pubr()+
-  theme(legend.position = c(0.8, 0.8), 
-        legend.title = element_text(size=7),
-        legend.text = element_text(size=7),
-        text = element_text(size = 8))+
-  labs(fill = "Source", y = "Embodied forage fish (million tonnes)", x = "")
 
-ggsave(here("figures/supplementary/embodied_fish_by_diet_source.jpg"), device = "jpg", dpi = 600, width = 8.9, height = 7.7, units="cm")
+ggsave(filename = here("figures/presos/embodied_forage_fish_demand.jpg"), device="jpg", dpi = 600, width = 18, height = 15, units="cm")
+ggsave(filename = here("figures/supplementary/embodied_forage_fish_demand.jpg"), device="jpg", dpi = 600, width = 18, height = 15, units="cm")
 
 
 #find reasons for differences in demand
@@ -240,9 +253,10 @@ ggsave(here("figures/supplementary/embodied_fish_by_diet_source.jpg"), device = 
   fread("/mnt/rdsi/github/feed_pressure_mapping/data/tidy_data/demand/embodied_fish_per_cell.csv") |> 
   lazy_dt() |> 
   group_by(diet, source_code, TaxonName, CommonName) |> 
-  summarise(total_demand = sum(total_embodied_fish, na.rm = TRUE)) |> 
+  summarise(total_demand_ge = sum(total_embodied_fish_ge, na.rm = TRUE),
+            total_demand_mass = sum(total_embodied_fish_mass, na.rm = TRUE)) |> 
   filter(diet == "marine_diet") |> 
-  arrange(-total_demand) |> 
+  arrange(-total_demand_mass) |> 
   as_tibble())
 
 
@@ -277,9 +291,9 @@ Combine all values for pressures for a marine diet
 marine_source_ingredient <- 
   marine_diets |> 
   select(ingredient) |> 
-  mutate(source_1 = c(1, 2, 2, 1, 2, 1, 2),
-         source_2 = c(2, 1, 1, 1, 1, 2, 3),
-         source_3 = c(3, 3, 3, 1, 3, 3, 1)) |> 
+  mutate(source_1 = c(1, 2, 2, 1, 2, 5, 1),
+         source_2 = c(2, 1, 1, 1, 4, 2, 3),
+         source_3 = c(3, 3, 3, 1, 3, 2, 4)) |> 
    mutate(row = row_number()) |> 
   group_split(row) 
   
@@ -297,7 +311,7 @@ marine_source_ingredient <-
 
 
 #test dataframe
-this_df <- marine_source_ingredient[[3]]
+this_df <- marine_source_ingredient[[4]]
 
 
 #Now prepare the files corresponding to the first source for each ingredient for each pressure
@@ -309,22 +323,22 @@ source = "source_1"
 
 #gross energy allocation 
 
-marine_source_file_list_ge <- list()
+marine_source_file_list <- list()
 
 
 for(source in sources){
     
-    marine_diet_files_ge <- 
+    marine_diet_files <- 
       map(.x = marine_source_ingredient, .f = \(this_df){
         
-        this_allocation_method <- "gross energy allocation"
+        this_allocation_method <- "ge_allocation"
         
         this_ingredient <- this_df$ingredient
         
         message("processing...", this_ingredient, " (", this_allocation_method, ") ", source)
         
         these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
-        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
+        these_ingredient_files <- these_ingredient_files[grepl(this_allocation_method, these_ingredient_files)]
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -351,7 +365,7 @@ for(source in sources){
       }) |> 
       unlist()
     
-    marine_source_file_list_ge[[source]] <- marine_diet_files_ge
+    marine_source_file_list[[source]] <- marine_diet_files
     
   }
   
@@ -362,11 +376,11 @@ for(source in sources){
 #this_file <- marine_diet_files[[6]]
 
 
-marine_source_rast_list_ge <- list()
+marine_source_rast_list <- list()
 
 for(source in sources){
   
-  marine_rast_list_ge <- 
+  marine_rast_list <- 
 
   map(.x = marine_source_file_list[[source]], .f = \(this_file){
   
@@ -379,7 +393,7 @@ for(source in sources){
   return(this_rast)
 })
   
-  marine_source_rast_list_ge[[source]] <- marine_rast_list_ge
+  marine_source_rast_list[[source]] <- marine_rast_list
   
 }
 
@@ -387,17 +401,17 @@ for(source in sources){
 
 #stack and sum the pressures for all ingredients and source combinations
 
-marine_diet_raster_ge <- list()
+marine_diet_raster <- list()
 
 options(warn = 0)
 for(source in sources){
   
   #stack rasters for each sourcing combination
-  marine_diet_raster_ge[[source]] <- app(rast(marine_source_rast_list_ge[[source]]), sum)
-  marine_diet_raster_ge[[source]][marine_diet_raster_ge[[source]]==0] <- NA
+  marine_diet_raster[[source]] <- app(rast(marine_source_rast_list[[source]]), sum)
+  marine_diet_raster[[source]][marine_diet_raster[[source]]==0] <- NA
   
   #reproject raster 
-  marine_diet_raster_ge[[source]] <- project(marine_diet_raster_ge[[source]], moll_crs)
+  marine_diet_raster[[source]] <- project(marine_diet_raster[[source]], moll_crs)
   
 }
 options(warn = 1)
@@ -418,9 +432,9 @@ Combine all values for a plant-dominant diet
 plant_source_ingredient <- 
   plant_diets |> 
   select(ingredient) |> 
-  mutate(source_1 = c(1, 1, 2, 2, 1, 1, 1, 1, 3, 3, 2, 2, 1),
-         source_2 = c(2, 2, 3, 3, 2, 2, 1, 3, 2, 1, 3, 1, 2),
-         source_3 = c(3, 3, 1, 1, 3, 3, 1, 2, 1, 2, 1, 3, 3)) |> 
+  mutate(source_1 = c(1, 1, 2, 4, 1, 1, 3, 1, 3, 4, 2, 2, 1),
+         source_2 = c(2, 2, 3, 3, 2, 2, 3, 3, 5, 1, 3, 5, 2),
+         source_3 = c(3, 3, 1, 5, 3, 3, 4, 2, 1, 2, 1, 3, 5)) |> 
    mutate(row = row_number()) |> 
   group_split(row) 
 
@@ -453,12 +467,16 @@ for(source in sources){
     plant_diet_files <- 
       map(.x = plant_source_ingredient, .f = \(this_df){
         
+        this_allocation_method <- "ge_allocation"
+        
         this_ingredient <- this_df$ingredient
         
         message("processing...", this_ingredient)
         
         
         these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        
+        these_ingredient_files <- these_ingredient_files[grepl(this_allocation_method, these_ingredient_files)]
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -551,6 +569,9 @@ max_plant_value <- plant_diet_raster|> map(no_na_values) |> unlist() |> as.numer
 
 max_cum_value <- max(max_marine_value, max_plant_value)
 
+(sum_marine_value <- marine_diet_raster |> map(no_na_values) |> map(sum))
+(sum_plant_value <- plant_diet_raster|> map(no_na_values) |> map(sum))
+
 
 # MARINE DIETS
 
@@ -560,11 +581,11 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRU
 
 (marine_sourcing_p1 <- 
   ggplot()+
-  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries, fill="grey90", colour= "white", size=0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
+  geom_sf(data = countries, fill= "grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet1_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline, colour="grey45", size = 0.15)+
-  theme(panel.grid = element_line(size=0.25, colour="grey75"),
+  geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
+  theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
         legend.title = element_text(size=10),
@@ -579,7 +600,7 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRU
                        )+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Sourcing\ncombination 1", angle = 90)
+    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 1", angle = 90)
   )
   
 
@@ -589,11 +610,11 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRU
 
 (marine_sourcing_p2 <- 
   ggplot()+
-  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries, fill="grey90", colour= "white", size=0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
+  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet2_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline, colour="grey45", size = 0.15)+
-  theme(panel.grid = element_line(size=0.25, colour="grey75"),
+  geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
+  theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
         legend.title = element_text(size=10),
@@ -606,7 +627,7 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRU
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Sourcing\ncombination 2", angle = 90)
+    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)
   )
 
 #source 3
@@ -616,10 +637,10 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
 (marine_sourcing_p3 <- 
   ggplot()+
   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries, fill="grey90", colour= "white", size=0.15)+
+  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet3_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline, colour="grey45", size = 0.15)+
-  theme(panel.grid = element_line(size=0.25, colour="grey75"),
+  geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
+  theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
         legend.title = element_text(size=10),
@@ -632,7 +653,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Sourcing\ncombination 3", angle = 90)
+    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)
   )
 
 
@@ -646,10 +667,10 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_raster[["source_1"]], xy=TRUE)
 (plant_sourcing_p1 <- 
   ggplot()+
   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries, fill="grey90", colour= "white", size=0.15)+
+  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet1_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline, colour="grey45", size = 0.15)+
-  theme(panel.grid = element_line(size=0.25, colour="grey75"),
+  geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
+  theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
         legend.title = element_text(size=10),
@@ -669,11 +690,11 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_raster[["source_2"]], xy=TRUE)
 
 (plant_sourcing_p2 <- 
   ggplot()+
-  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries, fill="grey90", colour= "white", size=0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
+  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet2_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline, colour="grey45", size = 0.15)+
-  theme(panel.grid = element_line(size=0.25, colour="grey75"),
+  geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
+  theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
         legend.title = element_text(size=10),
@@ -694,11 +715,11 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
 
 (plant_sourcing_p3 <- 
   ggplot()+
-  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries, fill="grey90", colour= "white", size=0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
+  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet3_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline, colour="grey45", size = 0.15)+
-  theme(panel.grid = element_line(size=0.25, colour="grey75"),
+  geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
+  theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
         legend.title = element_text(size=10),
@@ -750,25 +771,19 @@ ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisa
 ```
 
 
+#Permutation analysis - Energetic allocation
 
+For each of the 2000 combinations for marine-dominant and plant-dominant diets, identify the source of each ingredient and for each pressure. So perform a similar function for each above but summarise the rasters. We also need to repeat this for each allocation method.
 
-
-
-
-
-
-
-#Permutation analysis
-
-For each of the 500 combinations for marine-dominant and plant-dominant diets, identify the source of each ingredient and for each pressure. So perform a similar function for each above but summarise the rasters.
-
-Marine diets
+Marine diets - Energetic Allocation
 
 ```{r}
 
+
+
 marine_source_ingredient <- 
   marine_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
@@ -793,11 +808,15 @@ for(source in sources){
     marine_diet_files <- 
       map(.x = marine_source_ingredient, .f = \(this_df){
         
+        this_allocation_method <- "ge_allocation"
+        
         this_ingredient <- this_df$ingredient
         
         message("processing...", this_ingredient, "...", source)
         
         these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
+        
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -877,13 +896,13 @@ saveRDS(marine_diet_raster_df, file = here("data/tidy_data/pressures/marine_cumu
 
 ```
 
-Plant diets 
+Plant diets - Energetic allocation
 
 ```{r}
 
 plant_source_ingredient <- 
   plant_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "linseed oil"~ as.integer(1),
@@ -908,11 +927,14 @@ for(source in sources){
     plant_diet_files <- 
       map(.x = plant_source_ingredient, .f = \(this_df){
         
+        this_allocation_method <- "ge_allocation"
+        
         this_ingredient <- this_df$ingredient
         
         message("processing...", this_ingredient, "...", source)
         
         these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -989,7 +1011,7 @@ saveRDS(plant_diet_raster_df, file = here("data/tidy_data/pressures/plant_cumula
 
 ```
 
-Add marine and plant diet data together and save
+Energetic allocation - add marine and plant diet data together and save 
 
 ```{r}
 marine_diet_raster_df <- readRDS(file = here("data/tidy_data/pressures/marine_cumulative_pressure_df.rds"))
@@ -997,14 +1019,14 @@ plant_diet_raster_df <- readRDS(file = here("data/tidy_data/pressures/plant_cumu
 
 marine_plant_df <- bind_rows(marine_diet_raster_df, plant_diet_raster_df)
 
-saveRDS(marine_plant_df, file = here("data/tidy_data/pressures/marine_plant_pressures_combined.rds"))
+saveRDS(marine_plant_df, file = here("data/tidy_data/pressures/marine_plant_pressures_combined_ge.rds"))
 
 
 
 ```
 
 
-Visualise the differences between the two diets for cumulative pressures
+Energetic allocation - Visualise the differences between the two diets for cumulative pressures
 ```{r}
 
 marine_plant_df <- readRDS(here("data/tidy_data/pressures/marine_plant_pressures_combined.rds"))
@@ -1013,33 +1035,33 @@ marine_plant_df <- readRDS(here("data/tidy_data/pressures/marine_plant_pressures
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
 
-both_diets_agg_p <- ggplot(data = marine_plant_df |> mutate(diet = case_when(diet == "plant diet" ~ "Plant-\ndominant\nfeed",
+(both_diets_agg_p <- ggplot(data = marine_plant_df |> mutate(diet = case_when(diet == "plant diet" ~ "Plant-\ndominant\nfeed",
                                                          diet == "marine diet" ~ "Marine-\ndominant\nfeed"),
                                         diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Marine-\ndominant\nfeed"))))+
   aes(x = sum, y = diet, colour = diet)+
-    geom_jitter(shape =20, size = 2.5, alpha = 0.1, height = 0.4
+    geom_jitter(shape =20, size = 1.5, alpha = 0.1, height = 0.4
   )+
   # ggdist::stat_gradientinterval(
   #   width = .3, color = "black", fill_type = "gradient"
   # )+
   scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
-  #scale_x_continuous(limits = c(0,1250))+
+  scale_x_continuous(limits = c(1,4))+
   theme_pubr()+
-  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.3, alpha = 0, size=0.8)+
+  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.3, alpha = 0, linewidth=0.5)+
   labs(y = "Diet", x = "Cumulative pressure index")+
   theme(text = element_text(size=8),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
-        axis.title.y = element_blank())
+        axis.title.y = element_blank()))
 
 
-ggsave(filename = here("figures/diet_permutation_comparisons.jpg"), device = "jpg", dpi = 600, width = 8.9, height = 5, units="cm")
+ggsave(filename = here("figures/diet_permutation_comparisons_ge.jpg"), device = "jpg", dpi = 600, width = 8.9, height = 5, units="cm")
 
   
   
 ```
 
-Some statistics for marine-plant comparisons
+Energetic allocation - Some statistics for marine-plant comparisons
 ```{r}
 
 marine_vals <-  marine_plant_df |> filter(diet == "marine diet") |> pull(sum)
@@ -1089,7 +1111,7 @@ summary(plant_vals)
 
 
 
-# Disaggregation of permutation by pressure
+# Disaggregation of permutation by pressure - Energetic allocation
 
 Once we have compared the two diets with different sourcing combinations, it's important to know how they disaggregate into the pressures that are the major drivers.
 Pressure Disaggregation - Marine diets
@@ -1098,7 +1120,7 @@ Pressure Disaggregation - Marine diets
 
 marine_source_ingredient <- 
   marine_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
@@ -1128,6 +1150,8 @@ for(source in sources){
         message("processing...", this_ingredient, "...", source)
         
         these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        
+        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -1278,7 +1302,7 @@ Pressure disaggregation - Plant diets
 
 plant_source_ingredient <- 
   plant_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "linseed oil"~ as.integer(1),
@@ -1307,6 +1331,8 @@ for(source in sources){
         message("processing...", this_ingredient, "...", source)
         
         these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        
+        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -1473,7 +1499,8 @@ Visualise the pressure disaggregation
 
 ```{r}
 
-marine_plant_pressure_disagg_df <- readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df.rds")) |> 
+marine_plant_pressure_disagg_df <- 
+  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df.rds")) |> 
   group_by(diet, source) |> 
   nest() |> 
   mutate(total = map(data, ~(sum(.$sum)))) |> 
@@ -1498,7 +1525,7 @@ both_diets_disagg_p <-
        )+
   geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
   geom_point(position = position_dodge(width = 0.7), size=0.6)+
-  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.7), width = 0, size = 0.5)+
+  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.7), width = 0, linewidth = 0.5)+
   geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
   coord_polar(clip="off")+
   theme_bw()+
@@ -1581,7 +1608,7 @@ Disaggregate by ingredients and pressures -  Marine diets
 
 marine_source_ingredient <- 
   marine_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
@@ -1612,6 +1639,7 @@ for(source in sources){
         
         these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
         
+         these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
         #sources
         this_source_ingredient <- this_df |> pull(source)
         
@@ -1772,7 +1800,7 @@ Disaggreagte by ingredients and pressures -  Plant diets
 ```{r}
 plant_source_ingredient <- 
   plant_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "linseed oil"~ as.integer(1),
@@ -1801,6 +1829,8 @@ for(source in sources){
         message("processing...", this_ingredient, "...", source)
         
         these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        
+        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
         
         #sources
         this_source_ingredient <- this_df |> pull(source)
@@ -2036,7 +2066,7 @@ summarised_ingredient_pressure_df <-
   geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.75), width = 0, size = 0.2)+
   scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
-  scale_y_continuous(expand = c(0,0), limits = c(0,2))+
+  #scale_y_continuous(expand = c(0,0), limits = c(0,2))+
   theme_bw()+
   theme(
         #panel.border = element_blank(),
@@ -2070,7 +2100,7 @@ ggsave(here("figures/marine_disaggreation_by_ingredient_pressure.jpg"), dpi = 60
   geom_col(aes(fill=pressure), position = "dodge", width = 0.85, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.85), width = 0, size = 0.2)+
   scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
-  scale_y_continuous(expand = c(0,0), limits = c(0,2))+
+  #scale_y_continuous(expand = c(0,0), limits = c(0,2))+
   theme_bw()+
   theme(
         #panel.border = element_blank(),

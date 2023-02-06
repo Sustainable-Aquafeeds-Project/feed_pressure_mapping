@@ -173,12 +173,12 @@ lapply(X = these_crop_production_files, FUN = \(this_filepath){
     #import the raster
     imported_file <- rast(this_filepath)
     
-    #reproject the file
-    reprojected_file <-  terra::aggregate(imported_file, fact = 6)
+    #aggregate the file
+    aggregated_file <-  terra::aggregate(imported_file, fact = 6)
     
-    #write the original and the reprojected to this project
+    #write the original and the  to this project
     writeRaster(imported_file, filename = paste0(here("data/spatial/crop-layers-raw/"), this_file), overwrite = TRUE)
-    writeRaster(reprojected_file, filename = paste0(here("data/spatial/crop-layers-reprojected/"), this_file), overwrite=TRUE)
+    writeRaster(aggregated_file, filename = paste0(here("data/spatial/crop-layers-reprojected/"), this_file), overwrite=TRUE)
   
   
 })

@@ -384,7 +384,7 @@ marine_diet_ghg <- list.files(here("data/spatial/marine_diet/int"), pattern = "g
 marine_diet_ghg <- marine_diet_ghg[!grepl("forage_fish|_gp", marine_diet_ghg)]
 
 plant_diet_ghg <- list.files(here("data/spatial/plant_diet/int"), pattern = "ghg", full.names = TRUE)
-plant_diet_ghg <- plant_diet_ghg[!grepl("forage_fish|_gp|linseed oil_ghg_km2_GBR|linseed oil_ghg_km2_CHN", plant_diet_ghg)]
+plant_diet_ghg <- plant_diet_ghg[!grepl("forage_fish|_gp", plant_diet_ghg)]
 
 # marine_ghg_remove <- marine_diet_ghg[!grepl("allocation", marine_diet_ghg)]
 # plant_ghg_remove <- plant_diet_ghg[!grepl("allocation", plant_diet_ghg)]
@@ -409,7 +409,7 @@ map(.x = marine_diet_ghg, .f =  \(this_file){
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_ghg_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(file.exists(saveName)){
+    if(!file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -609,8 +609,8 @@ rescaled_marine_ghg_rasters <-
 #PLANT DIETS
 
 #test file
-
 this_file <- pd_reprojected_rasters_ghg[[1]]
+
 
 rescaled_plant_ghg_rasters <- 
   
@@ -673,7 +673,7 @@ marine_diet_N <- list.files(here("data/spatial/marine_diet/int"), pattern = "_N_
 marine_diet_N <- marine_diet_N[!grepl("forage_fish|_gp", marine_diet_N)]
 
 plant_diet_N <- list.files(here("data/spatial/plant_diet/int"), pattern = "_N_", full.names = TRUE)
-plant_diet_N <- plant_diet_N[!grepl("forage_fish|_gp|linseed oil_N_km2_GBR|linseed oil_N_km2_CHN", plant_diet_N)]
+plant_diet_N <- plant_diet_N[!grepl("forage_fish|_gp|", plant_diet_N)]
 
 
 
@@ -750,13 +750,13 @@ map(.x = plant_diet_N, .f = \(this_file){
   })
 
 
-#RESCALE NITROGEN DATA BY PROP OF MAXIMUM GLOBAL DISTURBANCE ACROSS DIETS
+#RESCALE NITROGEN DATA BY PROP OF MAXIMUM GLOBAL NITROGEN ACROSS DIETS
 
 
-#NOW FIND THE MAXIMUM TOTAL SCORES FOR DISTURBANCE INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+#NOW FIND THE MAXIMUM TOTAL SCORES FOR NITOGREN INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
 
 # First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
-# Then need to rescale using the maximum plausible disturbance for each diet as the denominator
+# Then need to rescale using the maximum plausible nitrogen for each diet as the denominator
 
 
 
@@ -768,6 +768,8 @@ md_reprojected_rasters_N <- list.files(path = here("data/spatial/marine_diet/int
 md_ingredients_list <- 
   readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="marine_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
+
+#test function
 this_df <- md_ingredients_list[[1]]
 
 
@@ -940,7 +942,7 @@ marine_diet_P <- list.files(here("data/spatial/marine_diet/int"), pattern = "_P_
 marine_diet_P <- marine_diet_P[!grepl("forage_fish|_gp", marine_diet_P)]
 
 plant_diet_P <- list.files(here("data/spatial/plant_diet/int"), pattern = "_P_", full.names = TRUE)
-plant_diet_P <- plant_diet_P[!grepl("forage_fish|_gp|linseed oil_P_km2_GBR|linseed oil_P_km2_CHN", plant_diet_P)]
+plant_diet_P <- plant_diet_P[!grepl("forage_fish|_gp", plant_diet_P)]
 
 
 
@@ -1020,10 +1022,10 @@ map(.x = plant_diet_P, .f = \(this_file){
 
 
 
-#RESCALE PHOSPHORUS DATA BY PROP OF MAXIMUM GLOBAL DISTURBANCE ACROSS DIETS
+#RESCALE PHOSPHORUS DATA BY PROP OF MAXIMUM GLOBAL PHOSPHOROUS ACROSS DIETS
 
 
-#NOW FIND THE MAXIMUM TOTAL SCORES FOR DISTURBANCE INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+#NOW FIND THE MAXIMUM TOTAL SCORES FOR PHOSPHOROUS INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
 
 # First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
 # Then need to rescale using the maximum plausible disturbance for each diet as the denominator
@@ -1246,7 +1248,7 @@ map(.x = marine_diet_h2o, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_water_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -1282,7 +1284,7 @@ map(.x = plant_diet_h2o, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_water_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -1303,13 +1305,13 @@ map(.x = plant_diet_h2o, .f = \(this_file){
 
 
 
-#RESCALE PHOSPHORUS DATA BY PROP OF MAXIMUM GLOBAL DISTURBANCE ACROSS DIETS
+#RESCALE WATER DATA BY PROP OF MAXIMUM GLOBAL WATER USE ACROSS DIETS
 
 
-#NOW FIND THE MAXIMUM TOTAL SCORES FOR DISTURBANCE INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+#NOW FIND THE MAXIMUM TOTAL SCORES FOR WATER INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
 
 # First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
-# Then need to rescale using the maximum plausible disturbance for each diet as the denominator
+# Then need to rescale using the maximum plausible water consumption for each diet as the denominator
 
 
 
@@ -1402,7 +1404,7 @@ map(.x= md_reprojected_rasters_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
      message("Processing", "'", this_basename, "'")
     
@@ -1445,7 +1447,7 @@ map(.x= pd_reprojected_rasters_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
      message("Processing", "'", this_basename, "'")
     
@@ -1479,7 +1481,7 @@ map(.x= pd_reprojected_rasters_h2o, .f = \(this_file){
 
 
 
-rm(list = ls())
+#rm(list = ls())
 
 
 ```
