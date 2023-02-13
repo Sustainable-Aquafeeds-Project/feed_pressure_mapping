@@ -58,5 +58,10 @@ map(.x = crop_countries, .f =  \(this_country){
 })
 
 
+
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
 ```
 

@@ -106,6 +106,18 @@ saveRDS(object = aquaculture_prod, file = here("data", "tidy_data", "aquaculture
 
 ```
 
+
+Bring feed composition data into project
+```{r}
+
+feed_composition <- read_csv(file.path(rdsi_raw_data_dir, "/feed/feed_composition_pressures.csv"))
+
+write_csv(x = feed_composition, file = here("data/raw_data/feed_composition_pressures.csv"))
+
+
+
+```
+
 #AGRICULTURE DATA
 
 

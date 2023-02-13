@@ -7,12 +7,38 @@ output: html_document
 
 This script runs all relevant scripts embedded in this project. 
 
-To get all code to run successfully, you need to ensure you have cloned or forked the repository from GitHub (https://github.com/Sustainable-Aquafeeds-Project/feed_pressure_mapping) and you have downloaded the tided raw data folder which underpins this analysis from <insert url>. This folder was too big to push to Github and so must be downloaded and stored within your github repository named as "raw_data" i.e., feed_pressure_mapping/data/raw_data. This nomenclature is needed if the code is to run without issue as this folder is used extensively throughout. The scripts contained in this repository were intended to be run with an RProject rather than run individually, and depend on file paths that assume this.
+To get all code to run successfully, you need to ensure you have cloned or forked the repository from GitHub (https://github.com/Sustainable-Aquafeeds-Project/feed_pressure_mapping) and that you have downloaded the following folders and files from <insert url> while maintaining the file paths as suggested (unless you wish to manually. 
+
+- 'raw_data' folder (must be saved as 'feed_pressure_mapping/data/raw_data' or the equivalent based on the naming of your repository)
+-  embodied_fish_per_cell.csv (should be saved as 'feed_pressure_mapping/data/tidy_data/demand/embodied_fish_per_cell.csv')
+-  
+
+
+The This folder and these files was too big to push to Github and so must be downloaded and stored within your github repository named as "raw_data" i.e., feed_pressure_mapping/data/raw_data. This nomenclature is needed if the code is to run without issue as this folder is used extensively throughout. The scripts contained in this repository were intended to be run with an RProject rather than run individually, and depend on file paths that assume this.
 
 
 Once your repository is ready, please run the chunk below to run all scripts. Or you can run each script independently by running each line. All scripts need to be run in order as later scripts depend on outputs generated earlier.
 
 ```{r}
+
+library(knitr)
+source(knitr::purl(here("scripts/01_global_ingredient_demand.Rmd")))
+source(knitr::purl(here("scripts/02_crop_raw_materials_demand.Rmd")))
+source(knitr::purl(here("scripts/03_spatial_forage_fish_demand_allocation.Rmd")))
+source(knitr::purl(here("scripts/04_crop_source_country_rasters.Rmd")))
+source(knitr::purl(here("scripts/05_spatial_crop_demand_allocation.Rmd")))
+source(knitr::purl(here("scripts/06_forage_fish_disturbance_pressures.Rmd")))
+source(knitr::purl(here("scripts/07_forage_fish_GHG_pressures.Rmd")))
+source(knitr::purl(here("scripts/08_forage_fish_nutrient_pressures.Rmd")))
+source(knitr::purl(here("scripts/09_forage_fish_water_extraction_pressures.Rmd")))
+source(knitr::purl(here("scripts/10_crop_disturbance_pressures.Rmd")))
+source(knitr::purl(here("scripts/11_crop_GHG_pressures.Rmd")))
+source(knitr::purl(here("scripts/12_crop_nutrient_pressures.Rmd")))
+source(knitr::purl(here("scripts/13_crop_water_extraction_pressures.Rmd")))
+source(knitr::purl(here("scripts/14_rescaling_environmental_pressures.Rmd")))
+source(knitr::purl(here("scripts/15_ingredient_permutations.Rmd")))
+source(knitr::purl(here("scripts/16_analysis_visualisation_energy_allocation.Rmd")))
+source(knitr::purl(here("scripts/17_analysis_visualisation_mass_allocation.Rmd")))
 
 ```
 

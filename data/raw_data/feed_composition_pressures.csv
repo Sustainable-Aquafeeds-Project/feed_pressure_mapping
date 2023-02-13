@@ -1,23 +1,23 @@
-﻿groups,ingredients,marine_diet,plant_diet,
-Marine proteins - totals,,32,15,
-Marine proteins,fishmeal-wild,32,15,
-Marine oils - totals,,23,10,
-Marine oils,fish oil-wild,23,10,
-Plant proteins - totals,,36,40,
-Plant proteins,soy protein concentrate,0,20,
-Plant proteins,soybean meal ,13,0,
-Plant proteins,wheat gluten,15,10,
-Plant proteins,corn gluten meal,4,4,
-Plant proteins,faba beans ,0,3,
-Plant proteins,sunflower meal,0,1,
-Plant proteins,pea protein concentrate,0,2,
-Plant proteins,guar meal,4,0,
-Plant oils - totals,,0,20,
-Plant oils ,canola/camelina oil,0,19,
-Plant oils ,linseed oil,0,1,
-Carbohydrates - totals,,7,11,
-Carbohydrates ,wheat,7,9,
-Carbohydrates ,pea starch,0,1,
-Carbohydrates ,corn starch,0,1,
-Microingredients,,2,4,
-,,100,100,
+groups,ingredients,marine_diet,plant_diet,X5
+Marine proteins - totals,NA,32,15,NA
+Marine proteins,fishmeal-wild,32,15,NA
+Marine oils - totals,NA,23,10,NA
+Marine oils,fish oil-wild,23,10,NA
+Plant proteins - totals,NA,36,40,NA
+Plant proteins,soy protein concentrate,0,20,NA
+Plant proteins,soybean meal,17,0,NA
+Plant proteins,wheat gluten,15,10,NA
+Plant proteins,corn gluten meal,4,4,NA
+Plant proteins,faba beans,0,3,NA
+Plant proteins,sunflower meal,0,1,NA
+Plant proteins,pea protein concentrate,0,2,NA
+Plant proteins,guar meal,0,0,NA
+Plant oils - totals,NA,0,20,NA
+Plant oils,canola/camelina oil,0,19,NA
+Plant oils,linseed oil,0,1,NA
+Carbohydrates - totals,NA,7,11,NA
+Carbohydrates,wheat,7,9,NA
+Carbohydrates,pea starch,0,1,NA
+Carbohydrates,corn starch,0,1,NA
+Microingredients,NA,2,4,NA
+NA,NA,100,100,NA

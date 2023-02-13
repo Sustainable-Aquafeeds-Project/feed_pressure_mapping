@@ -166,5 +166,8 @@ ghg_raw_r_list_fo <-
 plot(rast(ghg_raw_r_list_fo))
 
 
+#clear the environment
+rm(list = ls(all.names = TRUE))
+
 ```
 

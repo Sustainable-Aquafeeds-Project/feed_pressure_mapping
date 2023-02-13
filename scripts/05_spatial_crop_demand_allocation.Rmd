@@ -282,6 +282,8 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
 
 map(.x = ingredient_per_country_per_diet, .f = AllocateSpatialCropDemand)
 
+rm(list = ls())
+
 ```
 
 

@@ -173,8 +173,8 @@ map(.x = fo_template_files, .f = \(this_file){
   })
 
 
-
-rm(list = ls())
+#clear the environment
+rm(list = ls(all.names = TRUE))
 ```
 
 

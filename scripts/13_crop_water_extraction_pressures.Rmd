@@ -125,6 +125,7 @@ map(pd_crop_r_list, \(this_file){
   }
 })
 
+#clear the environment
 rm(list = ls(all.names = TRUE))
 ```
 
@@ -144,6 +145,10 @@ readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |>
   arrange(-total_water) |> drop_na(total_water)
 
 
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
 
 ```
 

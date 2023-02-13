@@ -130,7 +130,8 @@ saveRDS(object = source_combinations_md, file = here("data/tidy_data/diets/ingre
 saveRDS(object = source_combinations_pd, file = here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds"))
 
 
-rm(list = ls())
+#clear the environment
+rm(list = ls(all.names = TRUE))
 
 ```
 

@@ -2011,4 +2011,10 @@ Combine plots
   plot_annotation(tag_levels = "a")+
   plot_layout(heights = c(1.2,1))
 ggsave(filename = here("figures/ingredient_casestudies.jpg"), device = "jpg", dpi = 600, width = 18, height = 26, units = "cm")
+
+
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
 ```

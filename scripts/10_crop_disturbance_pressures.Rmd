@@ -188,5 +188,6 @@ map(.x = scalar_source_list, \(this_file){
 })
 
 
+rm(list = ls())
 ```
 

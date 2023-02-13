@@ -1760,7 +1760,12 @@ fo_benthic_destruction_pd |> map(rast)
 fo_biomass_removal_md |> map(rast)
 fo_biomass_removal_pd |> map(rast)
 
-rm(list = ls())
+
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
+
 ```
 
 

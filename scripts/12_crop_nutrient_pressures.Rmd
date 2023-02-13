@@ -233,7 +233,7 @@ map(pd_crop_r_list, \(this_file){
   }
 })
 
-
+#clear the environment
 rm(list = ls(all.names = TRUE))
 ```
 

@@ -307,6 +307,13 @@ Now do some checks on if demand and supply match up per record i.e. by per cell-
 ```{r}
 #check the demand vs supply match up - are there cells where supply is outstripped by demand? 
 forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1)  #in no cell is demand higher than the supply
+
+
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
+
 ```
 
 
