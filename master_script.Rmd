@@ -1,0 +1,18 @@
+---
+title: "Master Script"
+author: "Rich Cottrell"
+date: "13/02/2023"
+output: html_document
+---
+
+This script runs all relevant scripts embedded in this project. 
+
+To get all code to run successfully, you need to ensure you have cloned or forked the repository from GitHub (https://github.com/Sustainable-Aquafeeds-Project/feed_pressure_mapping) and you have downloaded the tided raw data folder which underpins this analysis from <insert url>. This folder was too big to push to Github and so must be downloaded and stored within your github repository named as "raw_data" i.e., feed_pressure_mapping/data/raw_data. This nomenclature is needed if the code is to run without issue as this folder is used extensively throughout. The scripts contained in this repository were intended to be run with an RProject rather than run individually, and depend on file paths that assume this.
+
+
+Once your repository is ready, please run the chunk below to run all scripts. Or you can run each script independently by running each line. All scripts need to be run in order as later scripts depend on outputs generated earlier.
+
+```{r}
+
+```
+
