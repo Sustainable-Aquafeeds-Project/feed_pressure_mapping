@@ -434,7 +434,7 @@ diets <- bind_rows(readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")
   mutate(ingredients = case_when(ingredients == "canola/camelina oil" ~ "Canola oil",
                                   TRUE ~ str_to_sentence(ingredients)),
          ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> 
-  mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Guar meal", "Soybean meal", "Corn gluten meal", "Wheat gluten", "Wheat", "Microingredients"))),
+  mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Faba beans", "Soybean meal", "Corn gluten meal", "Wheat gluten", "Wheat", "Microingredients"))),
 readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> 
   filter(prop >0) |> 
   add_row(groups = "Microingredients", ingredients = "microingredients", diet = "plant_diet", prop = 0.04) |> 
@@ -623,5 +623,10 @@ ggsave(here("figures/supplementary/plant_disaggreation_by_ingredient_pressure_pr
   plot_annotation(tag_levels = "a")&
   theme(plot.tag = element_text(size=8))
 ggsave(here("figures/supplementary/disaggregation_of_pressure_by_ingredient_prop_mass_allocation.jpg"), dpi = 600, width = 18, height =13, units="cm")
+```
+
+#clear the environment
+```{r}
+rm(list = ls(all.names = TRUE))
 ```
 
