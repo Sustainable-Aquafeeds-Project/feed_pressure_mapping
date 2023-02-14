@@ -188,6 +188,13 @@ map(.x = scalar_source_list, \(this_file){
 })
 
 
+
+```
+
+
+Clear the environment 
+```{r}
+
 rm(list = ls())
 ```
 

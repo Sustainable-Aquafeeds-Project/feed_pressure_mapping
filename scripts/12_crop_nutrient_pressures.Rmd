@@ -103,7 +103,7 @@ map(pd_crop_r_list, \(this_file){
   
   saveName <- sprintf(here("data/spatial/%s/int/%s_N_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
@@ -184,7 +184,6 @@ map(md_crop_r_list, \(this_file){
 Plant diets
 
 ```{r}
-
 pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
 pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
 
@@ -230,7 +229,10 @@ map(pd_crop_r_list, \(this_file){
     
   }
 })
+```
 
+
+```{r}
 #clear the environment
 rm(list = ls(all.names = TRUE))
 ```

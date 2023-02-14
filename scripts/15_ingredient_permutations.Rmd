@@ -115,7 +115,7 @@ source_combinations_pd <- source_combinations_pd[!duplicated(as.list(source_comb
 
 ```
 
-Given the number of unique combinations varies from marine to plant diet - here I take the first 2000 diets generated from each and save them for future use.
+Given the number of unique combinations varies from marine to plant diet - here I take the first 500 diets generated from each and save them for future use.
 
 ```{r}
 

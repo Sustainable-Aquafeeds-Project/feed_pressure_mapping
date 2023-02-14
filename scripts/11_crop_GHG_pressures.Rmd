@@ -79,7 +79,6 @@ map(md_crop_r_list, \(this_file){
 Plant diets
 
 ```{r}
-
 pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
 pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
 
@@ -126,8 +125,10 @@ map(pd_crop_r_list, \(this_file){
     
   }
 })
+```
 
 
+```{r}
 #clear the environment
 rm(list = ls(all.names = TRUE))
 ```
