@@ -67,12 +67,11 @@ Combine all values for pressures for a marine diet
 marine_source_ingredient <- 
   marine_diets |> 
   select(ingredient) |> 
-  mutate(source_1 = c(1, 2, 2, 1, 2, 5, 1),
-         source_2 = c(2, 1, 1, 1, 4, 2, 3),
-         source_3 = c(3, 3, 3, 1, 3, 2, 4)) |> 
+  mutate(source_1 = c(1, 1, 2, 2, 2, 5, 1),
+         source_2 = c(2, 3, 1, 1, 4, 2, 3),
+         source_3 = c(3, 5, 3, 3, 3, 2, 4)) |> 
    mutate(row = row_number()) |> 
-  group_split(row) 
-  
+   group_split(row) 
   # select(ingredient, source_1 = `5`, source_2 = `9`, source_3 = `21`) |> 
   # 
   # mutate(source_1 = case_when(ingredient == "guar meal"~ as.integer(1),
@@ -84,6 +83,7 @@ marine_source_ingredient <-
   # 
 #test dataframe
 this_df <- marine_source_ingredient[[4]]
+
 #Now prepare the files corresponding to the first source for each ingredient for each pressure
 sources <- c("source_1", "source_2", "source_3")
 source = "source_1"
@@ -287,7 +287,9 @@ max_plant_value <- plant_diet_raster|> map(no_na_values) |> unlist() |> as.numer
 max_cum_value <- max(max_marine_value, max_plant_value)
 (sum_marine_value <- marine_diet_raster |> map(no_na_values) |> map(sum))
 (sum_plant_value <- plant_diet_raster|> map(no_na_values) |> map(sum))
+
 # MARINE DIETS
+
 #source 1
 marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRUE)
 (marine_sourcing_p1 <- 
@@ -337,6 +339,7 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRU
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)
   )
+
 #source 3
 marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRUE)
 (marine_sourcing_p3 <- 
@@ -409,6 +412,7 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_raster[["source_2"]], xy=TRUE)
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                 barwidth = 10, barheight = 0.5, units = "cm"))
   )
+
 #source 3
 plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
 (plant_sourcing_p3 <- 

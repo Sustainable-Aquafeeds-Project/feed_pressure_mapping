@@ -61,10 +61,12 @@ marine_diet <- readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |>
   mutate(ingredients = case_when(ingredients == "canola/camelina oil" ~ "Canola oil",
                                   TRUE ~ str_to_sentence(ingredients)),
          ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> 
-  mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Guar meal", "Soybean meal", "Corn gluten meal", "Wheat gluten", "Wheat", "Microingredients"))) |> 
+  mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Faba beans", "Soybean meal", "Corn gluten meal", "Wheat gluten", "Wheat", "Microingredients"))) |> 
   mutate(cum_prop = cumsum(prop)) |> 
   mutate(label_y_pos = if_else(condition = prop != prop[1], true = prop/2+lag(cum_prop), false = cum_prop/2)) |> 
   mutate(label_y_pos = 1-label_y_pos) 
+
+
 plant_diet <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> 
   filter(prop >0) |> 
   add_row(groups = "Microingredients", ingredients = "microingredients", diet = "plant_diet", prop = 0.04) |> 
@@ -80,7 +82,7 @@ plant_diet <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |>
 marine_diet |> pull(prop) |> sum() #adds to 1
 plant_diet |> pull(prop) |> sum() #adds to 1
 
-ingredient_levels <- c( "Fishmeal",  "Fish oil" ,"Guar meal" , "Soybean meal","Corn gluten meal" , "Wheat gluten" ,"Wheat" , "Soy protein concentrate", "Faba beans" ,   "Pea protein concentrate","Sunflower meal","Canola oil","Linseed oil","Pea starch","Corn starch", "Microingredients")
+ingredient_levels <- c( "Fishmeal",  "Fish oil" , "Soybean meal","Corn gluten meal" , "Faba beans" , "Wheat gluten" ,"Wheat" , "Soy protein concentrate",   "Pea protein concentrate","Sunflower meal","Canola oil","Linseed oil","Pea starch","Corn starch", "Microingredients")
 
 #get a plot and legend for each diet
 marine_diet_plot <- ggplot(data = marine_diet,
@@ -103,6 +105,7 @@ both_diets <- bind_rows(marine_diet, plant_diet) |>
   mutate(hjust = if_else(condition = diet == "marine_diet", true = 1, false = 0)) |> 
   mutate(ingredients = factor(ingredients, levels = rev(ingredient_levels))) |> 
   mutate(diet = factor(diet, levels = rev(c("Plant-\ndominant", "Marine-\ndominant"))))
+
 both_diets_p <- ggplot(data = both_diets,
        aes(x = diet , y = prop, fill = ingredients))+
   geom_col()+

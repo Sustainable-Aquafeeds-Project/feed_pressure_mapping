@@ -66,9 +66,9 @@ Combine all values for pressures for a marine diet
 marine_source_ingredient <- 
   marine_diets |> 
   select(ingredient) |> 
-  mutate(source_1 = c(1, 2, 2, 1, 2, 5, 1),
-         source_2 = c(2, 1, 1, 1, 4, 2, 3),
-         source_3 = c(3, 3, 3, 1, 3, 2, 4)) |> 
+  mutate(source_1 = c(1, 1, 2, 2, 2, 5, 1),
+         source_2 = c(2, 3, 1, 1, 4, 2, 3),
+         source_3 = c(3, 5, 3, 3, 3, 2, 4)) |> 
    mutate(row = row_number()) |> 
   group_split(row) 
   
@@ -88,6 +88,7 @@ sources <- c("source_1", "source_2", "source_3")
 source = "source_1"
 #gross energy allocation 
 marine_source_file_list <- list()
+
 for(source in sources){
     
     marine_diet_files <- 
@@ -165,7 +166,7 @@ for(source in sources){
   
 }
 options(warn = 1)
-# MASS ALLOCATION
+
 ```
 
 
