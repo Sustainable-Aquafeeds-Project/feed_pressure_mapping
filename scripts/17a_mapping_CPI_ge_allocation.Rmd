@@ -468,3 +468,10 @@ source_diet_map <-
           
 ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_ge_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 15.5, units = "cm")
 ```
+
+
+#clear the environment
+```{r}
+rm(list = ls(all.names = TRUE))
+```
+

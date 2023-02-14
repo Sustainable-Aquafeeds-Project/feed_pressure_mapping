@@ -639,3 +639,10 @@ ggsave(here("figures/supplementary/plant_disaggreation_by_ingredient_pressure_pr
 
 ggsave(here("figures/supplementary/disaggregation_of_pressure_by_ingredient_prop_ge_allocation.jpg"), dpi = 600, width = 18, height =13, units="cm")
 ```
+
+
+#clear the environment
+```{r}
+rm(list = ls(all.names = TRUE))
+```
+

@@ -764,3 +764,10 @@ marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "p
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> mean()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> sd()
 ```
+
+
+#clear the environment
+```{r}
+rm(list = ls(all.names = TRUE))
+```
+

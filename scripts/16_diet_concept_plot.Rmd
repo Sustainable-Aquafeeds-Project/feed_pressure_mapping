@@ -240,5 +240,11 @@ ggsave(filename = here("figures/supplementary/embodied_forage_fish_demand.jpg"),
   as_tibble())
 ```
 
+#clear the environment
+
+```{r}
+rm(list = ls(all.names = TRUE))
+
+```
 
 
