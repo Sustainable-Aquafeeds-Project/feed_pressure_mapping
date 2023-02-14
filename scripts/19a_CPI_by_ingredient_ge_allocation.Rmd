@@ -1,0 +1,641 @@
+---
+title: "19 CPI by ingredient (energetic allocation)"
+author: "Rich Cottrell"
+date: "14/02/2023"
+output: html_document
+---
+
+
+Set up
+```{r}
+library(tidyverse)
+library(ggpubr)
+library(patchwork)
+library(here)
+library(sf)
+library(terra)
+library(rnaturalearth)
+#library(rnaturalearthdata)
+library(RColorBrewer)
+library(gameofthrones)
+library(parallel)
+library(ggdist)
+library(data.table)
+library(dtplyr)
+
+
+# taking cumulative impoact palette from Halpern et al 
+red <- "#B90000"
+d_brown <- "#515256"
+m_brown <- "#B27B54"
+l_brown <- "#BC995F"
+green <- "#A8B072"
+yellow<- "#EFCE71"
+l_yellow <- "#F7F6C1"
+light_gray <- "#F8F9FA"
+discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick")
+continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
+final_palette <- c(light_gray, continuous_pal, red)
+
+#source files
+source(here("src/fxns.R"))
+
+#spatial products
+moll_crs <- "ESRI:53009"
+gp_crs <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+
+countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = moll_crs)
+coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
+select <- dplyr::select
+values <- terra::values
+```
+
+
+Bring in the origin-ingredient combinations within each diet.  
+
+```{r}
+marine_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds")) 
+plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds")) 
+```
+
+
+#Disaggregation by pressure and ingredient
+
+
+Disaggregate by ingredients and pressures -  Marine diets
+
+```{r}
+marine_source_ingredient <- 
+  marine_diets |>
+  select(1:501) |> 
+  rename_at(vars(-ingredient), ~ paste("source", .x)) |>
+  mutate(row = row_number()) |> 
+  mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
+                                           TRUE ~ .)) |> 
+  group_split(row)
+
+
+sources <- bind_rows(marine_source_ingredient) |> select(-c("ingredient", "row")) |>  names()  
+
+marine_source_file_list <- list()
+# Test data for loop
+# this_df <- marine_source_ingredient[[1]]
+# source <- sources[[1]]
+#Now list the files for all ingredients and sources
+for(source in sources){
+    
+    marine_diet_files <- 
+      map(.x = marine_source_ingredient, .f = \(this_df){
+        
+        this_ingredient <- this_df$ingredient
+        
+        message("processing...", this_ingredient, "...", source)
+        
+        these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        
+         these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
+        #sources
+        this_source_ingredient <- this_df |> pull(source)
+        
+        #disturbance
+        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
+        
+        #ghg
+        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
+        
+        #nitrogen
+        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #phosphorus
+        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #water
+        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
+        
+        
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        return(these_diet_pressures)
+        
+      }) |> 
+      unlist()
+    
+    marine_source_file_list[[source]] <- marine_diet_files
+    
+  }
+  
+#stack and sum by individual pressures for each ingredient source combination
+marine_ingredients <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
+  filter(diet=="marine_diet" & total_ingredient_demand>0) |> 
+  mutate(ingredients = gsub(pattern = "-wild", replacement = "", x = ingredients)) |> pull(ingredients)
+
+this_ingredient_pressure_df_list <- list()
+
+all_ingredients_pressures_df_list <- list()
+
+for(source in sources){
+  
+  message("processing.....", source)
+  
+  this_combination_all_pressures_list <- marine_source_file_list[[source]]
+  
+  for(ingredient in marine_ingredients){
+    
+    this_ingredient_pressure_list <- this_combination_all_pressures_list[grepl(ingredient, this_combination_all_pressures_list)]
+    
+    #########Separate GHG files, read rasters into a list, stack all GHG layers
+  
+  message("stacking ghg layers for...", source, " ", ingredient)
+  
+  this_combination_ghg_list <- this_ingredient_pressure_list[grep("ghg", this_ingredient_pressure_list)]
+  
+  these_ghg_rasters <- map(.x = this_combination_ghg_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_ghg_df <- global(app(rast(these_ghg_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "GHG", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  
+  ##########Separate water files, read rasters into a list, stack all water layers
+  
+  message("stacking water layers for...", source, " ", ingredient)
+  
+  this_combination_water_list <- this_ingredient_pressure_list[grep("water", this_ingredient_pressure_list)]
+  
+  these_water_rasters <- map(.x = this_combination_water_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_water_df <- global(app(rast(these_water_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Water", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  #########Separate N files, read rasters into a list, stack all N layers
+  
+  message("stacking N layers for...", source, " ", ingredient)
+  
+  this_combination_N_list <-  this_ingredient_pressure_list[grep("_N_", this_ingredient_pressure_list)]
+  
+  these_N_rasters <- map(.x = this_combination_N_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_N_df <- global(app(rast(these_N_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nitrogen", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  #########Separate P files, read rasters into a list, stack all P layers
+  
+  message("stacking P layers for...", source, " ", ingredient)
+  
+  this_combination_P_list <-  this_ingredient_pressure_list[grep("_P_", this_ingredient_pressure_list)]
+  
+  these_P_rasters <- map(.x = this_combination_P_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_P_df <- global(app(rast(these_P_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Phosphorus", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  #########Separate disturbance files, read rasters into a list, stack all disturbance layers
+  
+  message("stacking disturbance layers for...", source, " ", ingredient)
+  
+  this_combination_disturbance_list <-  this_ingredient_pressure_list[grep("disturbance", this_ingredient_pressure_list)]
+  
+  these_disturbance_rasters <- map(.x = this_combination_disturbance_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
+  
+    
+    
+  }
+  
+  
+  all_ingredients_pressures_df_list[[source]] <- bind_rows(this_ingredient_pressure_df_list)
+  
+}
+marine_diet_pressures_by_ingredient_df <- bind_rows(all_ingredients_pressures_df_list) |> mutate(diet = "marine diet")
+saveRDS(marine_diet_pressures_by_ingredient_df, file = here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_ge_allocation.rds"))
+```
+
+Disaggreagte by ingredients and pressures -  Plant diets
+
+```{r}
+plant_source_ingredient <- 
+  plant_diets |>
+  select(1:501) |> 
+  rename_at(vars(-ingredient), ~ paste("source", .x)) |>
+  mutate(row = row_number()) |> 
+  mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "linseed oil"~ as.integer(1),
+                                           TRUE ~ .)) |> 
+  group_split(row)
+
+sources <- bind_rows(plant_source_ingredient) |> select(-c("ingredient", "row")) |>  names()   
+
+plant_source_file_list <- list()
+#test data for loop
+# this_df <- plant_source_ingredient[[1]]
+# source <- sources[[1]]
+#Now list the files for all ingredients and sources
+for(source in sources){
+    
+    plant_diet_files <- 
+      map(.x = plant_source_ingredient, .f = \(this_df){
+        
+        this_ingredient <- this_df$ingredient
+        
+        message("processing...", this_ingredient, "...", source)
+        
+        these_ingredient_files <- list.files(here("data/spatial/plant_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
+        
+        these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
+        
+        #sources
+        this_source_ingredient <- this_df |> pull(source)
+        
+        #disturbance
+        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
+        
+        #ghg
+        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
+        
+        #nitrogen
+        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #phosphorus
+        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        
+        #water
+        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
+        
+        
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        return(these_diet_pressures)
+        
+      }) |> 
+      unlist()
+    
+    plant_source_file_list[[source]] <- plant_diet_files
+    
+  }
+  
+plant_ingredients <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
+  filter(diet=="plant_diet" & total_ingredient_demand>0) |> 
+  mutate(ingredients = gsub(pattern = "-wild", replacement = "", x = ingredients)) |> pull(ingredients)
+this_ingredient_pressure_df_list <- list()
+all_ingredients_pressures_df_list <- list()
+for(source in sources){
+  
+  message("processing.....", source)
+  
+  this_combination_all_pressures_list <- plant_source_file_list[[source]]
+  
+  for(ingredient in plant_ingredients){
+    
+    this_ingredient_pressure_list <- this_combination_all_pressures_list[grepl(ingredient, this_combination_all_pressures_list)]
+    
+    #########Separate GHG files, read rasters into a list, stack all GHG layers
+  
+  message("stacking ghg layers for...", source, " ", ingredient)
+  
+  this_combination_ghg_list <- this_ingredient_pressure_list[grep("ghg", this_ingredient_pressure_list)]
+  
+  these_ghg_rasters <- map(.x = this_combination_ghg_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_ghg_df <- global(app(rast(these_ghg_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "GHG", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  
+  ##########Separate water files, read rasters into a list, stack all water layers
+  
+  message("stacking water layers for...", source, " ", ingredient)
+  
+  this_combination_water_list <- this_ingredient_pressure_list[grep("water", this_ingredient_pressure_list)]
+  
+  these_water_rasters <- map(.x = this_combination_water_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_water_df <- global(app(rast(these_water_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Water", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  #########Separate N files, read rasters into a list, stack all N layers
+  
+  message("stacking N layers for...", source, " ", ingredient)
+  
+  this_combination_N_list <-  this_ingredient_pressure_list[grep("_N_", this_ingredient_pressure_list)]
+  
+  these_N_rasters <- map(.x = this_combination_N_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_N_df <- global(app(rast(these_N_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nitrogen", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  #########Separate P files, read rasters into a list, stack all P layers
+  
+  message("stacking P layers for...", source, " ", ingredient)
+  
+  this_combination_P_list <-  this_ingredient_pressure_list[grep("_P_", this_ingredient_pressure_list)]
+  
+  these_P_rasters <- map(.x = this_combination_P_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_P_df <- global(app(rast(these_P_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Phosphorus", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  #########Separate disturbance files, read rasters into a list, stack all disturbance layers
+  
+  message("stacking disturbance layers for...", source, " ", ingredient)
+  
+  this_combination_disturbance_list <-  this_ingredient_pressure_list[grep("disturbance", this_ingredient_pressure_list)]
+  
+  these_disturbance_rasters <- map(.x = this_combination_disturbance_list, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+    
+    return(this_rast)
+  })
+  
+  this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  
+  
+  this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
+  
+    
+    
+  }
+  
+  
+  all_ingredients_pressures_df_list[[source]] <- bind_rows(this_ingredient_pressure_df_list)
+  
+}
+plant_diet_pressures_by_ingredient_df <- bind_rows(all_ingredients_pressures_df_list) |> mutate(diet = "plant diet")
+saveRDS(plant_diet_pressures_by_ingredient_df, file = here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_ge_allocation.rds"))
+```
+
+Add marine and plant-dominant diet disaggregation by ingredient and pressure
+
+```{r}
+marine_diet_pressures_by_ingredient_df <- readRDS(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_ge_allocation.rds"))
+
+plant_diet_pressures_by_ingredient_df <- readRDS(here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_ge_allocation.rds"))
+
+marine_plant_pressure_ingredient_disagg_combined_df <- bind_rows(marine_diet_pressures_by_ingredient_df, plant_diet_pressures_by_ingredient_df)
+
+saveRDS(object = marine_plant_pressure_ingredient_disagg_combined_df, file = here("data/tidy_data/pressures/marine_plant_disaggregated_pressures_by_ingredient_combined_df_ge_allocation.rds"))
+```
+
+
+Visualise the disaggregation by pressure and ingredient
+
+```{r}
+diets <- bind_rows(readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> 
+                     filter(prop >0) |> 
+                     add_row(groups = "Microingredients", ingredients = "microingredients", diet = "marine_diet", prop = 0.02) |> 
+                     mutate(ingredients = case_when(ingredients == "canola/camelina oil" ~ "Canola oil",
+                                                    TRUE ~ str_to_sentence(ingredients)),
+                            ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> 
+                     mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Guar meal", "Soybean meal", "Corn gluten meal", "Wheat gluten", "Wheat", "Microingredients"))),
+                   readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> 
+                     filter(prop >0) |> 
+                     add_row(groups = "Microingredients", ingredients = "microingredients", diet = "plant_diet", prop = 0.04) |> 
+                     mutate(ingredients = case_when(ingredients == "canola/camelina oil" ~ "Canola oil",
+                                                    TRUE ~ str_to_sentence(ingredients)),
+                            ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> 
+                     mutate(ingredients = factor(ingredients, levels = c("Fishmeal", "Fish oil", "Soy protein concentrate", "Corn gluten meal","Faba beans", "Pea protein concentrate",  "Sunflower meal", "Wheat gluten", "Canola oil", "Linseed oil", "Wheat", "Pea starch", "Corn starch", "Microingredients")))) |> 
+  mutate(diet = gsub("_", " ", diet)) |> 
+  rename(diet_prop = prop)
+
+
+marine_plant_pressure_ingredient_disagg_combined_df <- readRDS(here("data/tidy_data/pressures/marine_plant_disaggregated_pressures_by_ingredient_combined_df_ge_allocation.rds"))
+
+marine_plant_pressure_ingredient_disagg_combined_df <- 
+  marine_plant_pressure_ingredient_disagg_combined_df |> 
+  group_by(diet, source) |> 
+  nest() |> 
+  mutate(total = map(data, ~(sum(.$sum)))) |> 
+  unnest(c(data, total)) |> 
+  mutate(prop = sum/total) |> 
+  mutate(ingredient = str_to_sentence(ingredient)) |> 
+  left_join(y = diets, by = c("diet", "ingredient" = "ingredients")) |> 
+  mutate(weighted_prop = prop/diet_prop)
+
+
+#Weighted contributions
+
+summarised_ingredient_pressure_df <- 
+  marine_plant_pressure_ingredient_disagg_combined_df |> 
+  group_by(diet, pressure, ingredient) |> 
+  summarise(mean = mean(weighted_prop, na.rm=TRUE),
+            sd = sd(weighted_prop, na.rm=TRUE),
+            se = sd/sqrt(500),
+            median = median(weighted_prop, na.rm = TRUE),
+            lq = quantile(weighted_prop, 0.25),
+            uq = quantile(weighted_prop, 0.75), .groups = "drop") |> 
+  mutate(diet = if_else(diet == "marine diet", true = "Marine-dominant feed", false = "Plant-dominant feed")) |> 
+  mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
+  mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nitrogen", "GHG", "Disturbance")))
+
+
+(marine_diet_ingredients_p <- 
+  ggplot(data = summarised_ingredient_pressure_df |> 
+           filter(diet == "Marine-dominant feed"),
+                aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
+  coord_flip(clip="off")+
+  geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
+  geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.75), width = 0, size = 0.2)+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+  #scale_y_continuous(expand = c(0,0), limits = c(0,2))+
+  theme_bw()+
+  theme(
+        #panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        # axis.text.y = element_blank(),
+        # axis.ticks = element_blank(),
+        plot.title = element_text(size=8, hjust=0.5),
+        legend.position = c(0.8,0.25),
+        # legend.title = element_text(size=7, colour = "grey20"),
+        # legend.text = element_text(size=7, colour = "grey20"),
+        legend.background = element_blank(),
+        # legend.key.size = unit(0.3, "cm"),
+        #legend.box.spacing = unit(-0.2, "cm"),
+        text = element_text(size=8))+
+  labs(y = "Wgtd. contribution to Cumulative Pressure", fill = "Pressure", title = "Marine-dominant feed")+
+  guides(fill = "none"))
+
+ggsave(here("figures/marine_disaggreation_by_ingredient_pressure_ge_allocation.jpg"), dpi = 600, height=12, width=8.9, units="cm")
+
+
+
+(plant_diet_ingredients_p <- 
+  ggplot(data = summarised_ingredient_pressure_df |> 
+           filter(diet == "Plant-dominant feed"),
+         aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
+  coord_flip(clip="off")+
+  geom_col(aes(fill=pressure), position = "dodge", width = 0.85, alpha = 0.8)+
+  geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.85), width = 0, size = 0.2)+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+  #scale_y_continuous(expand = c(0,0), limits = c(0,2))+
+  theme_bw()+
+  theme(
+        #panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        # axis.text.y = element_blank(),
+        # axis.ticks = element_blank(),
+        plot.title = element_text(size=8, hjust=0.5),
+        legend.position = c(0.8,0.13),
+        legend.title = element_text(size=7, colour = "grey20"),
+        legend.text = element_text(size=7, colour = "grey20"),
+        legend.background = element_rect(fill="transparent"),
+        legend.key.size = unit(0.3, "cm"),
+        #legend.box.spacing = unit(-0.2, "cm"),
+        text = element_text(size=8))+
+  labs(y = "Wgtd. contribution to Cumulative Pressure", fill = "Pressure", title = "Plant-dominant feed"))+
+  guides(fill = guide_legend(reverse = TRUE))
+
+ggsave(here("figures/plant_disaggreation_by_ingredient_pressure_ge_allocation.jpg"), dpi = 600, height=12, width=8.9, units="cm")
+ 
+(marine_diet_ingredients_p|plant_diet_ingredients_p) +
+  plot_layout(guides = "keep")+
+  guides(fill = guide_legend(reverse = TRUE))+
+  plot_annotation(tag_levels = "a")&
+  theme(plot.tag = element_text(size=8))
+ggsave(here("figures/disaggregation_of_pressure_by_ingredient_ge_allocation.jpg"), dpi = 600, width = 18, height =13, units="cm")
+
+
+
+#Proportional contributions
+
+summarised_ingredient_pressure_df2 <- 
+  marine_plant_pressure_ingredient_disagg_combined_df |> 
+  group_by(diet, pressure, ingredient) |> 
+  summarise(mean = mean(prop, na.rm=TRUE),
+            sd = sd(prop, na.rm=TRUE),
+            se = sd/sqrt(500),
+            median = median(prop, na.rm = TRUE),
+            lq = quantile(prop, 0.25),
+            uq = quantile(prop, 0.75), .groups = "drop") |> 
+  mutate(diet = if_else(diet == "marine diet", true = "Marine-dominant feed", false = "Plant-dominant feed")) |> 
+  mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
+   mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nitrogen", "GHG", "Disturbance")))
+
+
+(marine_diet_ingredients_p2 <- 
+  ggplot(data = summarised_ingredient_pressure_df2 |> 
+           filter(diet == "Marine-dominant feed"),
+                aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
+  coord_flip(clip="off")+
+  geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
+  geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.75), width = 0, size = 0.2)+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+    scale_y_continuous(expand = c(0,0), limits = c(0,0.302))+
+  theme_bw()+
+  theme(
+        #panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        # axis.text.y = element_blank(),
+        # axis.ticks = element_blank(),
+        plot.title = element_text(size=8, hjust=0.5),
+        legend.position = c(0.8,0.25),
+        legend.title = element_text(size=7, colour = "grey20"),
+        legend.text = element_text(size=7, colour = "grey20"),
+        legend.background = element_rect(fill="transparent"),
+        legend.key.size = unit(0.3, "cm"),
+        #legend.box.spacing = unit(-0.2, "cm"),
+        text = element_text(size=8))+
+  labs(y = "Prop. of Cumulative Pressure Index", fill = "Pressure", title = "Marine-dominant feed")+
+  guides(fill = "none"))
+ggsave(here("figures/supplementary/marine_disaggreation_by_ingredient_pressure_prop_ge_allocation.jpg"), dpi = 600, height=12, width=8.9, units="cm")
+
+
+
+(plant_diet_ingredients_p2 <- 
+  ggplot(data = summarised_ingredient_pressure_df2 |> 
+           filter(diet == "Plant-dominant feed"),
+         aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
+  coord_flip(clip="off")+
+  geom_col(aes(fill=pressure), position = "dodge", width = 0.85, alpha = 0.8)+
+  geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.85), width = 0, size = 0.2)+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+  scale_y_continuous(expand = c(0,0), limits = c(0,0.302))+
+  theme_bw()+
+  theme(
+        #panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        # axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        # axis.text.y = element_blank(),
+        # axis.ticks = element_blank(),
+        plot.title = element_text(size=8, hjust=0.5),
+        legend.position = c(0.8,0.13),
+        legend.title = element_text(size=7, colour = "grey20"),
+        legend.text = element_text(size=7, colour = "grey20"),
+        legend.background = element_rect(fill="transparent"),
+        legend.key.size = unit(0.3, "cm"),
+        #legend.box.spacing = unit(-0.2, "cm"),
+        text = element_text(size=8))+
+  labs(y = "Prop. of Cumulative Pressure Index", fill = "Pressure", title = "Plant-dominant feed"))+
+  guides(fill = guide_legend(reverse = TRUE))
+ggsave(here("figures/supplementary/plant_disaggreation_by_ingredient_pressure_prop_ge_allocation.jpg"), dpi = 600, height=12, width=8.9, units="cm")
+ 
+(marine_diet_ingredients_p2|plant_diet_ingredients_p2) +
+ plot_layout(guides = "keep")+
+  guides(fill = guide_legend(reverse = TRUE))+
+  plot_annotation(tag_levels = "a")&
+  theme(plot.tag = element_text(size=8))
+
+ggsave(here("figures/supplementary/disaggregation_of_pressure_by_ingredient_prop_ge_allocation.jpg"), dpi = 600, width = 18, height =13, units="cm")
+```

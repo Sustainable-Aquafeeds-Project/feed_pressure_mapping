@@ -99,13 +99,11 @@ map(pd_crop_r_list, \(this_file){
   
   this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
   
-  this_diet <- "marine_diet"
-  
   this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
   
   saveName <- sprintf(here("data/spatial/%s/int/%s_N_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     

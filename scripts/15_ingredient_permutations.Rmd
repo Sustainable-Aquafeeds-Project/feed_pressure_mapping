@@ -36,12 +36,12 @@ md_ingredient_source_list <- crossing(ingredient = marine_diet, source = 1:5) |>
 
 set.seed(7)
 
-md_df_list <- vector(mode="list", length = 2500)
+md_df_list <- vector(mode="list", length = 1000)
 
 #iterate a random pull from each ingredient source 2000 times and isolate non duplicates
-for(i in 1:2500){
+for(i in 1:1000){
   
-  message(i, "/2500")
+  message(i, "/1000")
   
   this_diet_df <- 
     map_df(md_ingredient_source_list, \(this_df){
@@ -79,12 +79,12 @@ pd_ingredient_source_list <- crossing(ingredient = plant_diet, source = 1:5) |> 
 
 set.seed(7)
 
-pd_df_list <- vector(mode="list", length = 2500)
+pd_df_list <- vector(mode="list", length = 1000)
 
 #iterate a random pull from each ingredient source 1000 times and isolate non duplicates
-for(i in 1:2500){
+for(i in 1:1000){
   
-  message("iteration ", i, "/2500")
+  message("iteration ", i, "/1000")
   
   this_diet_df <- 
     map_df(pd_ingredient_source_list, \(this_df){
@@ -119,9 +119,9 @@ Given the number of unique combinations varies from marine to plant diet - here 
 
 ```{r}
 
-source_combinations_md <- source_combinations_md |> select(1:2001)
+source_combinations_md <- source_combinations_md |> select(1:501)
 
-source_combinations_pd <-  source_combinations_pd |> select(1:2001)
+source_combinations_pd <-  source_combinations_pd |> select(1:501)
 
 
 #save marine and plant diet combinations for reuse during calculations
