@@ -9,7 +9,80 @@ Set up
 ```{r}
 
 library(tidyverse)
-library()
+library(here)
 
+```
+
+```{r}
+
+crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> 
+  filter(total_crop_demand_ge >0 & total_crop_demand_ms >0) |> 
+  pivot_longer(cols = c(total_crop_demand_ge, total_crop_demand_ms), names_to = "allocation", values_to = "demand")|> 
+  mutate(allocation = if_else(allocation == "total_crop_demand_ge", true = "Energetic allocation", false = "Mass allocation")) |> 
+  rename(demand_from = ingredients) |> 
+  select(diet, demand_from, source_iso3c, demand, allocation)
+
+fish_demand <- readRDS(here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds")) |> 
+  rename(demand = embodied_fish, source_iso3c = source_code) |> select(diet, demand_from, source_iso3c, demand, allocation)
+
+
+all_demand <- bind_rows(crop_demand, fish_demand)
+
+```
+Calculations
+```{r}
+
+
+
+summarised_demand <- 
+  all_demand |> 
+  group_by(diet, allocation, demand_from) |> 
+  summarise(mean_demand = mean(demand, na.rm=TRUE), 
+            sd_demand = sd(demand, na.rm=TRUE),
+            min_demand = min(demand, na.rm = TRUE),
+            max_demand = max(demand, na.rm =TRUE)) |> 
+  ungroup() 
+
+
+
+#What is overall demand by diet (accounting for allocation)
+
+#minimum
+summarised_demand |> 
+  group_by(diet, allocation) |> 
+  summarise(minimum = sum(min_demand))
+  
+#max
+summarised_demand |> 
+  group_by(diet, allocation) |> 
+  summarise(maximum = sum(max_demand))
+
+
+#mean
+summarised_demand |> 
+  group_by(diet, allocation) |> 
+  summarise(average = sum(mean_demand))
+
+
+#average mass
+mean_plant_mass <- 
+  summarised_demand |> 
+  group_by(diet, allocation) |> 
+  summarise(average = sum(mean_demand)) |> 
+  filter(diet == "plant_diet" & allocation == "Mass allocation") |> ungroup() |> 
+  pull(average)
+  
+
+mean_fish_mass <- 
+  summarised_demand |> 
+  group_by(diet, allocation) |> 
+  summarise(average = sum(mean_demand)) |> 
+  filter(diet == "marine_diet" & allocation == "Mass allocation") |> ungroup() |> 
+  pull(average)
+
+
+
+all_demand |> filter(!demand_from %in% c("Fishmeal", "Fish oil")) |> mutate(realm = if_else(demand_from == "Total", true = "marine", false = "terrestrial")) |> 
+  group_by(realm, diet, demand_from, allocation) |>  summarise(mean_ = mean(demand)) |> ungroup() |>  group_by(realm, diet, allocation) |> summarise(sum_mean = sum(mean_)) |> filter(allocation == "Mass allocation")
 ```
 
