@@ -1,0 +1,15 @@
+---
+title: "Calculating raw materials demands across scenarios"
+author: "Rich Cottrell"
+date: "20/02/2023"
+output: html_document
+---
+
+Set up
+```{r}
+
+library(tidyverse)
+library()
+
+```
+
