@@ -10,6 +10,7 @@ Set up
 
 library(tidyverse)
 library(here)
+library(terra)
 
 ```
 
@@ -29,19 +30,22 @@ fish_demand <- readRDS(here("data/tidy_data/demand/embodied_fish_demand_by_sourc
 all_demand <- bind_rows(crop_demand, fish_demand)
 
 ```
-Calculations
+
+
+
+Basic calculations of diet vs. allocation vs. marine/terrestrial
 ```{r}
-
-
 
 summarised_demand <- 
   all_demand |> 
+  filter(!demand_from %in% c("Total")) |> 
   group_by(diet, allocation, demand_from) |> 
   summarise(mean_demand = mean(demand, na.rm=TRUE), 
             sd_demand = sd(demand, na.rm=TRUE),
             min_demand = min(demand, na.rm = TRUE),
             max_demand = max(demand, na.rm =TRUE)) |> 
-  ungroup() 
+  ungroup() |> 
+  arrange(allocation, diet, -mean_demand)
 
 
 
@@ -80,9 +84,23 @@ mean_fish_mass <-
   filter(diet == "marine_diet" & allocation == "Mass allocation") |> ungroup() |> 
   pull(average)
 
+mean_plant_mass/mean_fish_mass # ratio of raw material demand between fish- and plant-dominant feeds
 
 
-all_demand |> filter(!demand_from %in% c("Fishmeal", "Fish oil")) |> mutate(realm = if_else(demand_from == "Total", true = "marine", false = "terrestrial")) |> 
-  group_by(realm, diet, demand_from, allocation) |>  summarise(mean_ = mean(demand)) |> ungroup() |>  group_by(realm, diet, allocation) |> summarise(sum_mean = sum(mean_)) |> filter(allocation == "Mass allocation")
+
+all_demand |> filter(demand_from!= "Total") |>  mutate(realm = if_else(demand_from %in% c("Fishmeal", "Fish oil"), true = "marine", false = "terrestrial")) |> 
+  group_by(realm, diet, demand_from, allocation) |>  summarise(mean_ = mean(demand)) |> ungroup() |>  group_by(realm, diet, allocation) |> summarise(sum_mean = sum(mean_)) |> arrange(diet, allocation, realm)
+```
+
+Example of differences in raw material and total pressure for same ingredient within different diet
+```{r}
+
+brazil_sbm <- rast(here("data/spatial/marine_diet/int/soybean meal_ghg_gp_mass_allocation_BRA.tif"))
+
+us_sbm <- rast(here("data/spatial/marine_diet/int/soybean meal_ghg_gp_mass_allocation_USA.tif"))
+
+
+(brazil_sbm |> values() |> sum(na.rm=TRUE)/1000) /(us_sbm |> values() |> sum(na.rm=TRUE)/1000)
+
 ```
 
