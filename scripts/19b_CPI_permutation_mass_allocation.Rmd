@@ -311,21 +311,24 @@ min_plant <- min(plant_vals)
 max_marine/min_marine
 max_plant/min_plant
 #which marine vals are higher than the plant minimum?
-marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #98% of marine values
+marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #89.8% of marine values
 #which plant vals are lower than the marine maximum?
-plant_vals[plant_vals<max_marine] |> length()/ length(plant_vals) #98.6%
+plant_vals[plant_vals<max_marine] |> length()/ length(plant_vals) #98.8%
+
+
 #median comparisons
 median(marine_vals)
 median(plant_vals)
-((median(marine_vals)/median(plant_vals))-1)*100 #2% higher median CPI for plants
+((median(marine_vals)/median(plant_vals))-1)*100 #13% lower median for fish-dominant feeds
+((median(plant_vals)/median(marine_vals))-1)*100 
 #maximum comparisons
 max(marine_vals)
 max(plant_vals)
-max(plant_vals)/max(marine_vals) #11% higher maximum CPI for plants
+1-max(marine_vals)/max(plant_vals) #6.10% higher maximum CPI for plants
 min(plant_vals)/min(marine_vals) #min plant diets have CPI 20% > marine diets
 #minimum of one, maximum of anotehr
-min(plant_vals)/max(marine_vals) #plant diets can have CPI 73% lower than marine diets
-min(marine_vals)/max(plant_vals) #marine diets can have CPI 80% lower than plant diets
+1-min(plant_vals)/max(marine_vals) #plant diets can have CPI 59.2% lower than marine diets
+1-min(marine_vals)/max(plant_vals) #marine diets can have CPI 73.8% lower than plant diets
 summary(marine_vals)
 summary(plant_vals)
 #manual calculation of CI

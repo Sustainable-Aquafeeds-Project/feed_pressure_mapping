@@ -134,13 +134,14 @@ length(countries_regions[!countries_regions %in% c("EPC", "NAT", "OTH")]) # 18 c
 total_crop_demand <- readRDS("/mnt/rdsi/github/feed_pressure_mapping/data/tidy_data/demand/total_crop_demand.rds") 
 total_crop_demand |> pull(FAOSTAT_name) |> unique()
 total_crop_demand |> filter(FAOSTAT_name == "Pulses nes")
+
 #forage fish embodied demand by regions
 embodied_fish_bysource <- readRDS(here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds")) |> 
   mutate(source_code = case_when(source_code == "EPC" ~ "Eastern Pacific",
                                  source_code == "NAT" ~ "North Atlantic",
                                  source_code == "OTH" ~ "All other regions")) |> 
   mutate(source_code = factor(source_code, levels = c("Eastern Pacific", "North Atlantic", "All other regions"))) |> 
-  mutate(diet = if_else(diet=="marine_diet", true = "Marine-dominant\nfeed", false = "Plant-dominant\nfeed"))
+  mutate(diet = if_else(diet=="marine_diet", true = "Fish-dominant\nfeed", false = "Plant-dominant\nfeed"))
 
 #how much more embodied fish does a marine diet create relative to plant?
 source_codes <- unique(embodied_fish_bysource$source_code) |> as.character()
@@ -151,10 +152,10 @@ amount_list <- list()
 for(s in source_codes){
  
   marine_plant_ratio_ge <-  
-    (embodied_fish_bysource |> filter(source_code == s & allocation == "Energetic allocation" & diet == "Marine-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))/(embodied_fish_bysource |> filter(source_code == s & allocation == "Energetic allocation" & diet == "Plant-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))
+    (embodied_fish_bysource |> filter(source_code == s & allocation == "Energetic allocation" & diet == "Fish-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))/(embodied_fish_bysource |> filter(source_code == s & allocation == "Energetic allocation" & diet == "Plant-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))
   
   marine_plant_ratio_mass <-  
-    (embodied_fish_bysource |> filter(source_code == s & allocation == "Mass allocation" & diet == "Marine-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))/(embodied_fish_bysource |> filter(source_code == s & allocation == "Mass allocation" & diet == "Plant-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))
+    (embodied_fish_bysource |> filter(source_code == s & allocation == "Mass allocation" & diet == "Fish-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))/(embodied_fish_bysource |> filter(source_code == s & allocation == "Mass allocation" & diet == "Plant-dominant\nfeed" & demand_from == "Total") |> pull(embodied_fish))
   
   
  diff_list_ge[which(source_codes==s)] <- marine_plant_ratio_ge
@@ -168,7 +169,7 @@ unlist(diff_list_mass)
 
 #Differences among regions within marine-dominant feed
 embodied_fish_bysource |> 
-  filter(diet == "Marine-dominant\nfeed" & demand_from == "Total") |> 
+  filter(diet == "Fish-dominant\nfeed" & demand_from == "Total") |> 
   arrange(-embodied_fish) |> 
   mutate(region_diff = max(embodied_fish)-embodied_fish)
 embodied_fish_bysource |>
@@ -186,9 +187,8 @@ ggplot(data = embodied_fish_bysource) +
   labs(fill = "Origin", y = "Embodied fish demand (1000s T)")+
   scale_fill_manual(values = c("#edf8b1", "#7fcdbb", "#2c7fb8"))+
   theme_bw()+
-  theme(legend.position = c(0.75, 0.43),
+  theme(legend.position = c(0.65, 0.35),
         legend.background = element_rect(fill="transparent"), 
-        legend.direction = "horizontal",
         axis.title.x = element_blank(),
         panel.grid = element_blank(), 
         text = element_text(size=12),
