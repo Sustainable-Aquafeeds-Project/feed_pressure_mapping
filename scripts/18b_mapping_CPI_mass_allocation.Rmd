@@ -275,8 +275,8 @@ for(source in sources){
   
 }
 options(warn = oldw)
-marine_diet_raster
-plant_diet_raster
+marine_diet_raster |> map(no_na_values) |> map(sum)
+plant_diet_raster |> map(no_na_values) |> map(sum)
 ```
 
 Figure - maps comparing diet and sourcing
@@ -287,6 +287,15 @@ max_plant_value <- plant_diet_raster|> map(no_na_values) |> unlist() |> as.numer
 max_cum_value <- max(max_marine_value, max_plant_value)
 (sum_marine_value <- marine_diet_raster |> map(no_na_values) |> map(sum))
 (sum_plant_value <- plant_diet_raster|> map(no_na_values) |> map(sum))
+
+source_marine_1 <- round(sum_marine_value[["source_1"]], digits = 2) |> as.numeric()
+source_marine_2 <- round(sum_marine_value[["source_2"]], digits = 2)
+source_marine_3 <- round(sum_marine_value[["source_3"]], digits = 2)
+source_plant_1 <- round(sum_plant_value[["source_1"]], digits = 3)
+source_plant_2 <- round(sum_plant_value[["source_2"]], digits = 2)
+source_plant_3 <- round(sum_plant_value[["source_3"]], digits = 2)
+
+
 
 # MARINE DIETS
 
@@ -313,7 +322,8 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRU
                        )+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 1", angle = 90)
+    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 1", angle = 90)+
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_1))), size = 3)
   )
   
 #source 2
@@ -337,7 +347,8 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRU
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)
+    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)+
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_2))), size = 3)
   )
 
 #source 3
@@ -361,7 +372,8 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)
+    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_3))), size = 3)
   )
 
 
@@ -387,7 +399,8 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_raster[["source_1"]], xy=TRUE)
   scale_fill_gradientn(colours = final_palette, 
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
-                                 barwidth = 10, barheight = 0.5, units = "cm"))
+                                 barwidth = 10, barheight = 0.5, units = "cm"))+
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_plant_1))), size = 3)
   )
   
 #source 2
@@ -410,7 +423,8 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_raster[["source_2"]], xy=TRUE)
   scale_fill_gradientn(colours = final_palette, 
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
-                                barwidth = 10, barheight = 0.5, units = "cm"))
+                                barwidth = 10, barheight = 0.5, units = "cm"))+
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_plant_2))), size = 3)
   )
 
 #source 3
@@ -433,7 +447,8 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
   scale_fill_gradientn(colours = final_palette, 
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
-                                 barwidth = 10, barheight = 0.5, units = "cm"))
+                                 barwidth = 10, barheight = 0.5, units = "cm"))+
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_plant_3))), size =3)
   )
 # bar_legend <- get_legend(plant_sourcing_p3)
 # 
