@@ -462,7 +462,7 @@ source_diet_map <-
   (marine_sourcing_p3|plant_sourcing_p1)+
   plot_layout(guides = "collect")+
   plot_annotation(tag_levels = "a", #surely there is a better way than below?
-                  title = "                    Marine-dominant feed                                Plant-dominant feed") & 
+                  title = "                      Fish-dominant feed                                Plant-dominant feed") & 
   theme(plot.tag = element_text(size=9), 
         plot.tag.position = c(0.1, 1),
         legend.position = "bottom")

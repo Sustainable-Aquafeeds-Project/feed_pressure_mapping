@@ -275,10 +275,17 @@ saveRDS(marine_plant_df, file = here("data/tidy_data/pressures/marine_plant_pres
 Mass allocation - Visualise the differences between the two diets for cumulative pressures
 ```{r}
 marine_plant_df <- readRDS(here("data/tidy_data/pressures/marine_plant_pressures_combined_mass_allocation.rds"))
+
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
+
+both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nfeed"), 
+                          mean_CPI = c(marine_plant_df |> filter(diet == "marine diet") |> pull(sum) |> mean(), 
+                                       marine_plant_df |> filter(diet == "plant diet") |> pull(sum) |> mean()))
+
+
 (both_diets_agg_p <- ggplot(data = marine_plant_df |> mutate(diet = case_when(diet == "plant diet" ~ "Plant-\ndominant\nfeed",
-                                                         diet == "marine diet" ~ "Marine-\ndominant\nfeed"),
-                                        diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Marine-\ndominant\nfeed"))))+
+                                                         diet == "marine diet" ~ "Fish-\ndominant\nfeed"),
+                                        diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Fish-\ndominant\nfeed"))))+
   aes(x = sum, y = diet, colour = diet)+
     geom_jitter(shape =20, size = 2.5, alpha = 0.1, height = 0.4
   )+
@@ -289,7 +296,8 @@ my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
   scale_x_continuous(limits = c(0.75,4))+
   theme_pubr()+
   geom_boxplot(notch = TRUE, colour = "grey40", width = 0.3, alpha = 0, linewidth=0.5)+
-  labs(y = "Diet", x = "Cumulative pressure index")+
+  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1.8, alpha = 0.7, shape = 0)+
+  labs(y = "Diet", x = "Cumulative pressure index (CPI)")+
   theme(text = element_text(size=8),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
@@ -314,6 +322,10 @@ max_plant/min_plant
 marine_vals[marine_vals>min_plant] |> length()/ length(marine_vals) #89.8% of marine values
 #which plant vals are lower than the marine maximum?
 plant_vals[plant_vals<max_marine] |> length()/ length(plant_vals) #98.8%
+
+#mean comparisons
+mean(marine_vals)
+mean(plant_vals)
 
 
 #median comparisons
@@ -690,18 +702,44 @@ marine_plant_pressure_disagg_df <-
 
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
+
+test_plot <- ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet))+
+  geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
+  geom_point(position = position_dodge(width = 0.75), size=0.8)+
+  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.75), width = 0, linewidth = 0.5)+
+  #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
+  coord_polar(clip="off") +theme_bw()
+
+
+y_breaks <- ggplot2::ggplot_build(test_plot)$layout$panel_params[[1]]$r.major
+
+
+#USE THIS DATA FRAME IF YOU WANT PROPORTIONAL COMPARISONS
+
+# summarised_pressure_disagg_df <- 
+#   marine_plant_pressure_disagg_df |> 
+#   group_by(diet, pressure) |> 
+#   summarise(mean = mean(prop, na.rm=TRUE),
+#             sd = sd(prop, na.rm=TRUE),
+#             median = median(prop, na.rm = TRUE),
+#             lq = quantile(prop, 0.25),
+#             uq = quantile(prop, 0.75)) |> 
+#   mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed"))
+
+#USE THIS DATA FRAME IF YOU WANT ABSOLUTE COMPARISONS
+
 summarised_pressure_disagg_df <- 
   marine_plant_pressure_disagg_df |> 
   group_by(diet, pressure) |> 
-  summarise(mean = mean(prop, na.rm=TRUE),
-            sd = sd(prop, na.rm=TRUE),
-            median = median(prop, na.rm = TRUE),
-            lq = quantile(prop, 0.25),
-            uq = quantile(prop, 0.75)) |> 
-  mutate(diet = if_else(diet == "marine diet", true = "Marine-dominant feed", false = "Plant-dominant feed"))
+  summarise(mean = mean(sum, na.rm=TRUE),
+            sd = sd(sum, na.rm=TRUE),
+            median = median(sum, na.rm = TRUE),
+            lq = quantile(sum, 0.25),
+            uq = quantile(sum, 0.75)) |> 
+  mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed"))
 
   
-both_diets_disagg_p <- 
+(both_diets_disagg_p <- 
   ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet)
        )+
   geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
@@ -712,8 +750,10 @@ both_diets_disagg_p <-
   theme_bw()+
   theme(panel.border = element_blank(),
         axis.title.x = element_blank(),
-        #axis.line.y = element_line(colour = "black", size=0.5),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
         axis.title.y = element_text(hjust = 0.83),
+         axis.text.y = element_blank(),
         legend.position = c(0.84, 0.01),
         legend.title = element_blank(),
         legend.text = element_text(size=6),
@@ -723,8 +763,14 @@ both_diets_disagg_p <-
         text = element_text(size=8))+
   scale_fill_manual(values = my_pal[c(2, 4)])+
   #scale_y_continuous(breaks = c(0,50,100,150, 200,250,300,350,400,450,500))+
-  labs(y = "Prop. of Cumulative Pressure Index")+
-  guides(fill = guide_legend(override.aes = list(shape = NA)))
+  labs(y = "Absolute CPI contribution")+
+  guides(fill = guide_legend(override.aes = list(shape = NA)))+
+  annotate("text", x = 5.5, y = y_breaks, label = as.character(y_breaks), size=2, colour="grey10"))
+  # annotate("text", x = 3, y = y_breaks, label = as.character(y_breaks), size=2.1, colour="grey10")+
+  # annotate("text", x = 1.5, y = y_breaks, label = as.character(y_breaks), size=2.1, colour="grey10"))
+  # annotate("text", x = 3, y = y_breaks, label = as.character(y_breaks), size=2.8, colour="grey70")+
+  # annotate("text", x = 4, y = y_breaks, label = as.character(y_breaks), size=2.8, colour="grey70")+
+  # annotate("text", x = 5, y = y_breaks, label = as.character(y_breaks), size=2.8, colour="grey70"))
 #boxplot version
 # ggplot(data= marine_plant_pressure_disagg_df, aes(x = pressure, y = sum, colour = diet, group = interaction(diet, pressure))
 #        )+
@@ -757,16 +803,65 @@ ggsave(here("figures/both_diet_agg_disagg_combine_mass_allocation.jpg"), dpi = 6
 
 Some calculation regarding the decomposition of CPI by individual pressures
 ```{r}
-#Disturbance (marine)
+
+marine_plant_pressure_disagg_df <- 
+  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds")) |> 
+  group_by(diet, source) |> 
+  nest() |> 
+  mutate(total = map(data, ~(sum(.$sum)))) |> 
+  unnest(c(data, total)) |> 
+  mutate(prop = sum/total)
+
+#Disturbance - proportion
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(prop) |> max()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(prop) |> min()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(prop) |> mean()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(prop) |> sd()
-#Disturbance (plant)
+
+#Disturbance -proportion
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> max()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> min()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> mean()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> sd()
+
+#Disturbance  absolute
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(sum) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(sum) |> sd()
+
+
+#GHG -proportion
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(prop) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> sd()
+
+
+#GHG - absolute
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(sum) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(sum) |> sd()
+
+
+
+
 ```
 
 #clear the environment

@@ -172,6 +172,7 @@ embodied_fish_bysource |>
   filter(diet == "Fish-dominant\nfeed" & demand_from == "Total") |> 
   arrange(-embodied_fish) |> 
   mutate(region_diff = max(embodied_fish)-embodied_fish)
+
 embodied_fish_bysource |>
   filter(demand_from =="Total") |> 
   group_by(diet, allocation) |> 
@@ -221,5 +222,8 @@ ggsave(filename = here("figures/supplementary/embodied_forage_fish_demand.jpg"),
   filter(diet == "marine_diet") |> 
   arrange(-total_catch) |> 
   as_tibble())
+
+
+left_join(embodied_fish_rank, fish_catch_rank) |> mutate(disproportion_mass =  total_demand_mass/total_catch) |> arrange(-disproportion_mass)
 ```
 
