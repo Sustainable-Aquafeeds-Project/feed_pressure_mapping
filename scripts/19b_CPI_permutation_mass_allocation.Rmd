@@ -818,7 +818,6 @@ marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "m
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(prop) |> mean()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(prop) |> sd()
 
-#Disturbance -proportion
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> max()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> min()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(prop) |> mean()
@@ -835,6 +834,10 @@ marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "p
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(sum) |> mean()
 marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(sum) |> sd()
 
+#how much higher is the fish-dominant feed 
+marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(sum) |> mean()/marine_plant_pressure_disagg_df |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(sum) |> mean()
+
+
 
 #GHG -proportion
 marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(prop) |> max()
@@ -846,6 +849,12 @@ marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant die
 marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> min()
 marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> mean()
 marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> sd()
+
+#how much higher is the fish-dominant feed 
+marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "marine diet") |> pull(prop) |> mean()/marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(prop) |> mean()
+
+
+
 
 
 #GHG - absolute
@@ -860,7 +869,91 @@ marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant die
 marine_plant_pressure_disagg_df |> filter(pressure == "GHG" & diet == "plant diet") |> pull(sum) |> sd()
 
 
+#Nitrogen -proportion
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(prop) |> sd()
 
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(prop) |> sd()
+
+
+#Nitrogen - absolute
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(sum) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(sum) |> sd()
+
+
+#how much higher is plant-dominant N?
+marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "plant diet") |> pull(sum) |> mean()/marine_plant_pressure_disagg_df |> filter(pressure == "Nitrogen" & diet == "marine diet") |> pull(sum) |> mean()
+
+
+
+#Phosphorus -proportion
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(prop) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(prop) |> sd()
+
+
+
+
+#Phosphorus - absolute
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(sum) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(sum) |> sd()
+
+#how much higher is plant-dominant P? 
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "plant diet") |> pull(sum) |> mean()/marine_plant_pressure_disagg_df |> filter(pressure == "Phosphorus" & diet == "marine diet") |> pull(prop) |> mean()
+
+
+
+#Water -proportion
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(prop) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(prop) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(prop) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(prop) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(prop) |> sd()
+
+
+#Water - absolute
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(sum) |> sd()
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(sum) |> max()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(sum) |> min()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(sum) |> mean()
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(sum) |> sd()
+
+
+marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "plant diet") |> pull(sum) |> mean()/ marine_plant_pressure_disagg_df |> filter(pressure == "Water" & diet == "marine diet") |> pull(sum) |> mean()
 
 ```
 

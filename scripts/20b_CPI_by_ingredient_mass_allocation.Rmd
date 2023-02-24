@@ -471,14 +471,14 @@ summarised_ingredient_pressure_df <-
             median = median(weighted_prop, na.rm = TRUE),
             lq = quantile(weighted_prop, 0.25),
             uq = quantile(weighted_prop, 0.75), .groups = "drop") |> 
-  mutate(diet = if_else(diet == "marine diet", true = "Marine-dominant feed", false = "Plant-dominant feed")) |> 
+  mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed")) |> 
   mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
   mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nitrogen", "GHG", "Disturbance")))
 
 
 (marine_diet_ingredients_p <- 
   ggplot(data = summarised_ingredient_pressure_df |> 
-           filter(diet == "Marine-dominant feed"),
+           filter(diet == "Fish-dominant feed"),
                 aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
@@ -501,7 +501,7 @@ summarised_ingredient_pressure_df <-
         # legend.key.size = unit(0.3, "cm"),
         #legend.box.spacing = unit(-0.2, "cm"),
         text = element_text(size=8))+
-  labs(y = "Wgtd. contribution to Cumulative Pressure", fill = "Pressure", title = "Marine-dominant feed")+
+  labs(y = "Wgtd. contribution to Cumulative Pressure", fill = "Pressure", title = "Fish-dominant feed")+
   guides(fill = "none"))
 
 ggsave(here("figures/marine_disaggreation_by_ingredient_pressure_mass_allocation.jpg"), dpi = 600, height=12, width=8.9, units="cm")
@@ -555,13 +555,13 @@ summarised_ingredient_pressure_df2 <-
             median = median(prop, na.rm = TRUE),
             lq = quantile(prop, 0.25),
             uq = quantile(prop, 0.75), .groups = "drop") |> 
-  mutate(diet = if_else(diet == "marine diet", true = "Marine-dominant feed", false = "Plant-dominant feed")) |> 
+  mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed")) |> 
   mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
    mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nitrogen", "GHG", "Disturbance")))
 
 (marine_diet_ingredients_p2 <- 
   ggplot(data = summarised_ingredient_pressure_df2 |> 
-           filter(diet == "Marine-dominant feed"),
+           filter(diet == "Fish-dominant feed"),
                 aes(x = reorder(ingredient, mean), y = mean, fill=pressure))+
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
@@ -584,7 +584,7 @@ summarised_ingredient_pressure_df2 <-
         legend.key.size = unit(0.3, "cm"),
         #legend.box.spacing = unit(-0.2, "cm"),
         text = element_text(size=8))+
-  labs(y = "Prop. of Cumulative Pressure Index", fill = "Pressure", title = "Marine-dominant feed")+
+  labs(y = "Prop. of Cumulative Pressure Index", fill = "Pressure", title = "Fish-dominant feed")+
   guides(fill = "none"))
 ggsave(here("figures/supplementary/marine_disaggreation_by_ingredient_pressure_prop_mass_allocation.jpg"), dpi = 600, height=12, width=8.9, units="cm")
 
