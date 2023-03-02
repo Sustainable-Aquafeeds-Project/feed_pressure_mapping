@@ -480,6 +480,45 @@ source_diet_map <-
 ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 15.5, units = "cm")
 ```
 
+Save one cumulative pressure map for conceptual plot
+```{r}
+
+marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRUE)
+(marine_sourcing_p3 <- 
+  ggplot()+
+  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
+  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
+  geom_tile(data = marine_diet3_df, aes(x = x, y=y, fill=sum))+
+  geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
+  theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
+        panel.background = element_rect(fill = "transparent"),
+        axis.title = element_blank(),
+        legend.title = element_text(size=8),
+        legend.text = element_text(size=8),
+        legend.direction = "horizontal",
+        legend.position = "bottom",
+        legend.background = element_rect(fill = "transparent"),
+      legend.box.spacing = unit(-0.3, "cm"),
+        plot.margin = margin(r=-0.5,l=-0.5))+
+  scale_fill_gradientn(colours = final_palette, 
+                       limits = c(0, max_cum_value),
+                       breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
+    guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
+                                 barwidth = 7, barheight = 0.4, units = "cm"))
+    #annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
+    #annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_3))), size = 3)
+  )
+
+ggsave(here("figures/single_CPI_map.jpeg"), device = "jpg", dpi = 600, width = 8.9, height = 6, units = "cm")
+
+
+
+```
+
+
+
+
 
 #clear the environment
 ```{r}
