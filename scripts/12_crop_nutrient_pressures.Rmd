@@ -30,10 +30,10 @@ md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), patter
 md_crop_r_list <- md_crop_r_list[grepl("allocation", md_crop_r_list)]
 
 
-this_file <- md_crop_r_list[[1]]
+this_file <- md_crop_r_list[[48]]
 
 
-#multiply production demand rasters by the ghg value for production from each country
+#multiply production demand rasters by the N value for production from each country
 
 map(md_crop_r_list, \(this_file){
   
