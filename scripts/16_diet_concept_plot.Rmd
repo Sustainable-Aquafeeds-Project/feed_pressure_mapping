@@ -148,12 +148,12 @@ pl <- ggplot(data = simplified_df,
         panel.grid = element_blank(),
         legend.key.size = unit(0.25, "cm")
         ) +
-  labs(x = "Feed scenario", y = "Proportion")+
+  labs(x = " ", y = "Proportion")+
   guides(fill = guide_legend(byrow=TRUE, reverse = FALSE, ncol = 1)) + 
   coord_flip()
 
 
-CairoPNG(here("figures/feed_composition_3.jpg"))
+CairoPNG(here("figures/feed_composition_barchart.jpg"))
 pl
 dev.off()
 
@@ -183,7 +183,7 @@ ggplot(data = simplified_df,
   guides(fill = "none") + 
   coord_flip()
 
-ggsave(here("figures/feed_composition_2.jpg"), width = 7.65, height = 11.88, units = "in")
+# ggsave(here("figures/feed_composition_2.jpg"), width = 7.65, height = 11.88, units = "in")
 ```
 
 
