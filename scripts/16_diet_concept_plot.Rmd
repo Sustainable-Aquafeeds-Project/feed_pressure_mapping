@@ -136,18 +136,19 @@ simplified_df <- both_diets %>%
 
 
 ggplot(data = simplified_df,
-       aes(x = diet , y = prop, fill = ingredients_2, color = ingredients_2))+
-  geom_col(width = 0.8)+
+       aes(x = diet , y = prop, fill = ingredients_2, color = ingredients_2)) +
+  geom_col(width = 0.8) +
   scale_fill_manual(values =  c("#93AAD8", "#7EAA55")) +
   scale_color_manual(values =  c("#93AAD8", "#7EAA55")) +
   theme_pubr()+
   theme(legend.title = element_blank(),
-        legend.text = element_text(size=20, family = "Calibri Bold"),
-        text = element_text(size=20, family = "Calibri Bold"),
-        legend.position = "right",
+        legend.text = element_text(size=27.5, family = "Calibri Bold"),
+        text = element_text(size=24, family = "Calibri Bold"),
+        legend.position = "bottom",
         #legend.box.spacing = unit(-0.1, "cm"),
         panel.grid = element_blank(),
-        legend.key.size = unit(0.25, "cm")
+        legend.key.size = unit(0.25, "cm")#, 
+        # axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
         ) +
   labs(x = " ", y = "Proportion")+
   guides(fill = guide_legend(byrow=TRUE, reverse = FALSE, ncol = 1)) 
