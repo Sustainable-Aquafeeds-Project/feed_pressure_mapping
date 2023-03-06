@@ -493,8 +493,8 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
   theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
-        legend.title = element_text(size=8),
-        legend.text = element_text(size=8),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=14),
         legend.direction = "horizontal",
         legend.position = "bottom",
         legend.background = element_rect(fill = "transparent"),
@@ -510,7 +510,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
     #annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_3))), size = 3)
   )
 
-ggsave(here("figures/single_CPI_map.jpeg"), device = "jpg", dpi = 600, width = 8.9, height = 6, units = "cm")
+ggsave(here("figures/single_CPI_map.jpeg"), device = "jpg", dpi = 600, width = 8.9, height =7, units = "cm")
 
 
 

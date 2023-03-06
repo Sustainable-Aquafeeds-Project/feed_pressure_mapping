@@ -31,7 +31,10 @@ aquaculture_species_groups <- unique(aquaculture$species)
 
 salmon_species <- aquaculture_species_groups[grep("salmon", aquaculture_species_groups)]
 
-salmon_aquaculture <- aquaculture %>% filter(species == "Atlantic salmon" & year==2019)
+salmon_aquaculture <- aquaculture %>% filter(species == "Atlantic salmon" & year %in% c(2019)) 
+
+
+aquaculture %>% filter(species == "Atlantic salmon" & year %in% c(1990, 2019)) |> group_by(year) |> summarise(sum = sum(value))
 
 (top_salmon_producers <- salmon_aquaculture %>% 
     group_by(country) %>% 
@@ -44,8 +47,8 @@ salmon_aquaculture <- aquaculture %>% filter(species == "Atlantic salmon" & year
     
     )
 
- 
-
+#Global production
+round(sum(top_salmon_producers$value), digits = 20)
 ```
 
 Import the feed conversion ratios and join to production. 
