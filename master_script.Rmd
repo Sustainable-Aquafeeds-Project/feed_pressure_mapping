@@ -19,31 +19,19 @@ Once your repository is ready, please run the chunk below to run all scripts. Or
 
 ```{r}
 
-library(knitr)
-source(knitr::purl(here("scripts/01_global_ingredient_demand.Rmd")))
-source(knitr::purl(here("scripts/02_crop_raw_materials_demand.Rmd")))
-source(knitr::purl(here("scripts/03_spatial_forage_fish_demand_allocation.Rmd")))
-source(knitr::purl(here("scripts/04_crop_source_country_rasters.Rmd")))
-source(knitr::purl(here("scripts/05_spatial_crop_demand_allocation.Rmd")))
-source(knitr::purl(here("scripts/06_forage_fish_disturbance_pressures.Rmd")))
-source(knitr::purl(here("scripts/07_forage_fish_GHG_pressures.Rmd")))
-source(knitr::purl(here("scripts/08_forage_fish_nutrient_pressures.Rmd")))
-source(knitr::purl(here("scripts/09_forage_fish_water_extraction_pressures.Rmd")))
-source(knitr::purl(here("scripts/10_crop_disturbance_pressures.Rmd")))
-source(knitr::purl(here("scripts/11_crop_GHG_pressures.Rmd")))
-source(knitr::purl(here("scripts/12_crop_nutrient_pressures.Rmd")))
-source(knitr::purl(here("scripts/13_crop_water_extraction_pressures.Rmd")))
-source(knitr::purl(here("scripts/14_rescaling_environmental_pressures.Rmd")))
-source(knitr::purl(here("scripts/15_ingredient_permutations.Rmd")))
-source(knitr::purl(here("scripts/16_diet_concept_plot.Rmd")))
-source(knitr::purl(here("scripts/17a_mapping_CPI_ge_allocation.Rmd")))
-source(knitr::purl(here("scripts/17b_mapping_CPI_mass_allocation.Rmd")))
-source(knitr::purl(here("scripts/18a_CPI_permutation_ge_allocation.Rmd")))
-source(knitr::purl(here("scripts/18b_CPI_permutation_mass_allocation.Rmd")))
-source(knitr::purl(here("scripts/19a_CPI_by_ingredient_ge_allocation.Rmd")))
-source(knitr::purl(here("scripts/19b_CPI_by_ingredient_mass_allocation.Rmd")))
-source(knitr::purl(here("scripts/20_ingredient_case_studies.Rmd")))
+#Function to run the rmarkdowns without output
+source_rmd = \(file, ...) {
+  tmp_file = tempfile(fileext=".R")
+  on.exit(unlink(tmp_file), add = TRUE)
+  knitr::purl(file, output=tmp_file)
+  source(file = tmp_file, ...)}
+
+#Isolate analysis scripts
+analysis_markdowns <- 
+  list.files(here("scripts"), pattern = ".Rmd", full.names = TRUE)[!grepl("00_tidying_data.Rmd", list.files(here("scripts"), pattern = ".Rmd", full.names = TRUE))]
 
 
+#Run all scripts
+map(analysis_markdowns, source_rmd)
 ```
 
