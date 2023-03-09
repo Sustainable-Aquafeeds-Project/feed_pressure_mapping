@@ -11,10 +11,8 @@ To get all code to run successfully, you need to ensure you have cloned or forke
 
 - 'raw_data' folder (must be saved as 'feed_pressure_mapping/data/raw_data' or the equivalent based on the naming of your repository)
 -  embodied_fish_per_cell.csv (should be saved as 'feed_pressure_mapping/data/tidy_data/demand/embodied_fish_per_cell.csv')
--  
 
-
-The This folder and these files was too big to push to Github and so must be downloaded and stored within your github repository named as "raw_data" i.e., feed_pressure_mapping/data/raw_data. This nomenclature is needed if the code is to run without issue as this folder is used extensively throughout. The scripts contained in this repository were intended to be run with an RProject rather than run individually, and depend on file paths that assume this.
+This folder and these files was too big to push to Github and so must be downloaded and stored within your github repository named as "raw_data" i.e., feed_pressure_mapping/data/raw_data. This nomenclature is needed if the code is to run without issue as this folder is used extensively throughout. The scripts contained in this repository were intended to be run with an RProject rather than run individually, and depend on file paths that assume this.
 
 
 Once your repository is ready, please run the chunk below to run all scripts. Or you can run each script independently by running each line. All scripts need to be run in order as later scripts depend on outputs generated earlier.
