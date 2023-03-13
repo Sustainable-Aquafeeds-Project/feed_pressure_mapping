@@ -102,10 +102,10 @@ plant_legend <- get_legend(plant_diet_plot)
 both_diets <- bind_rows(marine_diet, plant_diet) |> 
   
   mutate(label_x_pos = if_else(diet =="marine_diet", true =0.5, false = 2.5)) |> 
-  mutate(diet = if_else(condition = diet == "marine_diet", true = "Marine-\ndominant", false = "Plant-\ndominant")) |> 
+  mutate(diet = if_else(condition = diet == "marine_diet", true = "Fish-\ndominant", false = "Plant-\ndominant")) |> 
   mutate(hjust = if_else(condition = diet == "marine_diet", true = 1, false = 0)) |> 
   mutate(ingredients = factor(ingredients, levels = rev(ingredient_levels))) |> 
-  mutate(diet = factor(diet, levels = rev(c("Plant-\ndominant", "Marine-\ndominant"))))
+  mutate(diet = factor(diet, levels = rev(c("Plant-\ndominant", "Fish-\ndominant"))))
 
 both_diets_p <- ggplot(data = both_diets,
        aes(x = diet , y = prop, fill = ingredients))+
