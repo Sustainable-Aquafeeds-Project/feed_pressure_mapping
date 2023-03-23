@@ -1775,11 +1775,136 @@ rm(list = ls(all.names = TRUE))
 
 
 
-Create some disturbance supplementary plots.
+Supplementary plots for benthic trawling used for forage fish and the differences in spatial forage catch with and without adjusting for npp.
 
 ```{r}
 
-countries <- rnaturalearth::ne_countries(scale=110, returnclass = "sf")
+countries <- rnaturalearth::ne_countries(scale= "large", returnclass = "sf")
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf")
+
+#We want the proportion of catch for forage fish with trawling as the proportion of forage fish catch
+
+
+all_trawling_int_r <- rast(here("data/spatial/fisheries-effort/all_trawling_catch.tif"))
+all_trawling_r <- resample(all_trawling_int_r, rast(res=0.5))
+
+
+this_df |> 
+    group_by(LonCentre, LatCentre) |> 
+    summarise(forage_catch_mass = sum(fm_embodied_fish_mass, na.rm=TRUE))
+
+
+forage_trawling <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  filter(VBDesc == "bottom trawls" & diet=="marine_diet") |> 
+  as_tibble() |> 
+  group_by(LonCentre, LatCentre) |> 
+  summarise(total_ind = sum(total_ind, na.rm = TRUE))
+
+
+forage_trawling_int_r <- rast(forage_trawling, type="xyz", crs = "EPSG:4326")
+forage_trawling_r <- resample(forage_trawling_int_r, rast(res=0.5))
+
+prop_trawling_r <- forage_trawling_r/all_trawling_r
+
+#all trawling effort
+gfw_native_r <- rast(here("data/spatial/fisheries-effort/gfw_annual_effort_2017_trawlers.tif"))
+
+#resample the forage trawling to same extent
+resample_prop_trawling_r <- resample(prop_trawling_r, gfw_native_r)
+
+#stack proportion of trawling for forage on total trawling
+stack_trawling_effort_r <- c(resample_prop_trawling_r,gfw_native_r) 
+
+#divide all trawling by total
+forage_trawling_effort_r <- lapp(stack_trawling_effort_r, \(x,y){
+  return(x*y)
+})
+
+
+# check
+plot(forage_trawling_effort_r)
+
+
+forage_trawling_effort_df <- terra::as.data.frame(forage_trawling_effort_r, xy = TRUE)
+
+(forage_trawl_effort_p <- 
+  ggplot()+
+  geom_sf(data = bbox, fill = "grey10")+
+  geom_sf(data = countries)+
+  geom_tile(data = forage_trawling_effort_df, aes(x = x, y=y, fill = lyr1))+
+  theme_void()+
+  theme(legend.text = element_text(size = 8), legend.title = element_text(size= 8))+
+  scale_fill_gradientn(colours = rcartocolor::carto_pal(n = 7, name = "TealGrn"))+
+  labs(fill = "Bottom trawl\neffort (hours)",))
+
+
+
+forage_catch <- fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  filter( diet == "marine_diet") |> 
+  as_tibble() |> 
+  group_by(LonCentre, LatCentre) |> 
+  summarise(total_ind = sum(total_ind, na.rm = TRUE))
+
+
+(forage_catch_p <- 
+  ggplot()+
+  geom_sf(data = bbox, fill = "grey10")+
+  #geom_sf(data = countries)+
+    geom_tile(data = forage_catch, aes(x = LonCentre, y= LatCentre, fill = (total_ind)))+
+  theme_void()+
+  theme(legend.text = element_text(size = 8), legend.title = element_text(size= 8))+
+    scale_fill_gradientn(colours = viridis::cividis(n=7, direction =1))+
+  #scale_fill_gradientn(colours = rcartocolor::carto_pal(n = 7, name = "TealGrn"))+
+  labs(fill = "Forage fish\ncatch (tonnes)",
+       trans = "log10"))
+
+
+npp_r <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
+
+forage_catch_r <- rast(forage_catch, type = "xyz", crs="EPSG:4326") |> resample(rast(res=0.5))
+
+
+npp_adj_forage_catch_r <- lapp(c(forage_catch_r, npp_r), \(x,y){
+  return(x/y)
+})
+
+npp_adj_forage_catch_df <- terra::as.data.frame(npp_adj_forage_catch_r, xy = TRUE)
+
+
+
+(npp_p <- 
+  ggplot()+
+  geom_sf(data = bbox, fill = "grey10")+
+
+    geom_tile(data = npp_r |> terra::as.data.frame(xy=TRUE), aes(x = x, y= y, fill = annal_mean_npp_2015_gf_wgs))+
+      geom_sf(data = countries)+
+  theme_void()+
+  theme(legend.text = element_text(size = 8), legend.title = element_text(size= 8))+
+  scale_fill_gradientn(colours = viridis::cividis(n=7, direction =1))+
+    #scale_fill_gradientn(colours = rcartocolor::carto_pal(n = 7, name = "TealGrn"))+
+  labs(fill = "Net primary \nproductivity\n(mg C/m2/day)"))
+
+npp_p /
+forage_trawl_effort_p+
+  plot_annotation(tag_levels = "a")&
+  theme(plot.tag = element_text(size =12),
+        plot.tag.position = "topleft")
+
+ggsave(filename = here("figures/supplementary/npp_and_benthic_trawling.jpg"), device = "jpeg", dpi=600, width = 18, height=17, units="cm")
+```
+
+
+
+
+
+
+
+
+#plots for presos
+
+```{r}
 
 
 extent <- st_bbox(ext(c(-180, -40, -90, 90)))
