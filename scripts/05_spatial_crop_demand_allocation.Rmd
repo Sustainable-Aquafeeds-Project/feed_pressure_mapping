@@ -227,7 +227,7 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   message("processing ", this_diet, ", ", this_ingredient, ", ", this_allocation_method, ", ", this_country )
   
   #if the file doesn't exist, create it
-  if(!file.exists(this_demand_raster_filename)){
+  if(file.exists(this_demand_raster_filename)){
     
     #spatial adjustments of production rasters by current production and applying demand for each diet
     
