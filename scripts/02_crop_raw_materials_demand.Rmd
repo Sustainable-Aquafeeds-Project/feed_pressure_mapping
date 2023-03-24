@@ -58,7 +58,7 @@ crop_production_raw <- readRDS(file = here("data/tidy_data/production-data/crops
 )
 
 
-#need to decide whether we should pick the top 10 producers for things like guar so countries like pakistan are included for pulses nes
+#looking across the top 10 producers for each crop
 top_10_crop_producers <- 
   crop_production |> 
   group_split(item) |> 
@@ -104,7 +104,7 @@ plant_ingredient_codes <-
 
 #get yield data from main ingredients
 cf_data <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
-  mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient)) 
+  mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient)) |> filter(ingredient!="soy oil")
 
 # get coproduct yield data
 cf_coproduct_data <- read_csv(here("data/raw_data/allocation/coproduct_conversions.csv"))
@@ -120,7 +120,7 @@ all_cf_data <-
 #bring in the gross energy values
 ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv")) |> 
   select(-c(unit,reference, notes)) |> 
-  filter(!ingredient %in% c("fishmeal", "fish oil")) |> 
+  filter(!ingredient %in% c("fishmeal", "fish oil") & !coproduct %in% c("soybean meal", "soy protein isolate")) |> 
   mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))# |> 
   #mutate(gross_energy_coproduct = if_else(coproduct == "guar gum", true = 1.7, false = gross_energy_coproduct))
 
@@ -167,7 +167,7 @@ crop_raw_material_demand <- readRDS(here("data/tidy_data/demand/total_ingredient
   mutate(total_crop_demand_ge = total_ingredient_demand*ge_allocation_factor,
          total_crop_demand_ms = total_ingredient_demand*mass_allocation_factor)
 
-#export total crop demand for a woring data source
+#export total crop demand 
 saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/total_crop_demand.rds"))
 
 
