@@ -147,7 +147,7 @@ ggplot(data = simplified_df,
         legend.position = "bottom",
         #legend.box.spacing = unit(-0.1, "cm"),
         panel.grid = element_blank(),
-        legend.key.size = unit(0.25, "cm")#, 
+        legend.key.size = unit(1, "cm")#, 
         # axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
         ) +
   labs(x = " ", y = "Proportion")+
