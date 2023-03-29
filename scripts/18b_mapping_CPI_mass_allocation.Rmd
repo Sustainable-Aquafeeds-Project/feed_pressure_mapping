@@ -505,7 +505,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
                        breaks = c(0,0.005, 0.010),
                        labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
-                                 barwidth = 7, barheight = 0.4, units = "cm"))
+                                 barwidth = 12, barheight = 0.6, units = "cm"))
     #annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
     #annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_3))), size = 3)
   )
