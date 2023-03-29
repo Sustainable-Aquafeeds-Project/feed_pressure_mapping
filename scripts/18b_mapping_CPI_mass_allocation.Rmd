@@ -323,7 +323,7 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRU
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 1", angle = 90)+
-    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_1))), size = 3)
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_1, digits = 2), nsmall=2)))), size = 3)
   )
   
 #source 2
@@ -348,7 +348,7 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRU
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)+
-    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_2))), size = 3)
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_2, digits=2), nsmall=2)))), size = 3)
   )
 
 #source 3
@@ -373,7 +373,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
-    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_marine_3))), size = 3)
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_3, digits =2), nsmall=2)))), size = 3)
   )
 
 
@@ -400,7 +400,7 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_raster[["source_1"]], xy=TRUE)
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_plant_1))), size = 3)
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_1, digits = 2), nsmall = 2)))), size = 3)
   )
   
 #source 2
@@ -424,7 +424,7 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_raster[["source_2"]], xy=TRUE)
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                 barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_plant_2))), size = 3)
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_2, digits =2), nsmall=2)))), size = 3)
   )
 
 #source 3
@@ -448,7 +448,7 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
                        limits = c(0, max_cum_value))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(source_plant_3))), size =3)
+    annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_3, digits=2), nsmall=2)))), size =3)
   )
 # bar_legend <- get_legend(plant_sourcing_p3)
 # 
