@@ -112,17 +112,20 @@ for(source in sources){
         #ghg
         this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
         
-        #nitrogen
-        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        #nutrients
+        this_nutrient_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files)][[this_source_ingredient]]
         
-        #phosphorus
-        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        # #nitrogen
+        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        # 
+        # #phosphorus
+        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
         
         #water
         this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
         return(these_diet_pressures)
         
       }) |> 
@@ -224,17 +227,20 @@ for(source in sources){
         #ghg
         this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
         
-        #nitrogen
-        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        #nutrients
+        this_nutrient_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files)][[this_source_ingredient]]
         
-        #phosphorus
-        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        # #nitrogen
+        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        # 
+        # #phosphorus
+        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
         
         #water
         this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
         return(these_diet_pressures)
         
       }) |> 
@@ -324,7 +330,9 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_raster[["source_1"]], xy=TRU
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(
                       colours = final_palette, 
-                       limits = c(0, max_cum_value)
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010")
                        )+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
@@ -350,7 +358,9 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_raster[["source_2"]], xy=TRU
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, max_cum_value))+
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)+
@@ -375,7 +385,9 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRU
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, max_cum_value))+
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
@@ -403,7 +415,9 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_raster[["source_1"]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, max_cum_value))+
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_1, digits = 2), nsmall = 2)))), size = 3)
@@ -427,7 +441,9 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_raster[["source_2"]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, max_cum_value))+
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                 barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_2, digits =2), nsmall=2)))), size = 3)
@@ -451,7 +467,9 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_raster[["source_3"]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, max_cum_value))+
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = 17985650*0.8, y = -7298155*1.2, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_3, digits=2), nsmall=2)))), size =3)
