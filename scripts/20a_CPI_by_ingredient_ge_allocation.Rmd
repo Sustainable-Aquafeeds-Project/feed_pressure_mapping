@@ -519,7 +519,7 @@ summarised_ingredient_pressure_df <-
             uq = quantile(weighted_prop, 0.75), .groups = "drop") |> 
   mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed")) |> 
   mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
-  mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nitrogen", "GHG", "Disturbance")))
+  mutate(pressure = factor(pressure, levels = c("Water", "Nutrients", "GHG", "Disturbance")))
 
 
 (marine_diet_ingredients_p <- 
@@ -529,7 +529,7 @@ summarised_ingredient_pressure_df <-
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.75), width = 0, linewidth = 0.2)+
-  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")[c(4,2,3,1)]))+
   scale_y_continuous(expand = c(0,0), limits = c(0,2))+
   theme_bw()+
   theme(
@@ -561,7 +561,7 @@ ggsave(here("figures/marine_disaggreation_by_ingredient_pressure_ge_allocation.j
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.85, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.85), width = 0, linewidth = 0.2)+
-  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")[c(4,2,3,1)]))+
   #scale_y_continuous(expand = c(0,0), limits = c(0,2))+
   theme_bw()+
   theme(
@@ -606,7 +606,7 @@ summarised_ingredient_pressure_df2 <-
             uq = quantile(prop, 0.75), .groups = "drop") |> 
   mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed")) |> 
   mutate(ingredient = if_else(ingredient == "foragefish", true = "Forage fish", false = ingredient)) |> 
-   mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nitrogen", "GHG", "Disturbance")))
+   mutate(pressure = factor(pressure, levels = c("Water", "Phosphorus", "Nutrients", "Disturbance")))
 
 
 (marine_diet_ingredients_p2 <- 
@@ -616,7 +616,7 @@ summarised_ingredient_pressure_df2 <-
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.75, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.75), width = 0, size = 0.2)+
-  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")[c(4,2,3,1)]))+
     scale_y_continuous(expand = c(0,0), limits = c(0,0.302))+
   theme_bw()+
   theme(
@@ -647,7 +647,7 @@ ggsave(here("figures/supplementary/marine_disaggreation_by_ingredient_pressure_p
   coord_flip(clip="off")+
   geom_col(aes(fill=pressure), position = "dodge", width = 0.85, alpha = 0.8)+
   geom_errorbar(aes(x = ingredient, ymin = if_else(mean-sd<0, true = 0, false = mean-sd), ymax = mean+sd), position = position_dodge(width=0.85), width = 0, size = 0.2)+
-  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")))+
+  scale_fill_manual(values = rev(rcartocolor::carto_pal(n=5, name = "Safe")[c(4,2,3,1)]))+
   scale_y_continuous(expand = c(0,0), limits = c(0,0.302))+
   theme_bw()+
   theme(
