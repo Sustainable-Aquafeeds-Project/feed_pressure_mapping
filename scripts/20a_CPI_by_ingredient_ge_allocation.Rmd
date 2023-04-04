@@ -105,17 +105,20 @@ for(source in sources){
         #ghg
         this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
         
-        #nitrogen
-        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        #nutrients
+        this_nutrient_file <- these_ingredient_files[grepl("_nutrient_", these_ingredient_files)][[this_source_ingredient]]
         
-        #phosphorus
-        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        # #nitrogen
+        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        # 
+        # #phosphorus
+        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
         
         #water
         this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
         return(these_diet_pressures)
         
       }) |> 
@@ -179,13 +182,13 @@ for(source in sources){
   this_water_df <- global(app(rast(these_water_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Water", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
   
   
-  #########Separate N files, read rasters into a list, stack all N layers
+  #########Separate nutrient files, read rasters into a list, stack all nutrient layers
   
-  message("stacking N layers for...", source, " ", ingredient)
+  message("stacking nutrient layers for...", source, " ", ingredient)
   
-  this_combination_N_list <-  this_ingredient_pressure_list[grep("_N_", this_ingredient_pressure_list)]
+  this_combination_nutrient_list <-  this_ingredient_pressure_list[grep("_nutrient_", this_ingredient_pressure_list)]
   
-  these_N_rasters <- map(.x = this_combination_N_list, .f = \(this_file){
+  these_nutrient_rasters <- map(.x = this_combination_nutrient_list, .f = \(this_file){
     
     this_rast <- rast(this_file)
     this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
@@ -193,25 +196,41 @@ for(source in sources){
     return(this_rast)
   })
   
-  this_N_df <- global(app(rast(these_N_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nitrogen", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  this_nutrient_df <- global(app(rast(these_nutrient_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nutrients", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
   
-  
-  #########Separate P files, read rasters into a list, stack all P layers
-  
-  message("stacking P layers for...", source, " ", ingredient)
-  
-  this_combination_P_list <-  this_ingredient_pressure_list[grep("_P_", this_ingredient_pressure_list)]
-  
-  these_P_rasters <- map(.x = this_combination_P_list, .f = \(this_file){
-    
-    this_rast <- rast(this_file)
-    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-    
-    return(this_rast)
-  })
-  
-  this_P_df <- global(app(rast(these_P_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Phosphorus", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  
+  # #########Separate N files, read rasters into a list, stack all N layers
+  # 
+  # message("stacking N layers for...", source, " ", ingredient)
+  # 
+  # this_combination_N_list <-  this_ingredient_pressure_list[grep("_N_", this_ingredient_pressure_list)]
+  # 
+  # these_N_rasters <- map(.x = this_combination_N_list, .f = \(this_file){
+  #   
+  #   this_rast <- rast(this_file)
+  #   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  #   
+  #   return(this_rast)
+  # })
+  # 
+  # this_N_df <- global(app(rast(these_N_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nitrogen", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  # 
+  # 
+  # #########Separate P files, read rasters into a list, stack all P layers
+  # 
+  # message("stacking P layers for...", source, " ", ingredient)
+  # 
+  # this_combination_P_list <-  this_ingredient_pressure_list[grep("_P_", this_ingredient_pressure_list)]
+  # 
+  # these_P_rasters <- map(.x = this_combination_P_list, .f = \(this_file){
+  #   
+  #   this_rast <- rast(this_file)
+  #   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  #   
+  #   return(this_rast)
+  # })
+  # 
+  # this_P_df <- global(app(rast(these_P_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Phosphorus", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  # 
   
   #########Separate disturbance files, read rasters into a list, stack all disturbance layers
   
@@ -230,7 +249,7 @@ for(source in sources){
   this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
   
   
-  this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
+  this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_nutrient_df, this_disturbance_df)
   
     
     
@@ -285,17 +304,20 @@ for(source in sources){
         #ghg
         this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
         
-        #nitrogen
-        this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        #nutrients
+        this_nutrient_file <- these_ingredient_files[grepl("_nutrient_", these_ingredient_files)][[this_source_ingredient]]
         
-        #phosphorus
-        this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        # #nitrogen
+        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        # 
+        # #phosphorus
+        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
         
         #water
         this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_N_file, this_P_file, this_h2o_file)
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
         return(these_diet_pressures)
         
       }) |> 
@@ -355,13 +377,13 @@ for(source in sources){
   this_water_df <- global(app(rast(these_water_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Water", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
   
   
-  #########Separate N files, read rasters into a list, stack all N layers
+  #########Separate nutrient files, read rasters into a list, stack all nutrient layers
   
-  message("stacking N layers for...", source, " ", ingredient)
+  message("stacking nutrient layers for...", source, " ", ingredient)
   
-  this_combination_N_list <-  this_ingredient_pressure_list[grep("_N_", this_ingredient_pressure_list)]
+  this_combination_nutrient_list <-  this_ingredient_pressure_list[grep("_nutrient_", this_ingredient_pressure_list)]
   
-  these_N_rasters <- map(.x = this_combination_N_list, .f = \(this_file){
+  these_nutrient_rasters <- map(.x = this_combination_nutrient_list, .f = \(this_file){
     
     this_rast <- rast(this_file)
     this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
@@ -369,25 +391,41 @@ for(source in sources){
     return(this_rast)
   })
   
-  this_N_df <- global(app(rast(these_N_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nitrogen", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  this_nutrient_df <- global(app(rast(these_nutrient_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nutrients", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
   
-  
-  #########Separate P files, read rasters into a list, stack all P layers
-  
-  message("stacking P layers for...", source, " ", ingredient)
-  
-  this_combination_P_list <-  this_ingredient_pressure_list[grep("_P_", this_ingredient_pressure_list)]
-  
-  these_P_rasters <- map(.x = this_combination_P_list, .f = \(this_file){
-    
-    this_rast <- rast(this_file)
-    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-    
-    return(this_rast)
-  })
-  
-  this_P_df <- global(app(rast(these_P_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Phosphorus", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  
+  # #########Separate N files, read rasters into a list, stack all N layers
+  # 
+  # message("stacking N layers for...", source, " ", ingredient)
+  # 
+  # this_combination_N_list <-  this_ingredient_pressure_list[grep("_N_", this_ingredient_pressure_list)]
+  # 
+  # these_N_rasters <- map(.x = this_combination_N_list, .f = \(this_file){
+  #   
+  #   this_rast <- rast(this_file)
+  #   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  #   
+  #   return(this_rast)
+  # })
+  # 
+  # this_N_df <- global(app(rast(these_N_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nitrogen", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  # 
+  # 
+  # #########Separate P files, read rasters into a list, stack all P layers
+  # 
+  # message("stacking P layers for...", source, " ", ingredient)
+  # 
+  # this_combination_P_list <-  this_ingredient_pressure_list[grep("_P_", this_ingredient_pressure_list)]
+  # 
+  # these_P_rasters <- map(.x = this_combination_P_list, .f = \(this_file){
+  #   
+  #   this_rast <- rast(this_file)
+  #   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+  #   
+  #   return(this_rast)
+  # })
+  # 
+  # this_P_df <- global(app(rast(these_P_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Phosphorus", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+  # 
   
   #########Separate disturbance files, read rasters into a list, stack all disturbance layers
   
@@ -406,7 +444,7 @@ for(source in sources){
   this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
   
   
-  this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_N_df, this_P_df, this_disturbance_df)
+  this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_nutrient_df, this_disturbance_df)
   
     
     
