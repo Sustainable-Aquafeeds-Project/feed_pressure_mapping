@@ -5,9 +5,6 @@ output: html_document
 
 Next step is convert crop ingredient demand into raw material demand which will vary by processing technique (e.g. SPC vs SBM) and source. So first, we need to know where the ingredients are largely sourced from. THis may change with information that we gain from Biomar but the idea is eventually to make this flexible enough to select any from the top producing countries. This requires knowing the raw material that supports the ingredient and the major places this raw material is grown.
 
-
-
-
 ```{r}
 library(tidyverse)
 library(here)
@@ -27,10 +24,9 @@ select <- dplyr::select
 values <- terra::values
 ```
 
-
 #CROP INGREDIENTS
 
-Have added codes and FAO_names for plant ingredients in teams so join these to production data. 
+Have added codes and FAO_names for plant ingredients in teams so join these to production data.
 
 ```{r}
 
@@ -82,8 +78,7 @@ saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-d
 
 ```
 
-
-Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors (yields) from ingredients to  each of these raw materials in different places and also the gross energy values of each ingredient and co-product so that energetic allocation and mass allocation conversion to embodied raw material can be achieved. This was done separately in the Sustainable Aquafeeds Project Teams interface and imported here. 
+Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors from ingredients to each of these raw materials in different places and also the gross energy values of each ingredient and co-product so that energetic allocation and mass allocation conversion to embodied raw material can be achieved. This was done separately in the Sustainable Aquafeeds Project Teams interface and imported here.
 
 ```{r}
 #import codes that will be compatible with MAPSPAM layers
@@ -143,7 +138,6 @@ write_csv(x = allocation_raw, file = here("data/tidy_data/allocation/crop_ingred
 
 ```
 
-
 Join the ingredient demand and allocation data to generate crop raw material demand
 
 ```{r}
@@ -173,8 +167,8 @@ saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/to
 
 ```
 
+Export the allocation factors to process for supplementary information
 
-Export the allocation factors to process for supplementary information 
 ```{r}
 
 allocation_factors <- read_csv(here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv"))
@@ -187,4 +181,5 @@ allocation_factors |> select(ingredient, item, iso3c, ge_allocation_factor, mass
 #clear the environment
 rm(list = ls(all.names = TRUE))
 ```
+
 
