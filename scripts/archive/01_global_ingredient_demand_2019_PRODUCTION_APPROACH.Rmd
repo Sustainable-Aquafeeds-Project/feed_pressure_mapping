@@ -47,8 +47,43 @@ aquaculture %>% filter(species == "Atlantic salmon" & year %in% c(1990, 2019)) |
     
     )
 
+
+ggplot(top_salmon_producers, aes(x = reorder(country, prop), y = prop))+
+  geom_col(fill = "firebrick4")+
+  theme_bw()+
+  theme(text = element_text(size = 8),
+        axis.title.y = element_blank())+
+  coord_flip()+
+  labs(y = "Prop. global salmon production")
+
+
+ggsave(filename = here("explore/salmon_producers.jpg"), dpi = 600, device = "jpeg", width= 10, height = 12, units = "cm")
+
 #Global production
 round(sum(top_salmon_producers$value), digits = 20)
+
+
+
+at_salmon_temporal <- 
+  aquaculture |> 
+  filter(species == "Atlantic salmon") |> 
+    group_by(year) |> 
+    summarise(value = sum(value, na.rm = TRUE)) |>  
+    arrange(year) |> filter(value>0) |> 
+  mutate(growth = (value-lag(value))/lag(value)*100)
+
+at_salmon_temporal |> filter(year >2009) |> pull(growth) |> mean()
+
+
+ggplot(data = at_salmon_temporal, aes(x = year, y = value/1000))+
+  geom_line(col = "dodgerblue4")+
+  theme_bw()+
+  labs(y = "Global Atlantic salmon production (1000s tonnes)")+
+  theme(text = element_text(size = 8))+
+  scale_y_continuous(labels = scales::comma)
+
+ggsave(filename = here("explore/salmon_production_through_time.jpg"), device = "jpeg", dpi = 600, width = 10, height = 7, units="cm")
+
 ```
 
 Import the feed conversion ratios and join to production. 

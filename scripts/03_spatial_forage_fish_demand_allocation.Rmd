@@ -71,6 +71,8 @@ forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.
 
 
 
+
+
 #plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
 forage_xyz <- forage_catch |> group_by(LonCentre, LatCentre) |> 
   summarise(total_catch = sum(total_catch)) |> 
