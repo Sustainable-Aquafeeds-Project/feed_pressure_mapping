@@ -3,10 +3,20 @@ title: "Tidying data"
 author: "Rich Cottrell"
 date: "15/02/2022"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
-This script takes the raw_data from databases and publications (much of which is stored in the rdsi storage at UTAS) and tidies it to be useable for this project. Spatial products are stored here("data/spatial"), some raw_data products which are not modified or summarised but format has been adjusted e.g. wide to long format are here("data/raw_data") and new (non-spatial) data products from this analysis are stored here("data/tidy_data"). There are exceptions, some data products such as the embodied forage fish demand per cell file are not pushed to Github because of their size (see .gitignore) but can be provided on request.
-
+This script takes the raw_data from databases and publications (much of
+which is stored in the rdsi storage at UTAS) and tidies it to be useable
+for this project. Spatial products are stored here("data/spatial"), some
+raw_data products which are not modified or summarised but format has
+been adjusted e.g. wide to long format are here("data/raw_data") and new
+(non-spatial) data products from this analysis are stored
+here("data/tidy_data"). There are exceptions, some data products such as
+the embodied forage fish demand per cell file are not pushed to Github
+because of their size (see .gitignore) but can be provided on request.
 
 ```{r}
 library(tidyverse)
@@ -28,8 +38,11 @@ select <- dplyr::select
 
 ```
 
+Create a base raster to be used throughout the project. Gall Peters
+projection is used for equal area analysis without the issues of
+'falling off the edge that mollweide has'. Can be reporjected for
+aesthetics at a later point.
 
-Create a base raster to be used throughout the project. Gall Peters projection is used for equal area analysis without the issues of 'falling off the edge that mollweide has'. Can be reporjected for aesthetics at a later point.
 ```{r}
 
 base_raster <- rast()
@@ -44,7 +57,6 @@ writeRaster(x = base_raster_ea, file = here("data/spatial/base_raster_gall_peter
 
 
 ```
-
 
 #AQUACULTURE DATA
 
@@ -106,8 +118,8 @@ saveRDS(object = aquaculture_prod, file = here("data", "tidy_data", "aquaculture
 
 ```
 
-
 Bring feed composition data into project
+
 ```{r}
 
 feed_composition <- read_csv(file.path(rdsi_raw_data_dir, "/feed/feed_composition_pressures.csv"))
@@ -118,10 +130,11 @@ write_csv(x = feed_composition, file = here("data/raw_data/feed_composition_pres
 
 ```
 
-#AGRICULTURE DATA
+# AGRICULTURE DATA
 
-
-This is the code to unzip and adjust the extents of the mapspam rasters (-180, 180, -90, 90) - DO NOT RUN IN PROJECT - here as a backup to scripts in the raw data files
+This is the code to unzip and adjust the extents of the mapspam rasters
+(-180, 180, -90, 90) - DO NOT RUN IN PROJECT - here as a backup to
+scripts in the raw data files
 
 ```{r}
 mapspam_zip_files <- list.files(path = mapspam_dir, pattern = "\\.zip$")
@@ -158,8 +171,10 @@ adjust_extent <- \(this_filename){
 parallel::mclapply(X = tifs, FUN = adjust_extent, mc.cores = detectCores()-2)
 ```
 
+This chunk of code brings in the crop production and yield rasters (only
+the production layers for all types) and reprojects to equal area
+projections for each crop)
 
-This chunk of code brings in the crop production and yield rasters (only the production layers for all types) and reprojects to equal area projections for each crop)
 ```{r}
 
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
@@ -251,15 +266,15 @@ map(.x = these_crop_area_files, .f = \(this_file){
 
 ```
 
+ Unzip FAOSTAT Production data
 
-
-#Unzip FAOSTAT Production data
 ```{r}
 unzip(list.files(path=file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"), pattern = "Production_Crops", full.names = TRUE), exdir = file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"))
 
 ```
 
-#Tidy FAOSTAT Production data
+Tidy FAOSTAT Production data
+
 ```{r}
 
 production_raw <- read_csv(file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022/Production_Crops_Livestock_E_All_Data_(Normalized).csv"))
@@ -293,7 +308,7 @@ map(.x = production_sector_list, .f = function(this_element){
 
 ```
 
-#Tidying crop LCA files to include as a single file
+ Tidying crop LCA files to include as a single file
 
 ```{r}
 
@@ -345,12 +360,11 @@ saveRDS(object = lca_all_crops, file = here("data/tidy_data/LCA/crop_lca.rds"))
 unique(lca_all_crops$FAOSTAT_name)
 ```
 
+# FISHERIES DATA
 
 
-#FISHERIES DATA 
-
-
-Pulling together the spatial industrial fisheries data and save to rdsi storage. 
+Pulling together the spatial industrial fisheries data and save to rdsi
+storage.
 
 ```{r}
 
@@ -413,7 +427,7 @@ fwrite(catch_joined, file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv
 
 ```
 
-#Filter FAO Species lists for forage fish spp
+Filter FAO Species lists for forage fish spp
 
 ```{r}
 fao_list <- read_csv(file.path(fao_dir, "species_lists/CL_FI_SPECIES_GROUPS.csv"))
@@ -425,12 +439,11 @@ forage_list <- fao_list |> filter(ISSCAAP_Group == "Herrings, sardines, anchovie
 write_csv(forage_list, here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv"))
 ```
 
+Pull in allocation data from Kok et al (economic allocation on forage fish) and synthesised data from Teams for gross energy and mass calculation.
 
-
-# Pull in allocation data from Kok et al (economic allocation on forage fish) and synthesised data from Teams for gross energy and mass calculation.
-
-Interesting paper by Ayer, Tyedmers et al on the benefits of gross energy allocation https://link.springer.com/content/pdf/10.1065/lca2006.11.284.pdf
-
+Interesting paper by Ayer, Tyedmers et al on the benefits of gross
+energy allocation
+<https://link.springer.com/content/pdf/10.1065/lca2006.11.284.pdf>
 
 ```{r}
 
@@ -448,11 +461,14 @@ write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_all
 
 ```
 
+Tidy embodied fish data from FMFO for different forage fish species
+from Kok et al 'Fish as feed: Using economic allocation to quantify the
+Fish In : Fish Out ratio of major fed aquaculture species' in
+Aquaculture.
 
-
-#Tidy embodied fish data from FMFO for different forage fish species from Kok et al 'Fish as feed: Using economic allocation to quantify the Fish In : Fish Out ratio of major fed aquaculture species' in Aquaculture. 
-
-Data source: https://www.sciencedirect.com/science/article/pii/S0044848620309741 Appendix A Supplementary Data
+Data source:
+<https://www.sciencedirect.com/science/article/pii/S0044848620309741>
+Appendix A Supplementary Data
 
 ```{r}
 kok_etal_data <- read_csv(here("data/raw_data/fisheries/embodied_fish_kok_et_al.csv")) |> 
@@ -493,11 +509,12 @@ write_csv(allocation_raw, file = here("data/raw_data/allocation/embodied_fish_al
 
 ```
 
+Filter Watson spatialised catch data for forage fish species so it can
+be stored in the project.
 
-
-#Filter Watson spatialised catch data for forage fish species so it can be stored in the project. 
-
-Data source: Watson v5.0 provided by request. v4.0 is publicly available through IMAS Research Data Portal https://metadata.imas.utas.edu.au/geonetwork/srv/eng/catalog.search#/metadata/5c4590d3-a45a-4d37-bf8b-ecd145cb356d
+Data source: Watson v5.0 provided by request. v4.0 is publicly available
+through IMAS Research Data Portal
+<https://metadata.imas.utas.edu.au/geonetwork/srv/eng/catalog.search#/metadata/5c4590d3-a45a-4d37-bf8b-ecd145cb356d>
 
 ```{r}
 
@@ -540,12 +557,37 @@ saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_
 
 ```
 
-#Tidy Global fishing watch data.
+## Fisheries data for trimmings
 
-Data source: https://globalfishingwatch.org/data-download/datasets/public-fishing-effort
-Files: fleet-daily-csvs-100-v2-2017.zip, fish-vessels-v2.csv, README-fleet-v2.txt
+```{r}
+
+fisheries_catch <- readRDS("data/input/watson_w_codes.rds") |> as_tibble()
+
+trimmings_spp <- read_csv("/mnt/rdsi/raw_data/biomar/trimmings_spp_list.csv") |> filter(common_name != "Antarctic krill")
+
+trimmings_spp_catch <- 
+  fisheries_catch |> 
+  filter(CommonName %in% trimmings_spp$common_name | TaxonName %in% trimmings_spp$scientific_name | grepl("Sardinella", CommonName) | grepl("Sardinella", TaxonName)| grepl("Engraulis", TaxonName)|  grepl("nchovy", CommonName) | CommonName %in% c( "Anchoveta", "Anchovies") | CommonName == "Alaska pollack" | CommonName == "Blue whiting" | grepl("Sprat|sprat", CommonName))
+
+trimmings_spp_catch |> pull(CommonName) |> unique()
+
+saveRDS(trimmings_spp_catch, file = "data/input/trimmings_spp_catch.rds")
+
+```
+
+
+
+## Fishing effort
+
+Tidy Global fishing watch data.
+
+Data source:
+<https://globalfishingwatch.org/data-download/datasets/public-fishing-effort>
+Files: fleet-daily-csvs-100-v2-2017.zip, fish-vessels-v2.csv,
+README-fleet-v2.txt
 
 First we can summarise the efort hours per day and bind it together.
+
 ```{r}
 
 daily_effort_files <- list.files(file.path(gfw_dir, "fleet-daily-csvs-100-v2-2017"), pattern = ".csv", full.names = TRUE)
@@ -590,35 +632,36 @@ fwrite(x = effort_by_gearcell2017, file = here("data/tidy_data/pressures/fishing
 
 ```
 
-Explore the GFW data for gear types partitioning across gears and output effort rasters for destructive methods for the benthos.
+Explore the GFW data for gear types partitioning across gears and output
+effort rasters for destructive methods for the benthos.
 
-From Mel's script in the OHI_Science/food_systems folder the following gear types are used:
+From Mel's script in the OHI_Science/food_systems folder the following
+gear types are used:
 
-Geartypes:
-- fishing: a combination of vessels of unknown fishing gear
- - drifting_longlines: drifting longlines
- - seiners: vessels using seine nets, including potential purse seine vessels
-   targeting tuna and other species, as well as danish and other seines
-     - purse_seines: purse seines, both pelagic and demersal
-        - tuna_purse_seines: large purse seines primarily fishing for tuna.
-        - other_purse_seines: purse seiners fishing for mackerel, anchovies, etc, often smaller and operating nearer the coast than tuna purse seines.
-    - other_seines: danish seines and other seiners not using purse seines.
- - trawlers: trawlers, all types
- - pole_and_line: vessel from which people fish with pole and line.
- - trollers: vessel that tows multiple fishing lines.
- - fixed_gear: a category that includes potential set longlines, set gillnets,  and pots and traps
-     - pots_and_traps: vessel that deploys pots (small, portable traps) or traps to
-       catch fish
-     - set_longlines: vessel that fishes by setting longlines anchored to the
-       seafloor. These lines have shorter hooked, typically baited, lines hanging
-       from them
-     - set_gillnets: vessel that fishes by setting gillnets anchored to the seafloor.
- - dredge_fishing: vessel that tows a dredge the scrapes up edible bottom
-   dwellers such as scallops or oysters.
- - squid_jigger: squid jiggers, mostly large industrial pelagic operating vessels
+Geartypes: - fishing: a combination of vessels of unknown fishing gear -
+drifting_longlines: drifting longlines - seiners: vessels using seine
+nets, including potential purse seine vessels targeting tuna and other
+species, as well as danish and other seines - purse_seines: purse
+seines, both pelagic and demersal - tuna_purse_seines: large purse
+seines primarily fishing for tuna. - other_purse_seines: purse seiners
+fishing for mackerel, anchovies, etc, often smaller and operating nearer
+the coast than tuna purse seines. - other_seines: danish seines and
+other seiners not using purse seines. - trawlers: trawlers, all types -
+pole_and_line: vessel from which people fish with pole and line. -
+trollers: vessel that tows multiple fishing lines. - fixed_gear: a
+category that includes potential set longlines, set gillnets, and pots
+and traps - pots_and_traps: vessel that deploys pots (small, portable
+traps) or traps to catch fish - set_longlines: vessel that fishes by
+setting longlines anchored to the seafloor. These lines have shorter
+hooked, typically baited, lines hanging from them - set_gillnets: vessel
+that fishes by setting gillnets anchored to the seafloor. -
+dredge_fishing: vessel that tows a dredge the scrapes up edible bottom
+dwellers such as scallops or oysters. - squid_jigger: squid jiggers,
+mostly large industrial pelagic operating vessels
 
-
-The influence of unknown fishing gears ('fishing' above) was addressed in Halpern et al as a small source of uncertainty. See issue here https://github.com/OHI-Science/global_food_issues/issues/303
+The influence of unknown fishing gears ('fishing' above) was addressed
+in Halpern et al as a small source of uncertainty. See issue here
+<https://github.com/OHI-Science/global_food_issues/issues/303>
 
 ```{r}
 
@@ -692,7 +735,6 @@ plot(log10(dredge_effort_r+1))
 
 # Bring in rob parker data from rdsi storage in raw_data
 
-
 ```{r}
 #importing the join data from downloaded data in RDSI storage
 parker_gear_join <- read_csv(file.path(food_systems_data_dir, "parker_gear_join.csv"))
@@ -721,12 +763,14 @@ write_csv(x= ei_data, file = here("data/raw_data/fisheries/all_catch_emissions_2
 
 ```
 
-
 #Import the global net primary productivity data
 
-The NPP data was taken from the Cumulative Human Impacts Project at NCEAS. Downloaded from the aurora server. 
+The NPP data was taken from the Cumulative Human Impacts Project at
+NCEAS. Downloaded from the aurora server.
 
-The raster has been gapfilled to make all the NA values mean porductivity values
+The raster has been gapfilled to make all the NA values mean
+porductivity values
+
 ```{r}
 
 npp_r <- rast(file.path(rdsi_raw_data_dir, "food-systems-project/annal_mean_npp_2015_gf_wgs.tif"))
@@ -735,5 +779,3 @@ writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/
 
 
 ```
-
-
