@@ -749,7 +749,7 @@ write_csv(parker_gear_join, file = here("data/raw_data/fisheries/parker_gear_joi
 
 #Bring emissions intensity data from Parker et al 2018 stored in RDSI and save to project
 ei_data <- 
-  fread(file.path(food_systems_data_dir, "all_catch_emissions_2017.csv")) |> 
+  fread(file.path(food_systems_data_dir, "`all_catch_emissions_2017.csv`")) |> 
   lazy_dt(immutable = FALSE) |> 
   select(Taxonkey, Descript, species_class_int, species_class_fin, ParkerGearName = gear_type, ei_kgco2_kgcatch) |> 
   distinct() |> 
@@ -777,5 +777,53 @@ npp_r <- rast(file.path(rdsi_raw_data_dir, "food-systems-project/annal_mean_npp_
 plot(npp_r)
 writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/annal_mean_npp_2015_gf_wgs.tif"))
 
+
+```
+
+Bring in species for sourcing FMFO trimmings
+
+```{r}
+
+fisheries_catch <- readRDS(here("data/large_data/watson_w_codes.rds")) |> as_tibble()
+#RDSI version
+#trimmings_spp <- read_csv("/mnt/rdsi/raw_data/biomar/trimmings_spp_list.csv") |> filter(common_name != "Antarctic krill")
+#OneDrive version
+trimmings_spp <- read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/biomar/trimmings_spp_list.csv") |> filter(common_name != "Antarctic krill")
+
+
+trimmings_spp_catch <- 
+  fisheries_catch |> 
+  filter(CommonName %in% trimmings_spp$common_name | TaxonName %in% trimmings_spp$scientific_name | grepl("Sardinella", CommonName) | grepl("Sardinella", TaxonName)| grepl("Engraulis", TaxonName)|  grepl("nchovy", CommonName) | CommonName %in% c( "Anchoveta", "Anchovies") | CommonName == "Alaska pollack" | CommonName == "Blue whiting" | grepl("Sprat|sprat", CommonName) |grepl("enhaden", CommonName))
+
+trimmings_spp_catch |> pull(CommonName) |> unique()
+
+saveRDS(trimmings_spp_catch, file = here("data/large_data/trimmings_spp_catch.rds"))
+
+```
+
+
+Import the raw trimmings conversion file and tidy, separating CommonName and scientific name
+
+```{r}
+
+trimmings_conversions <- 
+   read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/allocation/trimmings_allocation.csv") |> 
+  #read_csv("/mnt/rdsi/raw_data/allocation/trimmings_allocation.csv") |> 
+  rename(CommonName = species) |> 
+  mutate(TaxonName = gsub(".*(?:\\((.*)\\)).*|.*", "\\1",  str_extract(CommonName, "\\(([^()]*)\\)"))) |> 
+  relocate(TaxonName, .before = fishmeal_yield) |> 
+  mutate(CommonName = gsub("\\s*\\([^\\)]+\\)", "", CommonName)) |> 
+  mutate(group = case_when(grepl("sprat", CommonName) ~ "Sprats",
+                           grepl("anchovy|anchoita|Anchovies|anchoveta", CommonName) ~ "Anchovies",
+                           grepl("Tuna|tuna|Albacore", CommonName) ~ "Tunas",
+                           grepl("cod|pollack", CommonName) ~ "Cods",
+                            grepl("sardinella|Sardinella|sardine", CommonName) ~ "Sardines",
+                           grepl("mackerel", CommonName) ~ "Mackerels",
+                           grepl("herring", CommonName) ~ "Herrings",
+                           grepl("menhaden", CommonName) ~ "Menhaden",
+                           grepl("Capelin", CommonName) ~ "Capelin",
+                           grepl("Blue whiting", CommonName) ~ "Blue whiting"))
+
+saveRDS(trimmings_conversions, here("data/tidy_data/allocation/trimmings_conversion_factors.csv"))
 
 ```

@@ -31,12 +31,11 @@ Now we need to work out how the ingredient demand converts to forage fish biomas
 ```{r}
 #bring in total ingredient demand data and isolate fishmeal and oil demand
 
-total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
+total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
 
 fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 
 rm(total_ingredient_demand)
-
 
 (embodied_fish_ratios <- read_csv(here("data/raw_data/allocation/embodied_fish_allocation_tidy.csv")) |> 
   filter(common_name != "Gross energy") |> 
@@ -57,9 +56,73 @@ globalav_embodiedfish_fm_ge <- embodied_fish_ratios |> filter(common_name == "Gl
 
 globalav_embodiedfish_fo_mass <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(mass_value)
 globalav_embodiedfish_fo_ge <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(ge_value)
+```
+
+Isolate catch for trimmings first
+```{r}
+
+trimmings_spp_catch <- readRDS(here("data/large_data/trimmings_spp_catch.rds")) |> filter(IYear == 2017)
+
+trimmings_xyz <- trimmings_spp_catch |> group_by(LonCentre, LatCentre) |> 
+  summarise(total_catch = sum(ReportedIND)) |> 
+  #select(LonCentre, LatCentre, total_catch) |> 
+  rename(x=LonCentre, y= LatCentre, z = total_catch) 
 
 
-forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName)) |> filter(total_ind >0)
+total_trimmings_raster <- rast(trimmings_xyz, type="xyz")
+
+plot(total_trimmings_raster)
+
+
+#FAO areas of most prominence from Biomar sustainability report 2022 for both wild caught and trimmings https://www.biomar.com/globalassets/.global/sustainability-report/biomar-global-sustainability-report-2022.pdf
+
+#bring in the FAO regions shape file
+
+fao_areas_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+  mutate(F_AREA = as.numeric(F_AREA)) |> 
+  group_by(F_AREA) |> 
+  group_split()
+
+this_area <- fao_areas_shp[[1]]
+
+#get xyz file for the FAO areas in 0.5 resolution (catch data resolution)
+
+fao_xyz <- 
+  
+  map_df(.x = fao_areas_shp, .f = \(this_area){
+  
+  this_area_shp <- this_area
+  
+  this_area_raster <- terra::rasterize(x = vect(this_area_shp), y = rast(res = 0.5), field = this_area_shp$F_AREA)
+  
+  this_area_xyz <- terra::as.data.frame(x = this_area_raster, xy = TRUE)  |> mutate(fao_area_name = this_area_shp$NAME_EN)
+  
+  return(this_area_xyz)
+  
+}) |> rename(fao_area_code = layer,
+             LonCentre = x,
+             LatCentre = y)
+
+
+
+#join catch and fao xyz to identify the catch for species used in trimmings across FAO regions
+
+trimmings_spp_fao_area <- 
+  trimmings_spp_catch |> 
+  left_join(fao_xyz) |> 
+  group_by(fao_area_name, fao_area_code) |> 
+  summarise(trim_spp_catch = sum(ReportedIND, na.rm=TRUE)) |> 
+  ungroup() |> 
+  arrange(-trim_spp_catch) |> 
+  mutate(prop_trimmings = trim_spp_catch/sum(trim_spp_catch, na.rm=TRUE))
+
+
+```
+
+
+
+```{r}
+forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(total_ind >0)
 
 (forage_catch_summary <- forage_catch |> 
   group_by(TaxonName, CommonName) |> 
@@ -87,14 +150,20 @@ sum(values(total_forage_raster), na.rm = TRUE)
 
 #CROP THE FISHING REGIONS BY FAO AREA
 
-fao_areas <- c(77, 67, 87, 21, 31, 41, 27, 37, 34, 47, 51,57, 61, 71, 81) #these fao areas broadly correspond with the area of most interest above
-
-#read in the fao area shapefiles from the FAO json
-FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+fao_areas_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
   mutate(F_AREA = as.numeric(F_AREA)) |> 
-  mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
-                                 NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
-                                                      TRUE ~ "OTH"))
+  group_by(F_AREA) |> 
+  group_split()
+
+#OLD approach 
+# fao_areas <- c(77, 67, 87, 21, 31, 41, 27, 37, 34, 47, 51,57, 61, 71, 81) #these fao areas broadly correspond with the area of most interest above
+# 
+# #read in the fao area shapefiles from the FAO json
+# FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+#   mutate(F_AREA = as.numeric(F_AREA)) 
+# |> mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
+#                                  NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+#                                                       TRUE ~ "OTH"))
 
 #check FAO shapefile appears correctly
 ggplot()+
@@ -102,21 +171,28 @@ ggplot()+
           aes(fill = F_AREA))
 
 
-#get the xyz file for each fao region sand create one data frame to join to the forage catch data by coordinates
+this_area <- fao_areas_shp[[1]]
 
-fao_xyz_of_interest <- 
+#get xyz file for the FAO areas in 0.5 resolution (catch data resolution)
+
+fao_xyz <- 
   
-  map_df(.x = fao_areas, .f = \(this_area){
+  map_df(.x = fao_areas_shp, .f = \(this_area){
   
-  this_area_shp <- FAO_regions_shp |> filter(F_AREA == this_area)
+  this_area_shp <- this_area
   
-  this_area_raster <- terra::rasterize(x = vect(this_area_shp), y = total_forage_raster, field = this_area_shp$F_AREA)
+  this_area_raster <- terra::rasterize(x = vect(this_area_shp), y = rast(res = 0.5), field = this_area_shp$F_AREA)
   
-  this_area_xyz <- terra::as.data.frame(x = this_area_raster, xy = TRUE)  |> mutate(area_name = this_area_shp$NAME_EN)
+  this_area_xyz <- terra::as.data.frame(x = this_area_raster, xy = TRUE)  |> mutate(fao_area_name = this_area_shp$NAME_EN)
   
   return(this_area_xyz)
   
-})
+}) |> rename(fao_area_code = layer,
+             LonCentre = x,
+             LatCentre = y)
+
+
+
 
 #check the regions
 fao_areas_of_interest <- unique(fao_xyz_of_interest$area_name)

@@ -138,7 +138,6 @@ map_df(diet_files, readRDS) |>
   saveRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
 
 
-
 ```
 
 
