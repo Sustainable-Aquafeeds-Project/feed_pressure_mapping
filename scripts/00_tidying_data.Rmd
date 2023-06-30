@@ -488,21 +488,13 @@ kok_etal_data <- read_csv(here("data/raw_data/fisheries/embodied_fish_kok_et_al.
 write_csv(kok_etal_data, file = here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv"))
 
 # now tidy gross energy and mass allocation data synthesised for this project.
-allocation_raw <- read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_allocation.csv") |> 
-  select(species, ecosystem, fishmeal_yield, fish_oil_yield, ingredient, ge_part, ge_value, mass_part, mass_value) |> 
-  mutate(species = substring(species, 1, nchar(species)-1)) |> 
-  mutate(common_name = case_when(grepl("Sandeels|Capelin|Boarfish", species) ~ word(species, start = 1, end = 1),
-                                 grepl("South American pilchard", species) ~ word(species, start = 1, end = 3),
-                                 TRUE ~ word(species, start = 1, end = 2))) |> 
-  mutate(common_name = case_when(grepl("bnchovy", common_name)~ "Peruvian anchovy",
-                                TRUE ~ common_name)) |> 
-  mutate(sci_name = c(rep(NA, times = 2), unlist(str_extract_all(species,  "(?<=\\().+?(?=\\))")), rep(NA, times = 2))) |> 
-  mutate(sci_name = case_when(sci_name == "C. harengus" ~ "Clupea harengus",
-                              sci_name == "M. villosus" ~ "Mallotus villosus",
-                              TRUE~sci_name)) |> 
-  select(-species) |> 
-  relocate(c(common_name, sci_name), .before = ecosystem)
-  
+allocation_raw <- 
+  #rdsi
+  #read_csv("/mnt/rdsi/raw_data/allocation/embodied_fish_allocation.csv") |> 
+  #onedrive
+  read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/allocation/embodied_fish_allocation.csv") |> 
+  select(CommonName, sci_name, fishmeal_yield, fish_oil_yield, ingredient, ge_fmfo, ge_part, ge_value, mass_part, mass_value) 
+
 
 write_csv(allocation_raw, file = here("data/raw_data/allocation/embodied_fish_allocation_tidy.csv"))
 
@@ -520,38 +512,43 @@ through IMAS Research Data Portal
 
 #THE V5 DATA
 
-catch <- fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv"))
+catch <- 
+ # fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv")) # 
+  fread("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/watson_2015/v5.0/watson_2017_fisheries_catch.csv")
 
- #145 unique species and species groups in the FAO data
-forage_spp_fao <- read_csv(here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv")) |> select(Name_en, Scientific_Name) |> distinct() |> rename(common_name = Name_en, sci_name = Scientific_Name) 
 
-#bring in species highlighted in the SI of Froehlich et al 2018 Avoiding the ecological limits of forage fish. Nature Sustainability.
-froehlich_spp <- read_csv("/mnt/rdsi/raw_data/froehlich/forage_fish_spp.csv")
+# 
+#  #145 unique species and species groups in the FAO data
+# forage_spp_fao <- read_csv(here("data/raw_data/fisheries/fao_forage_fish_spp_list.csv")) |> select(Name_en, Scientific_Name) |> distinct() |> rename(common_name = Name_en, sci_name = Scientific_Name) 
+# 
+# #bring in species highlighted in the SI of Froehlich et al 2018 Avoiding the ecological limits of forage fish. Nature Sustainability.
+froehlich_spp <-
+  #RDSI
+ # read_csv("/mnt/rdsi/raw_data/froehlich/forage_fish_spp.csv")
+# One Drive
+  read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/froehlich/forage_fish_spp.csv")
 
 froehlich_binomials <- froehlich_spp |> filter(resolution == "binomial") |> mutate(common_name = NA) |> select(common_name, sci_name)
-
-
-#13 species in Kok et al - some not in the FAO data
-forage_spp_koketal <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  select(common_name, sci_name) |> distinct()
-#forage_spp_koketal_common <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  pull(common_name) |> unique()
+# 
+# 
+# #13 species in Kok et al - some not in the FAO data
+ forage_spp_koketal <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  select(common_name, sci_name) |> distinct()
+forage_spp_koketal_common <- read_csv(here("data/raw_data/fisheries/embodied_fish_ratio_tidy.csv")) |> drop_na() |>  pull(common_name) |> unique()
 
 #bind the two sources and save - 155 species considered in total
-forage_spp_list <- bind_rows(forage_spp_fao, froehlich_binomials ,forage_spp_koketal) |> distinct()
+forage_spp_list <- bind_rows(froehlich_binomials ,forage_spp_koketal) |>  distinct()
 write_csv(forage_spp_list, here("data/raw_data/fisheries/forage_fish_list_final.csv"))
 
-forage_catch <- catch |> 
-  lazy_dt(immutable = FALSE) |> 
-  filter(TaxonName %in% forage_spp_list$sci_name | CommonName %in% forage_spp_list$common_name ) |> 
-  mutate(total_catch = ReportedIND+IUUIND+ReportedNIND+IUUNIND, total_ind = ReportedIND+IUUIND, total_nind =ReportedNIND+IUUNIND) |>
+forage_catch <- catch |>
+  filter(foragefish == 1 | TaxonName %in% forage_spp_list$sci_name  | CommonName %in% forage_spp_list$common_name) |> 
   as_tibble()
 
-#23 million tonnes, represented by 46 species across industrial and non industrial sources
-sum(forage_catch$total_catch)
-sum(forage_catch$total_ind) #23.1 mill is from industrial
-sum(forage_catch$total_nind) #1.3 mill is from non-industrial
-unique(forage_catch$TaxonName) 
+#27 million tonnes, represented by 79 species across industrial and non industrial sources
+sum(forage_catch$ReportedIND) #26.5 millions tonnes from industrial
+sum(forage_catch$ReportedNIND) #428154 is from industrial
+unique(forage_catch$TaxonName) # 79 species
 
-tibble(Common_name = unique(forage_catch$CommonName), Species_binomial = unique(forage_catch$TaxonName) )
+tibble(Common_name = unique(forage_catch$CommonName), Species_binomial = unique(forage_catch$TaxonName))
 
 saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2017.rds"))
 
