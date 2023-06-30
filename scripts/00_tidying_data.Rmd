@@ -550,7 +550,7 @@ unique(forage_catch$TaxonName) # 79 species
 
 tibble(Common_name = unique(forage_catch$CommonName), Species_binomial = unique(forage_catch$TaxonName))
 
-saveRDS(forage_catch, file = here("data/raw_data/fisheries/spatial_forage_catch_2017.rds"))
+saveRDS(forage_catch, file = here("data/large_data/spatial_forage_catch_2017.rds"))
 
 ```
 

@@ -128,15 +128,7 @@ trimmings_spp_fao_area <-
 
 
 ```{r}
-forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(ReportedIND >0)
-
-(forage_catch_summary <- forage_catch |> 
-  group_by(TaxonName, CommonName) |> 
-  summarise(total_catch = sum(ReportedIND, na.rm=TRUE)) |> 
-  arrange(-total_catch) |> 
-  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf_mass = mass_value, fishmeal_cf_ge = ge_value), by = c("TaxonName" = "sci_name")) |> 
-    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |> rename(fish_oil_cf_mass = mass_value, fish_oil_cf_ge = ge_value), by = c("TaxonName" = "sci_name", "common_name"))
-)
+forage_catch <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds")) |> filter(ReportedIND >0)
 
 
 #plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
@@ -164,6 +156,7 @@ forage_spp_fao_area <-
   ungroup() |> 
   arrange(-forage_spp_catch) |> 
   mutate(prop_forage_catch = forage_spp_catch/sum(forage_spp_catch, na.rm=TRUE))
+
 ```
 
 
@@ -451,8 +444,8 @@ forage_catch |>
                                         filter(sci_name == "Engraulis ringens" & ingredient == "Fish oil") |> pull(mass_value),
                                       is.na(mass_value) & TaxonName == "Scomber japonicus" & ingredient == "Fishmeal" ~ 2.61,
                                       is.na(mass_value) & TaxonName == "Scomber japonicus" & ingredient == "Fish oil" ~ 2.61,
-                                      is.na(mass_value) & ingredient == "Fishmeal" ~ globalav_embodiedfish_fm_mass,
-                                      is.na(mass_value) & ingredient == "Fish oil" ~ globalav_embodiedfish_fo_mass,
+                                      is.na(mass_value) & ingredient == "Fishmeal" ~ globalav_foragefish_fm_mass,
+                                      is.na(mass_value) & ingredient == "Fish oil" ~ globalav_foragefish_fo_mass,
                                       TRUE ~ mass_value),
          #now for energetic allocation
          ge_value = case_when( is.na(ge_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fishmeal" ~ 1.66,
@@ -463,8 +456,8 @@ forage_catch |>
                                         filter(sci_name == "Engraulis ringens" & ingredient == "Fish oil") |> pull(ge_value),
                                       is.na(ge_value) & TaxonName == "Scomber japonicus" & ingredient == "Fishmeal" ~ 1.78,
                                       is.na(ge_value) & TaxonName == "Scomber japonicus" & ingredient == "Fish oil" ~ 3.49,
-                                      is.na(ge_value) & ingredient == "Fishmeal" ~ globalav_embodiedfish_fm_ge,
-                                      is.na(ge_value) & ingredient == "Fish oil" ~ globalav_embodiedfish_fo_ge,
+                                      is.na(ge_value) & ingredient == "Fishmeal" ~ globalav_foragefish_fm_ge,
+                                      is.na(ge_value) & ingredient == "Fish oil" ~ globalav_foragefish_fo_ge,
                                       TRUE ~ ge_value)) |> 
   # add the proportion of demand coming from forage fish from different FAO fishing areas
    left_join(fish_sourcing_areas |> select(fao_area_name, fao_area_code, min_fm_forage_prop, min_fo_forage_prop)) |>
@@ -493,14 +486,10 @@ fwrite(x = forage_fmfo_yield, file =  here("data/large_data/embodied_fmfo_potent
 ```
 
 
-
-
+Find out how much fishmeal and oil is available globally from the species used in trimmings and using forage fish and distribute the demand for fmfo across cellsm, and convert back to embodied fish for calculations.
 
 
 ```{r}
-  
-
-#Find out how much fishmeal and oil is available globally from trimmings and forage
  
 
 #forage
@@ -517,53 +506,52 @@ fwrite(x = forage_fmfo_yield, file =  here("data/large_data/embodied_fmfo_potent
 (total_fm_available_ge_trim <- trim_fmfo_yield$yield_ge_fishmeal |> sum())
 (total_fo_available_ge_trim <- trim_fmfo_yield$yield_ge_fish_oil |> sum())
 
-
-
+#Forage fish 
 
 #use the proportions for each region to divide the demand up and work out how the spp_based demand converts to embodied fish
 
 forage_supply_demand_by_diet <- 
   map_df(.x =  c("marine_diet", "plant_diet"), .f = \(this_diet){
     
-    this_df <- forage_catch_w_prop_fmfo_supply |> 
+    this_df <- forage_fmfo_yield |> 
       mutate(diet = this_diet,
              #extract total fmfo demand for each diet
-             total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
-             total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand),
+             total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal") |> pull(ingredient_demand_tonnes),
+             total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil") |> pull(ingredient_demand_tonnes),
              #distribute fishmeal and oil demand according to its distribution
-             applied_fm_demand_ge = total_fm_needed_for_diet * prop_available_fm_ge,
-             applied_fo_demand_ge = total_fo_needed_for_diet * prop_available_fo_ge,
-             applied_fm_demand_mass = total_fm_needed_for_diet * prop_available_fm_mass,
-             applied_fo_demand_mass = total_fo_needed_for_diet * prop_available_fo_mass,
+             distributed_fm_demand_mass = total_fm_needed_for_diet * prop_fm_mass,
+             distributed_fo_demand_mass = total_fo_needed_for_diet * prop_fo_mass,
+             distributed_fm_demand_ge = total_fm_needed_for_diet * prop_fm_ge,
+             distributed_fo_demand_ge = total_fo_needed_for_diet * prop_fo_ge,
+            
              #calculate embodied demand
-             fm_embodied_fish_ge = applied_fm_demand_ge * fishmeal_cf_ge,
-             fo_embodied_fish_ge = applied_fo_demand_ge * fish_oil_cf_ge,
-             fm_embodied_fish_mass = applied_fm_demand_mass * fishmeal_cf_mass,
-             fo_embodied_fish_mass = applied_fo_demand_mass * fish_oil_cf_mass,
-             total_fmfo_demand_ge = applied_fm_demand_ge + applied_fo_demand_ge,
-             total_fmfo_demand_mass = applied_fm_demand_mass + applied_fo_demand_mass,
+             #calculated the embodied fish from fm and fo
+             fm_embodied_fish_mass = distributed_fm_demand_mass * mass_value_fishmeal,
+             fo_embodied_fish_mass = distributed_fo_demand_mass * mass_value_fish_oil,
+             fm_embodied_fish_ge = distributed_fm_demand_ge * ge_value_fishmeal,
+             fo_embodied_fish_ge = distributed_fo_demand_ge * ge_value_fish_oil,
+             #calculate the total fmfo demand
+             total_fmfo_demand_mass = distributed_fm_demand_mass + distributed_fo_demand_mass,
+             total_fmfo_demand_ge = distributed_fm_demand_ge + distributed_fo_demand_ge,
+             #calculate the total embodied fish
              total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge,
              total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass
              ) |> 
-      mutate(demand_vs_supply_mass = total_embodied_fish_mass/total_ind) |>
-      mutate(demand_vs_supply_ge = total_embodied_fish_ge/total_ind) |>
-      relocate(diet, .before = source_code)
+      relocate(diet, .before = fao_area_code)
     
   })
 
-
-
-fwrite(forage_supply_demand_by_diet, file = here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
+fwrite(forage_supply_demand_by_diet, file = here("data/large_data/embodied_foragefish_per_cell.csv"))
 
 
 #Create a total embodied fish demand by diet and source
 embodied_fish_demand_by_diet_source <- 
   forage_supply_demand_by_diet |> 
-  group_split(diet, source_code) |> 
+  group_split(diet, fao_area_code) |> 
   map_df(\(this_df){
     
     return(tibble(diet = unique(this_df$diet), 
-                  source_code = unique(this_df$source_code), 
+                  fao_area_code = unique(this_df$fao_area_code), 
                   embodied_fish_demand_from_fm_ge = sum(this_df$fm_embodied_fish_ge),
                   embodied_fish_demand_from_fo_ge = sum(this_df$fo_embodied_fish_ge),
                   embodied_fish_demand_from_fm_mass = sum(this_df$fm_embodied_fish_mass),
@@ -572,41 +560,20 @@ embodied_fish_demand_by_diet_source <-
                   embodied_fish_demand_mass = sum(this_df$total_embodied_fish_mass)))
     
   }) |> 
-  pivot_longer(cols = -c(diet, source_code), names_to = "demand_from", values_to = "embodied_fish" ) |> 
+  pivot_longer(cols = -c(diet, fao_area_code), names_to = "demand_from", values_to = "embodied_foragefish" ) |> 
   mutate(allocation = case_when(grepl("_ge", demand_from) ~ "Energetic allocation",
                                 TRUE ~ "Mass allocation"
                                 )) |> 
   mutate(demand_from = case_when(grepl("from_fm", demand_from) ~ "Fishmeal",
                                  grepl("from_fo", demand_from) ~ "Fish oil",
-                                 TRUE ~ "Total")) |> arrange(diet, source_code, allocation)
+                                 TRUE ~ "Total")) |> arrange(diet, fao_area_code, allocation)
 
 
 
 saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
 
-source_production_potential
-embodied_fish_demand_by_diet_source
-
-
 
 
 
 ```
-
-
-Now do some checks on if demand and supply match up per record i.e. by per cell-species-gear combinations. 
-
-```{r}
-#check the demand vs supply match up - are there cells where supply is outstripped by demand? 
-forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1)  #in no cell is demand higher than the supply
-
-
-
-
-#clear the environment
-rm(list = ls(all.names = TRUE))
-
-```
-
-
 
