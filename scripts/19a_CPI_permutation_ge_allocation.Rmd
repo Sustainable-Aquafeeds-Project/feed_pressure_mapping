@@ -16,7 +16,7 @@ library(terra)
 library(rnaturalearth)
 #library(rnaturalearthdata)
 library(RColorBrewer)
-library(gameofthrones)
+#library(gameofthrones)
 library(parallel)
 library(ggdist)
 library(data.table)
@@ -36,8 +36,8 @@ discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick
 continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
 final_palette <- c(light_gray, continuous_pal, red)
 
-#source files
-source(here("src/fxns.R"))
+#source files - not sure why this isn't working
+#source(here("src/fxns.R"))
 
 #spatial products
 moll_crs <- "ESRI:53009"
@@ -75,6 +75,7 @@ marine_source_ingredient <-
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
                                            TRUE ~ .)) |> 
   group_split(row)
+
 sources <- bind_rows(marine_source_ingredient) |> select(-c("ingredient", "row")) |>  names()   
 marine_source_file_list <- list()
 this_df <- marine_source_ingredient[[1]]

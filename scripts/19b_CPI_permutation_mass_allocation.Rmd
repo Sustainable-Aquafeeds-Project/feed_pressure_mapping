@@ -16,7 +16,7 @@ library(terra)
 library(rnaturalearth)
 #library(rnaturalearthdata)
 library(RColorBrewer)
-library(gameofthrones)
+#library(gameofthrones)
 library(parallel)
 library(ggdist)
 library(data.table)
@@ -747,108 +747,39 @@ Visualise the pressure disaggregation
 
 ```{r}
 marine_plant_pressure_disagg_df <- 
-  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds")) |> 
-  group_by(diet, source) |> 
-  nest() |> 
-  mutate(total = map(data, ~(sum(.$sum)))) |> 
-  unnest(c(data, total)) |> 
-  mutate(prop = sum/total)
+  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds")) #|> 
+  # group_by(diet, source) |> 
+  # nest() |> 
+  # mutate(total = map(data, ~(sum(.$sum)))) |> 
+  # unnest(c(data, total)) |> 
+  # mutate(prop = sum/total)
 
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
 
-
-
-#USE THIS DATA FRAME IF YOU WANT PROPORTIONAL COMPARISONS
-
-# summarised_pressure_disagg_df <- 
-#   marine_plant_pressure_disagg_df |> 
-#   group_by(diet, pressure) |> 
-#   summarise(mean = mean(prop, na.rm=TRUE),
-#             sd = sd(prop, na.rm=TRUE),
-#             median = median(prop, na.rm = TRUE),
-#             lq = quantile(prop, 0.25),
-#             uq = quantile(prop, 0.75)) |> 
-#   mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed"))
-
-#USE THIS DATA FRAME IF YOU WANT ABSOLUTE COMPARISONS
-
-summarised_pressure_disagg_df <- 
-  marine_plant_pressure_disagg_df |> 
-  group_by(diet, pressure) |> 
-  summarise(mean = mean(sum, na.rm=TRUE),
-            sd = sd(sum, na.rm=TRUE),
-            median = median(sum, na.rm = TRUE),
-            lq = quantile(sum, 0.25),
-            uq = quantile(sum, 0.75)) |> 
-  mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed"))
-
-
-test_plot <- ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet))+
-  geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
-  geom_point(position = position_dodge(width = 0.75), size=0.8)+
-  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.75), width = 0, linewidth = 0.5)+
-  #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
-  coord_polar(clip="off") +theme_bw()
-
-
-y_breaks <- ggplot2::ggplot_build(test_plot)$layout$panel_params[[1]]$r.major
-
-
-
-(both_diets_disagg_p <- 
-  ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet)
-       )+
-  geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
-  geom_point(position = position_dodge(width = 0.75), size=0.8)+
-  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.75), width = 0, linewidth = 0.5)+
-  #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
-  coord_polar(clip="off")+
-  theme_bw()+
-  theme(panel.border = element_blank(),
-        axis.title.x = element_blank(),
-        axis.line.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.title.y = element_text(hjust = 0.83),
-         axis.text.y = element_blank(),
-        legend.position = c(0.84, 0.01),
+ggplot(data = marine_plant_pressure_disagg_df |> 
+                              mutate(diet = case_when(diet == "plant diet" ~ "Plant-dominant\nfeed",
+                                                      diet == "marine diet" ~ "Fish-dominant\nfeed"),
+                                                      diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed"))))+
+  aes(x = sum, y = reorder(pressure, sum), fill = diet)+
+  geom_point(pch = 21, position = position_jitterdodge(), alpha = 0.2)+
+  geom_boxplot(notch = TRUE, colour = "grey20", alpha = 0.5, linewidth=0.5)+
+  scale_fill_manual(values = my_pal[c(4,2)])+
+  theme_pubr()+
+  theme(legend.position = "right",
         legend.title = element_blank(),
-        legend.text = element_text(size=6),
-        legend.background = element_rect(fill="transparent"),
-        legend.key.size = unit(0.4, "cm"),
-        plot.margin = unit(c(0, 0.3, 0, 0), "cm"),
-        text = element_text(size=8))+
-  scale_fill_manual(values = my_pal[c(2, 4)])+
-  #scale_y_continuous(breaks = c(0,50,100,150, 200,250,300,350,400,450,500))+
-  labs(y = "Absolute CPI contribution")+
-  guides(fill = guide_legend(override.aes = list(shape = NA)))+
-  annotate("text", x = 4.5, y = y_breaks, label = as.character(y_breaks), size=2, colour="grey10"))
-  # annotate("text", x = 3, y = y_breaks, label = as.character(y_breaks), size=2.1, colour="grey10")+
-  # annotate("text", x = 1.5, y = y_breaks, label = as.character(y_breaks), size=2.1, colour="grey10"))
-  # annotate("text", x = 3, y = y_breaks, label = as.character(y_breaks), size=2.8, colour="grey70")+
-  # annotate("text", x = 4, y = y_breaks, label = as.character(y_breaks), size=2.8, colour="grey70")+
-  # annotate("text", x = 5, y = y_breaks, label = as.character(y_breaks), size=2.8, colour="grey70"))
-#boxplot version
-# ggplot(data= marine_plant_pressure_disagg_df, aes(x = pressure, y = sum, colour = diet, group = interaction(diet, pressure))
-#        )+
-#   geom_jitter(position = position_dodge2(width=0.8), alpha =0.08)+
-#   geom_boxplot(notch = TRUE, fill = "transparent", colour = "grey40")+
-#   
-#   coord_polar(clip="off")+
-#   theme_bw()+
-#   theme(panel.border = element_blank(),
-#         axis.title.x = element_blank(),
-#         legend.title = element_blank(),
-#         legend.position = c(0.84, 0.1),
-#         legend.background = element_rect(fill="transparent"),
-#         legend.key.size = unit(0.4, "cm"),
-#         text = element_text(size=8))+
-#   scale_colour_manual(values = my_pal[c(2, 4)])+
-#   scale_y_continuous(breaks = c(0,50,100,150, 200,250))+
-#   labs(y = "Normalised pressure index")+
-#   guides(fill = guide_legend(override.aes = list(shape = NA)))
-ggsave(filename = here("figures/disaggregation_of_pressures_mass_allocation.jpg"), width = 8.9, height=8, units = "cm", device = "jpg", dpi = 600)
+        text = element_text(size=8),
+        axis.text = element_text(size=8),
+        axis.title = element_text(size=8),
+        axis.title.y = element_blank())+
+  labs(x = "CPI contribution")
+  
+
+ggsave(filename = here("figures/disaggregation_of_pressures_mass_allocation.jpg"), width = 12, height=8, units = "cm", device = "jpg", dpi = 600)
+
+
 ```
+
 
 Combine aggregated and disaggregated figures
 ```{r}

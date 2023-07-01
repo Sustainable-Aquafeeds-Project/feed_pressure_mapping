@@ -23,11 +23,15 @@ library(dtplyr)
 library(future)
 library(furrr)
 library(doParallel)
+library(rfishbase)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
 select <- dplyr::select
+
+# Uncomment for when RDSI is down
+watson_dir <- watson_backup_dir
 
 ```
 
@@ -45,11 +49,37 @@ values(eq_area_rast) <- 1:ncell(eq_area_rast)
 ```
 
 
+MARINE FOOTPRINT
+
+```{r}
+
+forage_spp <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds")) |> pull(TaxonName) |> unique()
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Benthic destruction
 
 
-To understand the benthic component of disturbance, we need to know if there are any destrcutive fishing gears associated withe forage fish catch. 
+To understand the benthic component of disturbance, we need to know if there are any destrcutive fishing gears associated withe forage fish catch or catch that generates trimmings. 
 
 Here we also join the gear classification data from Halpern et al of destructive or non destructive/ pelagic or demersal to the catch data which helps with the next step of isolating all trawling and dredging, and the trawling and dredging that forage fish represent.
 
@@ -57,21 +87,35 @@ Here we also join the gear classification data from Halpern et al of destructive
 
 #create the list of gear relevant to the forage fish catch data
 
-forage_gears <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> 
-  select(Gear, VBDesc) |> distinct()
+forage_gears <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds")) |> 
+  select(Gear, VBDesc) |> distinct() 
 
 write_csv(x = forage_gears, file = here("data/raw_data/fisheries/forage_gears.csv"))
+
+
+
+#create the list of gear relevant to the forage fish catch data
+
+trim_gears <- readRDS(here("data/large_data/trimmings_spp_catch.rds")) |> 
+  select(Gear, VBDesc) |> distinct() 
+
+write_csv(x = trim_gears, file = here("data/raw_data/fisheries/trim_gears.csv"))
+
+
+
 
 #join the categories from Halpern et al to the gears relevant for forage fish only
 
 gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv"))
 
-
 forage_gear_cats <- forage_gears |> left_join(gears_to_cat, by = c("Gear", "VBDesc"))
+
+
+
 
 #assign categories to existing classification of pelagic or demersal
 forage_catch_w_cats <- 
-  readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> 
+  readRDS(here("data/large_data/spatial_forage_catch_2017.rds")) |> 
   left_join(forage_gear_cats, by = c("Gear", "VBDesc")) |> 
   mutate(type = case_when(grepl("pelagic|krill", Descript) ~ "pelagic",
                           grepl("benthopelagic|demersal", Descript) ~ "demersal"))
@@ -84,6 +128,13 @@ unique(forage_catch_w_cats$Descript)
 forage_catch_w_cats |> filter(Descript == "krill") |> pull(VBDesc) |> unique()
 forage_catch_w_cats |> filter(is.na(type))# no NA values
 forage_catch_w_cats |> filter(is.na(bycatch)) #no na values
+
+
+
+
+
+
+
 ```
 
 
@@ -99,6 +150,7 @@ So first lets create catch rasters for all trawling.
 
 ```{r}
 total_catch <- fread(file.path(watson_dir, "v5.0/watson_2017_fisheries_catch.csv"))
+
 
 gears_to_cat <- read_csv(here("data/raw_data/fisheries/gears_to_cat.csv")) |> mutate(bycatch = if_else(is.na(bycatch), true = "low", false = bycatch))
 
@@ -121,12 +173,12 @@ trawl_types <- unique(total_catch_w_cat$VBDesc)[grep("trawl", unique(total_catch
 dredge_types <- unique(total_catch_w_cat$VBDesc)[grep("dredg", unique(total_catch_w_cat$VBDesc))]
 
 
-#isolate data for all fish trawling
+#isolate data for all bottom trawling
 
 all_trawl_fishing <- 
   total_catch |>
   lazy_dt(immutable = FALSE) |> 
-  filter(VBDesc %in% trawl_types) |> 
+  filter(VBDesc == "bottom trawls") |> 
   group_by(LonCentre, LatCentre) |> 
   summarise(total_catch = sum(ReportedNIND+ReportedIND+IUUIND+IUUNIND, na.rm = TRUE)) |> 
   drop_na(LonCentre, LatCentre) |> 
@@ -139,7 +191,7 @@ writeRaster(x = all_trawl_r, filename = here("data/spatial/fisheries-effort/all_
 ```
 
 Next step is to understand  what proportion of all trawling the forage catch needed for each deamnd scenario represents so we can convert it into hours of effort for each diet/sourcing combination. So first we can prep the embodied forage fish demand per cell into raster form for the trawling component.
-
+ 
 First we'll isolate which gears are destructive for forage fish.
 ```{r}
 #create the list of gear relevant to the forage fish catch data
@@ -173,16 +225,16 @@ For pressures all we are interested is the bottom trawl component so now we isol
 
 #create list of dataframe of trawling for forage fish by diet and sourcing
 trawl_forage_catch_list <- 
-  fread(here("data/tidy_data/demand/embodied_fish_per_cell.csv")) |> 
+  fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> 
   lazy_dt(immutable = FALSE) |> 
-  filter(VBDesc == "bottom trawls") |> 
+  # filter(VBDesc == "bottom trawls") |> 
   as_tibble() |> 
-  group_split(diet, source_code)
+  group_split(diet, fao_area_code)
 
 #summarise the data by cell and write to data folder
 
 #test
-this_df <- trawl_forage_catch_list[[6]]
+this_df <- trawl_forage_catch_list[[2]]
 
 
 map(trawl_forage_catch_list, \(this_df){
@@ -194,27 +246,41 @@ map(trawl_forage_catch_list, \(this_df){
   #Mass allocation
   this_summary_df_mass <- 
     this_df |> 
+    filter(VBDesc == "bottom trawls") |> 
     group_by(LonCentre, LatCentre) |> 
     summarise(forage_catch_mass = sum(fm_embodied_fish_mass, na.rm=TRUE))
 
+  if(nrow(this_summary_df_mass>0)){
   this_rast_mass <- rast(this_summary_df_mass, type="xyz", crs="EPSG:4326")
   this_rast_resampled_mass <- resample(this_rast_mass, rast(res=0.5))
+  } else{
+    this_rast_resampled_mass <- rast(res=0.5)
+    values(this_rast_resampled_mass) <- 0
+  }
+  
   
   writeRaster(x = this_rast_resampled_mass, filename = sprintf(here("data/spatial/%s/int/fishmeal_trawl_catch_%s_%s_mass_allocation.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
   
   #Gross energy allocation
    this_summary_df_ge <- 
     this_df |> 
+     filter(VBDesc == "bottom trawls") |> 
     group_by(LonCentre, LatCentre) |> 
     summarise(forage_catch_ge = sum(fm_embodied_fish_ge, na.rm=TRUE))
 
+   if(nrow(this_summary_df_ge>0)){
   this_rast_ge <- rast(this_summary_df_ge, type="xyz", crs="EPSG:4326")
   this_rast_resampled_ge <- resample(this_rast_ge, rast(res=0.5))
+   } else{
+   this_rast_resampled_ge <- rast(res=0.5)
+   values(this_rast_resampled_ge) <- 0
+   }
+  
   
   writeRaster(x = this_rast_resampled_ge, filename = sprintf(here("data/spatial/%s/int/fishmeal_trawl_catch_%s_%s_ge_allocation.tif"), this_diet, this_diet, this_source), overwrite=TRUE)
   
   
-})
+}
 
 # now look at dredging - but there is no catch for dredging so we can disregard
 

@@ -541,7 +541,12 @@ write_csv(forage_spp_list, here("data/raw_data/fisheries/forage_fish_list_final.
 
 forage_catch <- catch |>
   filter(foragefish == 1 | TaxonName %in% forage_spp_list$sci_name  | CommonName %in% forage_spp_list$common_name) |> 
-  as_tibble()
+  as_tibble() |> 
+  filter(ReportedIND >0) |> 
+  #assume that gears targeting small or medium pelagic or benthopelagic species and krill are targeted e.g Halpern, Parker et al.
+  filter(Descript %in% c("pelagic 30 - 90 cm" ,  "pelagic <30 cm", "benthopelagic 30 - 90 cm", "krill")) |> 
+  #following Cashion et al https://onlinelibrary.wiley.com/doi/full/10.1111/faf.12222?saml_referrer, restrict gears to purse seine, seine nets, boat seines, bottom trawls, mid-water trawks
+  filter(VBDesc %in% c("purse seines",  "seine nets", "boat seines", "bottom trawls",  "mid-water trawls"))
 
 #27 million tonnes, represented by 79 species across industrial and non industrial sources
 sum(forage_catch$ReportedIND) #26.5 millions tonnes from industrial

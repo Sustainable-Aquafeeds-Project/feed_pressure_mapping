@@ -128,14 +128,7 @@ trimmings_spp_fao_area <-
 
 
 ```{r}
-forage_catch <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds")) |> 
-  #should filter out gears that are not used for industrial catch
-  filter(ReportedIND >0) |> 
-  #assume that gears targeting small or medium pelagic or benthopelagic species and krill are targeted e.g Halpern, Parker et al.
-  filter(Descript %in% c("pelagic 30 - 90 cm" ,  "pelagic <30 cm", "benthopelagic 30 - 90 cm", "krill")) |> 
-  #following Cashion et al https://onlinelibrary.wiley.com/doi/full/10.1111/faf.12222?saml_referrer, restrict gears to purse seine, seine nets, boat seines, bottom trawls, mid-water trawks
-  filter(VBDesc %in% c("purse seines",  "seine nets", "boat seines", "bottom trawls",  "mid-water trawls"))
-
+forage_catch <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds"))
 
 #plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
 forage_xyz <- forage_catch |> 
@@ -151,7 +144,35 @@ plot((total_forage_raster))
 sum(values(total_forage_raster), na.rm = TRUE)
 
 
-#join FAO area xyz of interest to catch data and  embodied fish factors to get the potential fmfo provisioning by each area
+fao_areas_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+  mutate(F_AREA = as.numeric(F_AREA)) |> 
+  group_by(F_AREA) |> 
+  group_split()
+
+#test the function
+this_area <- fao_areas_shp[[1]]
+
+
+
+#get xyz file for the FAO areas in 0.5 resolution (catch data resolution)
+
+fao_xyz <- 
+  
+  map_df(.x = fao_areas_shp, .f = \(this_area){
+  
+  this_area_shp <- this_area
+  
+  this_area_raster <- terra::rasterize(x = vect(this_area_shp), y = rast(res = 0.5), field = this_area_shp$F_AREA)
+  
+  this_area_xyz <- terra::as.data.frame(x = this_area_raster, xy = TRUE)  |> mutate(fao_area_name = this_area_shp$NAME_EN)
+  
+  return(this_area_xyz)
+  
+}) |> rename(fao_area_code = layer,
+             LonCentre = x,
+             LatCentre = y)
+
+#join FAO area xyz  to catch data
 forage_spp_fao_area <- 
   forage_catch |> 
   left_join(fao_xyz, 
@@ -163,6 +184,9 @@ forage_spp_fao_area <-
   arrange(-forage_spp_catch) |> 
   mutate(prop_forage_catch = forage_spp_catch/sum(forage_spp_catch, na.rm=TRUE))
 
+
+
+forage_spp_fao_area |> pull(fao_area_code) |> unique()
 ```
 
 
@@ -532,10 +556,10 @@ forage_supply_demand_by_diet <-
             
              #calculate embodied demand
              #calculated the embodied fish from fm and fo
-             fm_embodied_fish_mass = distributed_fm_demand_mass * mass_value_fishmeal,
-             fo_embodied_fish_mass = distributed_fo_demand_mass * mass_value_fish_oil,
-             fm_embodied_fish_ge = distributed_fm_demand_ge * ge_value_fishmeal,
-             fo_embodied_fish_ge = distributed_fo_demand_ge * ge_value_fish_oil,
+             fm_embodied_fish_mass = distributed_fm_demand_mass * min_fm_forage_prop * mass_value_fishmeal ,
+             fo_embodied_fish_mass = distributed_fo_demand_mass * min_fo_forage_prop * mass_value_fish_oil,
+             fm_embodied_fish_ge = distributed_fm_demand_ge * min_fm_forage_prop * ge_value_fishmeal,
+             fo_embodied_fish_ge = distributed_fo_demand_ge * min_fo_forage_prop * ge_value_fish_oil,
              #calculate the total fmfo demand
              total_fmfo_demand_mass = distributed_fm_demand_mass + distributed_fo_demand_mass,
              total_fmfo_demand_ge = distributed_fm_demand_ge + distributed_fo_demand_ge,
@@ -576,7 +600,7 @@ embodied_foragefish_demand_by_diet_source <-
 
 
 
-saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_foragefish_demand_by_source_diet.rds"))
+saveRDS(object = embodied_foragefish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_foragefish_demand_by_source_diet.rds"))
 
 
 
@@ -600,10 +624,10 @@ trim_supply_demand_by_diet <-
             
              #calculate embodied demand
              #calculated the embodied fish from fm and fo
-             fm_embodied_fish_mass = distributed_fm_demand_mass * mass_byproduct_cf_fishmeal,
-             fo_embodied_fish_mass = distributed_fo_demand_mass * mass_byproduct_cf_fish_oil,
-             fm_embodied_fish_ge = distributed_fm_demand_ge * ge_byproduct_cf_fishmeal,
-             fo_embodied_fish_ge = distributed_fo_demand_ge * ge_byproduct_cf_fish_oil,
+             fm_embodied_fish_mass = distributed_fm_demand_mass * max_fm_trim_prop * mass_byproduct_cf_fishmeal,
+             fo_embodied_fish_mass = distributed_fo_demand_mass * max_fo_trim_prop * mass_byproduct_cf_fish_oil,
+             fm_embodied_fish_ge = distributed_fm_demand_ge * max_fm_trim_prop * ge_byproduct_cf_fishmeal,
+             fo_embodied_fish_ge = distributed_fo_demand_ge * max_fo_trim_prop * ge_byproduct_cf_fish_oil,
              #calculate the total fmfo demand
              total_fmfo_demand_mass = distributed_fm_demand_mass + distributed_fo_demand_mass,
              total_fmfo_demand_ge = distributed_fm_demand_ge + distributed_fo_demand_ge,
