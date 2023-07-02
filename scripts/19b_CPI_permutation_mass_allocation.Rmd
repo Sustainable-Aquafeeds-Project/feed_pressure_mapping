@@ -763,7 +763,7 @@ ggplot(data = marine_plant_pressure_disagg_df |>
                                                       diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed"))))+
   aes(x = sum, y = reorder(pressure, sum), fill = diet)+
   geom_point(pch = 21, position = position_jitterdodge(), alpha = 0.2)+
-  geom_boxplot(notch = TRUE, colour = "grey20", alpha = 0.5, linewidth=0.5)+
+  geom_boxplot(notch = TRUE, colour = "grey35", alpha = 0.5, linewidth=0.5)+
   scale_fill_manual(values = my_pal[c(4,2)])+
   theme_pubr()+
   theme(legend.position = "right",
