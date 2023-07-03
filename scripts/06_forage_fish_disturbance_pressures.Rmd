@@ -35,6 +35,7 @@ watson_dir <- watson_backup_dir
 
 ```
 
+
 Equal area projection resources
 ```{r}
 
@@ -53,20 +54,52 @@ MARINE FOOTPRINT
 
 Forage fish - first lets get the latin names of the forage fish from the filtered catch data and find the trophic levels of them.
 
+
+Import net primary productivity data
+```{r}
+
+#make npp into an xy file
+
+npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_gf_wgs.tif"))
+
+npp_xyz <- terra::as.data.frame(npp, xy = TRUE) |> 
+  rename(npp=annal_mean_npp_2015_gf_wgs) |> 
+  rename(LonCentre = x, 
+         LatCentre = y)
+
+
+```
+
+Import ecosystem transfer-efficiency
+
+```{r}
+
+ecosystem_te <- read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/cashion/ecosystem_te.csv") |> select(TE, fao_area_code) |> group_by(fao_area_code) |> summarise(te=mean(TE, na.rm = TRUE))
+
+
+```
+
+
+Get forage fish trophic levels
+
 ```{r}
 
 #Separate the catch records that have Genus and species.
-forage_spp <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds")) |> mutate(binomial = stringi::stri_count(TaxonName, regex="\\S+")) |> filter(binomial==2) |>  pull(TaxonName) |> unique() 
+forage_spp <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds")) |> 
+  mutate(binomial = stringi::stri_count(TaxonName, regex="\\S+")) |> 
+  filter(binomial==2) |>  
+  pull(TaxonName) |> 
+  unique() 
 
 this_sp <- forage_spp[[1]]
 
 
-(binomial_tls <- rfishbase::ecology(species_list =  forage_spp, server = getOption("fishbase")) |> 
+(binomial_tls <- rfishbase::ecology(species_list =  forage_spp, server = getOption("fishbase")) |>
   select(Species, DietTroph, FoodTroph) |> 
   mutate(DietTroph = if_else(is.na(DietTroph), true = FoodTroph, false = DietTroph)) |> 
   drop_na(DietTroph) |> 
   select(-FoodTroph) |> 
-  distinct())
+  distinct()) #both extracted manually from fishbase as not coming up from app search
 
   
 #Add back the Genus only or family records and match to any species with the same Genus
@@ -101,7 +134,9 @@ forage_nonbinomial_tls <- tibble(TaxonName = forage_higherorder, DietTroph = NA)
                                  pull(DietTroph),
                                TaxonName %in% c("Atherinidae") ~ binomial_tls |> 
                                  pull(DietTroph) |> 
-                                 mean()))
+                                 mean())) |> 
+  add_row(TaxonName = "Euphausia superba", DietTroph = 2.25) |> 
+    add_row(TaxonName = "Clupea pallasii pallasii", DietTroph = 3.16)
                                
                                
                                
@@ -109,11 +144,10 @@ forage_tls <-
   bind_rows(binomial_tls |> rename(TaxonName = Species),
           forage_nonbinomial_tls)
 
-
 ```
 
 
-Catch for trimmings - first lets get the latin names of the trimmings spp catch from the filtered catch data and find the trophic levels of them.
+Get trimmings species trophic levels
 
 
 ```{r}
@@ -167,6 +201,73 @@ trim_tls <-
 
 
 ```
+
+
+
+Attach NPP data to forage and trimmings catch data
+
+```{r}
+
+carbon_conversion <- 9
+
+(forage_npp <- 
+  fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> 
+  left_join(ecosystem_te, by="fao_area_code") |> 
+  left_join(forage_tls, by = "TaxonName") |>
+  mutate(te = case_when(is.na(te) ~ ecosystem_te |> pull(te) |> mean(),
+                        TRUE ~ te)) |> 
+  left_join(npp_xyz) |> 
+  mutate(ppr_fm_mass = (fm_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_fo_mass = (fo_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_fm_ge = (fm_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_fo_ge = (fo_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_prop_fm_mass = ppr_fm_mass/npp,
+         ppr_fo_mass = ppr_fo_mass/npp,
+         ppr_fm_ge = ppr_fm_ge/npp,
+         ppr_fo_ge = ppr_fo_ge/npp)
+)
+
+
+(trim_npp <- 
+  fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> 
+  left_join(ecosystem_te, by="fao_area_code") |> 
+  left_join(trim_tls, by = "TaxonName") |>
+  mutate(te = case_when(is.na(te) ~ ecosystem_te |> pull(te) |> mean(),
+                        TRUE ~ te)) |> 
+  left_join(npp_xyz) |> 
+  mutate(ppr_fm_mass = (fm_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_fo_mass = (fo_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_fm_ge = (fm_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_fo_ge = (fo_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
+         ppr_prop_fm_mass = ppr_fm_mass/npp,
+         ppr_prop_fo_mass = ppr_fo_mass/npp,
+         ppr_prop_fm_ge = ppr_fm_ge/npp,
+         ppr_prop_fo_ge = ppr_fo_ge/npp)
+)
+
+
+
+#Bind the forage and trimmings catch npp per cell
+
+all_fish_npp <- bind_rows(forage_npp, trim_npp)
+
+
+
+```
+
+
+Now calculate the km2 equivalent for each diet and fao_area code for both fishmeal and oil
+
+```{r}
+
+
+
+
+
+
+
+```
+
 
 
 
