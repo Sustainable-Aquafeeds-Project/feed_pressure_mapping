@@ -55,6 +55,14 @@ MARINE FOOTPRINT
 Forage fish - first lets get the latin names of the forage fish from the filtered catch data and find the trophic levels of them.
 
 
+```{r}
+
+cell_area <- terra::as.data.frame(cellSize(rast(res=0.5), unit="km"), xy=TRUE) |> rename(LonCentre = x, LatCentre = y)
+
+```
+
+
+
 Import net primary productivity data
 ```{r}
 
@@ -65,7 +73,10 @@ npp <- rast(here("data/spatial/00-net-primary-productivity/annal_mean_npp_2015_g
 npp_xyz <- terra::as.data.frame(npp, xy = TRUE) |> 
   rename(npp=annal_mean_npp_2015_gf_wgs) |> 
   rename(LonCentre = x, 
-         LatCentre = y)
+         LatCentre = y,
+         npp_mg_m2_day = npp) |> 
+  mutate(npp_t_km2_yr = npp_mg_m2_day*0.001*365) |> 
+select(-npp_mg_m2_day)
 
 
 ```
@@ -74,7 +85,7 @@ Import ecosystem transfer-efficiency
 
 ```{r}
 
-ecosystem_te <- read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/cashion/ecosystem_te.csv") |> select(TE, fao_area_code) |> group_by(fao_area_code) |> summarise(te=mean(TE, na.rm = TRUE))
+ecosystem_te <- read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/cashion/ecosystem_te.csv") |> select(TE, fao_area_code) |> group_by(fao_area_code) |> summarise(te=mean(TE, na.rm = TRUE)) |> mutate(te= te/100)
 
 
 ```
@@ -211,20 +222,31 @@ Attach NPP data to forage and trimmings catch data
 carbon_conversion <- 9
 
 (forage_npp <- 
-  fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> 
-  left_join(ecosystem_te, by="fao_area_code") |> 
-  left_join(forage_tls, by = "TaxonName") |>
-  mutate(te = case_when(is.na(te) ~ ecosystem_te |> pull(te) |> mean(),
-                        TRUE ~ te)) |> 
-  left_join(npp_xyz) |> 
-  mutate(ppr_fm_mass = (fm_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
-         ppr_fo_mass = (fo_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
-         ppr_fm_ge = (fm_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
-         ppr_fo_ge = (fo_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
-         ppr_prop_fm_mass = ppr_fm_mass/npp,
-         ppr_fo_mass = ppr_fo_mass/npp,
-         ppr_fm_ge = ppr_fm_ge/npp,
-         ppr_fo_ge = ppr_fo_ge/npp)
+    fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> 
+    left_join(ecosystem_te, by="fao_area_code") |> 
+    left_join(forage_tls, by = "TaxonName") |>
+    mutate(te = case_when(is.na(te) ~ ecosystem_te |> pull(te) |> mean(),
+                          TRUE ~ te)) |> 
+    left_join(npp_xyz) |> 
+    left_join(cell_area) |> 
+    mutate(npp_t_C_yr = npp_t_km2_yr*area) |> 
+    mutate(ppr_fm_mass = (fm_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1), #T C yr-1
+           ppr_fo_mass = (fo_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
+           ppr_fm_ge = (fm_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
+           ppr_fo_ge = (fo_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1)) |> 
+   arrange(LonCentre, LatCentre) |> 
+    group_by(diet, fao_area_code, LonCentre, LatCentre) |> 
+    summarise(npp_t_C_yr = mean(npp_t_C_yr),
+              ppr_fm_mass = sum(ppr_fm_mass),
+              ppr_fo_mass = sum(ppr_fo_mass),
+              ppr_fm_ge = sum(ppr_fm_ge),
+              ppr_fo_ge = sum(ppr_fo_ge)) |> 
+    ungroup() |> 
+     mutate(ppr_prop_fm_mass = ppr_fm_mass/npp_t_C_yr,
+           ppr_prop_fo_mass = ppr_fo_mass/npp_t_C_yr,
+           ppr_prop_fm_ge = ppr_fm_ge/npp_t_C_yr,
+           ppr_prop_fo_ge = ppr_fo_ge/npp_t_C_yr) |> 
+    arrange(LonCentre, LatCentre)
 )
 
 
@@ -234,23 +256,44 @@ carbon_conversion <- 9
   left_join(trim_tls, by = "TaxonName") |>
   mutate(te = case_when(is.na(te) ~ ecosystem_te |> pull(te) |> mean(),
                         TRUE ~ te)) |> 
-  left_join(npp_xyz) |> 
-  mutate(ppr_fm_mass = (fm_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
+  left_join(npp_xyz) |> #mg C day 
+   left_join(cell_area) |> 
+  mutate(npp_t_C_yr = npp_t_km2_yr*area) |> 
+  mutate(ppr_fm_mass = (fm_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1), #T C yr-1
          ppr_fo_mass = (fo_embodied_fish_mass/carbon_conversion)*(1/te)^(DietTroph-1),
          ppr_fm_ge = (fm_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
-         ppr_fo_ge = (fo_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1),
-         ppr_prop_fm_mass = ppr_fm_mass/npp,
-         ppr_prop_fo_mass = ppr_fo_mass/npp,
-         ppr_prop_fm_ge = ppr_fm_ge/npp,
-         ppr_prop_fo_ge = ppr_fo_ge/npp)
-)
+         ppr_fo_ge = (fo_embodied_fish_ge/carbon_conversion)*(1/te)^(DietTroph-1)) |>
+    arrange(LonCentre, LatCentre) |> 
+    group_by(diet, fao_area_code, LonCentre, LatCentre) |> 
+    summarise(npp_t_C_yr = mean(npp_t_C_yr),
+              ppr_fm_mass = sum(ppr_fm_mass),
+              ppr_fo_mass = sum(ppr_fo_mass),
+              ppr_fm_ge = sum(ppr_fm_ge),
+              ppr_fo_ge = sum(ppr_fo_ge)) |> 
+    ungroup() |> 
+  mutate(ppr_prop_fm_mass = ppr_fm_mass/npp_t_C_yr,
+         ppr_prop_fo_mass = ppr_fo_mass/npp_t_C_yr,
+         ppr_prop_fm_ge = ppr_fm_ge/npp_t_C_yr,
+         ppr_prop_fo_ge = ppr_fo_ge/npp_t_C_yr) |> 
+    arrange(LonCentre, LatCentre))
 
 
 
 #Bind the forage and trimmings catch npp per cell
 
-all_fish_npp <- bind_rows(forage_npp, trim_npp)
+all_fish_npp <- 
+  bind_rows(forage_npp |> select(diet, fao_area_code,LonCentre, LatCentre,npp_t_C_yr,
+                                 ppr_prop_fm_mass, ppr_prop_fo_mass, ppr_prop_fm_ge, ppr_prop_fo_ge),
+            trim_npp |> select(diet, fao_area_code,LonCentre, LatCentre,npp_t_C_yr,
+                                 ppr_prop_fm_mass, ppr_prop_fo_mass, ppr_prop_fm_ge, ppr_prop_fo_ge))
 
+
+
+all_fish_npp |> filter(fao_area_code == 61)
+
+
+
+all_fish_npp |> filter(fao_area_code==61)
 
 
 ```
@@ -260,6 +303,93 @@ Now calculate the km2 equivalent for each diet and fao_area code for both fishme
 
 ```{r}
 
+# Split the dataframe by diet and fao area
+all_fish_npp_list <- 
+  all_fish_npp |> 
+  group_by(diet, fao_area_code) |> 
+  group_split()
+
+
+this_diet_fao_area <- all_fish_npp_list[[4]]
+
+
+#spit out the disturbance rasters for fo and fm under both mass and energetic allocation
+
+map(.x = all_fish_npp_list, .f = \(this_diet_fao_area){
+  
+  this_diet <- this_diet_fao_area |> pull(diet) |> unique()
+  
+  this_fao_area_code <- this_diet_fao_area |> pull(fao_area_code) |> unique()
+  
+  
+  # FISHMEAL DISTRUBANCE  - MASS ALLOCATION
+  
+  message("Processing fishmeal disturbance raster - mass allocation")
+  
+  fm_mass_saveName <- sprintf(here("data/spatial/%s/int/fishmeal_disturbance_km2_mass_allocation_%s.tif"), this_diet, this_fao_area_code)
+  
+  fm_prop_npp_mass_rast <- this_diet_fao_area |> 
+    select(LonCentre, LatCentre, ppr_prop_fm_mass) |> 
+    rast(type = "xyz") |> 
+    resample(rast(res=0.5))
+  
+  #calculate area in km2
+  fm_km2_mass_rast <- fm_prop_npp_mass_rast*cellSize(fm_prop_npp_mass_rast, unit="km")
+  
+  writeRaster(x= fm_km2_mass_rast, filename = fm_mass_saveName, overwrite=TRUE)
+  
+  
+  # FISH OIL DISTURBANCE - MASS ALLOCATION
+  
+  message("Processing fish oil disturbance raster - mass allocation")
+  
+  fo_mass_saveName <- sprintf(here("data/spatial/%s/int/fish oil_disturbance_km2_mass_allocation_%s.tif"), this_diet, this_fao_area_code)
+  
+  fo_prop_npp_mass_rast <- this_diet_fao_area |> 
+    select(LonCentre, LatCentre, ppr_prop_fo_mass) |> 
+    rast(type = "xyz") |> 
+    resample(rast(res=0.5))
+  
+  #calculate area in km2
+  fo_km2_mass_rast <- fo_prop_npp_mass_rast*cellSize(fo_prop_npp_mass_rast, unit="km")
+  
+  writeRaster(x= fo_km2_mass_rast, filename = fo_mass_saveName, overwrite=TRUE)
+  
+
+  # FISHMEAL DISTURBANCE - ENERGETIC ALLOCATION
+  
+  message("Processing fishmeal disturbance raster - energetic allocation")
+  
+  fm_ge_saveName <- sprintf(here("data/spatial/%s/int/fishmeal_disturbance_km2_ge_allocation_%s.tif"), this_diet, this_fao_area_code)
+  
+  fm_prop_npp_ge_rast <- this_diet_fao_area |> 
+    select(LonCentre, LatCentre, ppr_prop_fm_ge) |> 
+    rast(type = "xyz") |> 
+    resample(rast(res=0.5))
+  
+  #calculate area in km2
+  fm_km2_ge_rast <- fm_prop_npp_ge_rast*cellSize(fm_prop_npp_ge_rast, unit="km")
+  
+  writeRaster(x= fm_km2_ge_rast, filename = fm_ge_saveName, overwrite=TRUE)
+  
+  
+  # FISH OIL DISTURBANCE - ENERGETIC ALLOCATION
+  
+  message("Processing fishmeal disturbance raster - energetic allocation")
+  
+  fo_ge_saveName <- sprintf(here("data/spatial/%s/int/fish oil_disturbance_km2_ge_allocation_%s.tif"), this_diet, this_fao_area_code)
+  
+  fo_prop_npp_ge_rast <- this_diet_fao_area |> 
+    select(LonCentre, LatCentre, ppr_prop_fm_ge) |> 
+    rast(type = "xyz") |> 
+    resample(rast(res=0.5))
+  
+  #calculate area in km2
+  fo_km2_ge_rast <- fo_prop_npp_ge_rast*cellSize(fo_prop_npp_ge_rast, unit="km")
+  
+  writeRaster(x= fo_km2_ge_rast, filename = fo_ge_saveName, overwrite=TRUE)
+  
+})
 
 
 

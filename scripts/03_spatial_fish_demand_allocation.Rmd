@@ -20,6 +20,8 @@ source(here("src/directories.R"))
 
 select <- dplyr::select
 values <- terra::values
+
+options(digits = 22)
 ```
 
 
@@ -202,7 +204,7 @@ fish_sourcing_areas <-
          min_fm_forage_prop = 1-max_fm_trim_prop,
          max_fo_trim_prop = 0.4, # proportion of fish oil from trimmings based loosely on on biomar sustainability report 2022 - https://www.biomar.com/globalassets/.global/sustainability-report/biomar-global-sustainability-report-2022.pdf
          min_fo_forage_prop = 1-max_fo_trim_prop) |> 
-  filter(fao_area_code %in% c(27, 87, 31, 61, 57)) # this mix of FAO fishing areas are based off values in Aas et al 2022 and Biomar sustainability report
+  filter(fao_area_code %in% c(27, 87, 31, 61, 67)) # this mix of FAO fishing areas are based off values in Aas et al 2022 and Biomar sustainability report
 
 saveRDS(object = fish_sourcing_areas, file = here("data/tidy_data/production-data/fao_regions_fish_production_potential.rds"))
 
@@ -513,6 +515,8 @@ forage_catch |>
 
 fwrite(x = forage_fmfo_yield, file =  here("data/large_data/embodied_fmfo_potential_from_foragefish.csv"))
 
+
+trim_fmfo_yield |> filter(fao_area_code==61)
 ```
 
 
@@ -670,6 +674,6 @@ embodied_trimingsfish_demand_by_diet_source <-
 
 saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
 
-
+trim_fmfo_yield |> filter(fao_area_code==61)
 ```
 
