@@ -393,7 +393,7 @@ map(.x = all_fish_npp_list, .f = \(this_diet_fao_area){
 
 
 
-
+forage_fmfo_yield |> filter(fao_area_code==61)
 
 
 ```

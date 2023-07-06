@@ -21,7 +21,7 @@ source(here("src/directories.R"))
 select <- dplyr::select
 values <- terra::values
 
-options(digits = 22)
+
 ```
 
 
