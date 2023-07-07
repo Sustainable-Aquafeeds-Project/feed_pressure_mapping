@@ -5,7 +5,7 @@ output: html_document
 
 # Overall approach
 
-Using the marine footprint approach outlined in Cashion
+Using the marine footprint approach outlined in Cashion et al https://onlinelibrary.wiley.com/doi/full/10.1111/faf.12222 based off of the primary production required for catch in a given cell
 
 
 
