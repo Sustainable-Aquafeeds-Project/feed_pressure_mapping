@@ -30,11 +30,16 @@ library(data.table)
 library(dtplyr)
 library(future)
 library(furrr)
+#install.packages("/Users/rsc2/Downloads/ncdf4_1.21.tgz", repos = NULL)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
 select <- dplyr::select
+
+#select depending if using rdsi or one drive
+#rdsi_dir <- rdsi_dir
+rdsi_dir <- rdsi_backup_dir
 
 ```
 
@@ -771,13 +776,34 @@ The NPP data was taken from the Cumulative Human Impacts Project at
 NCEAS. Downloaded from the aurora server.
 
 The raster has been gapfilled to make all the NA values mean
-porductivity values
+productivity values
 
 ```{r}
+# install.packages("BiocManager")
+# BiocManager::install("rhdf5")
 
-npp_r <- rast(file.path(rdsi_raw_data_dir, "food-systems-project/annal_mean_npp_2015_gf_wgs.tif"))
-plot(npp_r)
-writeRaster(x = npp_r, filename = here("data/spatial/00-net-primary-producivity/annal_mean_npp_2015_gf_wgs.tif"))
+npp_2019_monthly <- list.files(file.path(rdsi_dir, "raw_data/vgpm-npp/vgpm.m.2019"), full.names = TRUE) |> rast()
+
+NAflag(npp_2019_monthly) <- -9999 #flag the NAs
+values(npp_2019_monthly) <- values(npp_2019_monthly)*0.365242199 #conversion from mg C m-2 day-1 to tonnes C km-2 yr-1
+ext(npp_2019_monthly) <- ext(rast()) #set global wgs84 extent
+
+
+npp_2019_monthly_gf <- focal(npp_2019_monthly_0.5, w=9, fun = mean, na.policy = "only", na.rm=TRUE)
+
+npp_2019_monthly_0.5 <- npp_2019_monthly_gf |> resample(rast(res=0.5)) #convert to half degree
+
+#mean npp with gapfilling
+app(npp_2019_monthly_0.5, fun = mean, na.rm =TRUE) |> focal(w=3, fun = mean, na.policy = "only", na.rm=TRUE, filename = here("data/spatial/00-net-primary-productivity/annual_mean_npp_2019_gf_wgs.tif"), overwrite=TRUE)
+
+#median npp with gapfilling
+app(npp_2019_monthly_0.5, fun = median, na.rm =TRUE) |> focal(w=3, fun = mean, na.policy = "only", na.rm=TRUE, filename = here("data/spatial/00-net-primary-productivity/annual_median_npp_2019_gf_wgs.tif"), overwrite=TRUE)
+
+# max npp with gapfilling
+app(npp_2019_monthly_0.5, fun = max, na.rm =TRUE) |> focal(w=3, fun = mean, na.policy = "only", na.rm=TRUE, filename = here("data/spatial/00-net-primary-productivity/annual_max_npp_2019_gf_wgs.tif"), overwrite=TRUE)
+
+#min npp with gapfilling
+app(npp_2019_monthly_0.5, fun = min, na.rm =TRUE) |> focal(w=3, fun = mean, na.policy = "only", na.rm=TRUE, filename = here("data/spatial/00-net-primary-productivity/annual_min_npp_2019_gf_wgs.tif"), overwrite=TRUE)
 
 
 ```
