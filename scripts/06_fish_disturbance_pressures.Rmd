@@ -53,8 +53,8 @@ values(eq_area_rast) <- 1:ncell(eq_area_rast)
 
 MARINE FOOTPRINT
 
-Forage fish - first lets get the latin names of the forage fish from the filtered catch data and find the trophic levels of them.
 
+Create a cell area xyz file for 0.5 res wgs84 raster
 
 ```{r}
 
@@ -110,7 +110,7 @@ ecosystem_te <- read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Link
 ```
 
 
-Get forage fish trophic levels
+Get forage fish trophic levels - needed for calculating the primary productivity required
 
 ```{r}
 
@@ -177,7 +177,7 @@ forage_tls <-
 ```
 
 
-Get trimmings species trophic levels
+Get trimmings species trophic levels  - needed for calculating the primary productivity required
 
 
 ```{r}
@@ -239,7 +239,7 @@ trim_tls <-
 
 
 
-Attach NPP data to forage and trimmings catch data
+Attach NPP, TL, data to forage and trimmings catch data and calculate the primary productivity required for the catch, the proportion of the annual PPR that is and tmultiply this proportion by the size of the cell.
 
 ```{r}
 
