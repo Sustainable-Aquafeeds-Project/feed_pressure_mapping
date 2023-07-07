@@ -423,7 +423,7 @@ trimmings_spp_catch |>
      mutate(yield_mass = ReportedIND/mass_byproduct_cf,
          yield_ge = ReportedIND/ge_byproduct_cf) |> 
     mutate(ingredient = gsub(" ", "_", tolower(ingredient))) |> 
-    select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, Descript, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
+    select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
   #turn to wide format to reverse duplicate rows created from duplicate dataframe for FM and FO
     pivot_wider(names_from = "ingredient", values_from = c("mass_byproduct_cf", "ge_byproduct_cf", "yield_mass", "yield_ge")) |> 
   #calculate the proportion each record represents for each FAO fishing area - this can be multiplied by demand under each diet
@@ -497,7 +497,7 @@ forage_catch |>
      mutate(yield_mass = ReportedIND/mass_value,
          yield_ge = ReportedIND/ge_value) |> 
     mutate(ingredient = gsub(" ", "_", tolower(ingredient))) |> 
-    select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, Descript, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
+    select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
   #turn to wide format to reverse duplicate rows created from duplicate dataframe for FM and FO
     pivot_wider(names_from = "ingredient", values_from = c("mass_value", "ge_value", "yield_mass", "yield_ge")) |> 
   #calculate the proportion each record represents for each FAO fishing area - this can be multiplied by demand under each diet
