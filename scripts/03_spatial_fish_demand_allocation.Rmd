@@ -676,4 +676,10 @@ saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/
 
 trim_fmfo_yield |> filter(fao_area_code==61)
 ```
+```{r}
+
+data.table::fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> pull(fao_area_code) |> unique()
+data.table::fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> pull(fao_area_code) |> unique()
+
+```
 

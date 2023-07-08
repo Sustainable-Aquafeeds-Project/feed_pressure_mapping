@@ -21,7 +21,8 @@ library(furrr)
 select <- dplyr::select
 values <- terra::values
 
-source(here("src/fxns.R"))
+
+
 ```
 
 Create equal area projection for rescaling
@@ -32,7 +33,9 @@ gall_peters <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=
 base_rast <- rast(res=0.5)
 ext(base_rast) <- c(-180, 180, -90, 90)
 
-eq_area_rast <- project(base_rast, gall_peters, res=10000) # this is down scaling the resolution so creates issues when changing square km values
+eq_area_rast <- project(base_rast, gall_peters) # this is down scaling the resolution so creates issues when changing square km values
+res(eq_area_rast) <- 10000
+
 # values(eq_area_rast) <- 1:ncell(eq_area_rast)
 
 #plot(eq_area_rast)
