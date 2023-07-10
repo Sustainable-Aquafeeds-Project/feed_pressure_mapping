@@ -108,7 +108,7 @@ plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), patter
 plant_diet_disturbance <- plant_diet_disturbance[!grepl("forage_fish|_gp", plant_diet_disturbance) & grepl("allocation", plant_diet_disturbance)]
 
 
-this_file <- plant_diet_disturbance[[1]]
+this_file <- plant_diet_disturbance[[50]]
 
 pd_reprojected_rasters <- 
   
@@ -116,7 +116,9 @@ pd_reprojected_rasters <-
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
@@ -124,7 +126,7 @@ pd_reprojected_rasters <-
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-   if(file.exists(saveName)){
+   if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -186,7 +188,7 @@ pd_reprojected_rasters <- list.files(path = here("data/spatial/plant_diet/int"),
 
 
 pd_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="plant_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
 this_df <- md_ingredients_list[[1]]
 
@@ -207,6 +209,9 @@ maximum_disturbance_scores_pd <-
   
   
 })
+
+
+
 
 #get maximum disturbance scores for each allocation method
 max_pd_disturbance_ge <- maximum_disturbance_scores_pd |> pull(max_disturbance_ge) |> sum()
@@ -311,6 +316,9 @@ rescaled_marine_disturbance_rasters <-
   })
 
 
+this_file <- pd_reprojected_rasters[[50]]
+
+
 #plant diets
 
 rescaled_plant_disturbance_rasters <- 
@@ -385,7 +393,9 @@ map(.x = marine_diet_ghg, .f =  \(this_file){
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
@@ -399,9 +409,9 @@ map(.x = marine_diet_ghg, .f =  \(this_file){
       
       this_rast <- rast(this_file)
       
-      this_reprojected_rast <- project(this_rast, gall_peters)
+      this_reprojected_rast <- project(this_rast, eq_area_rast)
       
-      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km") #multiply up the footprints from per km2 to total based on cellsize
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km", transform = FALSE) #multiply up the footprints from per km2 to total based on 100km2
       names(this_adj_reproj_rast) <- "kgCO2eq"
 
       writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
@@ -420,7 +430,9 @@ map(.x = plant_diet_ghg, .f = \(this_file){
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
@@ -434,9 +446,9 @@ map(.x = plant_diet_ghg, .f = \(this_file){
       
       this_rast <- rast(this_file)
       
-      this_reprojected_rast <- project(this_rast, gall_peters)
+      this_reprojected_rast <- project(this_rast, eq_area_rast)
       
-      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km") #multiply up the footprints from per km2 to total based on 100km2
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km", transform = FALSE) #multiply up the footprints from per km2 to total based on 100km2
       
       names(this_adj_reproj_rast) <- "kgCO2eq"
       

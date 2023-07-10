@@ -40,7 +40,7 @@ crop_area_raw <-
   filter(element == "Area harvested") |> 
   filter(item %in% unique(mapspam_fao_lookup$FAOSTAT_name)) |> 
   filter(year %in% c(2009, 2010, 2011, 2016, 2017, 2018)) |> 
-  mutate(value_km2 = value*0.01) |> 
+  mutate(value_km2 = value*0.01) |>
   select(area, iso3c, item, element, year, value_km2) |> 
   drop_na(value_km2) |> 
   mutate(era = if_else(condition = year %in% c(2009, 2010, 2011), true = "early", false = "late")) |> 
@@ -53,6 +53,8 @@ crop_area_raw <-
                               TRUE ~ late/early)) |> 
   filter(area != "China")
   )
+
+
   
 
 max(crop_area$rel_change, na.rm = TRUE)
@@ -157,13 +159,13 @@ map(.x = scalar_source_list, \(this_file){
   
   this_demand_scalar <- this_file$demand_production_ratio
   
-  this_raster_scalar <- this_file$rel_change
+  this_raster_scalar <- this_file$late
   
   saveName <- sprintf(here("data/spatial/%s/int/%s_disturbance_km2_%s_%s.tif"), this_diet, this_ingredient,  this_allocation_method, this_country)
   
    message("Processing ", this_diet, ", ", basename(tools::file_path_sans_ext(saveName)))
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
  
     #raw area rasters are already in km2 so no need to convert
     this_raw_rast <- rast(crop_area_files[grepl(this_mapspam_code, crop_area_files)]) 
@@ -172,7 +174,11 @@ map(.x = scalar_source_list, \(this_file){
     
     this_country_crop_rast <- this_raw_rast*this_country_rast
     
-    this_country_crop_adj_rast <- this_country_crop_rast*this_raster_scalar #increases the area associated with production
+    #converts each cell to prop of country total so it can be applied to a ne wproduction volume
+    this_country_crop_prop_rast <- this_country_crop_rast/sum(no_na_values(this_country_crop_rast))
+    
+    #updates the physical area under mapspam to area harvested under FAO (mean 2016-2018)
+    this_country_crop_adj_rast <- this_country_crop_prop_rast*this_raster_scalar 
     
     this_country_crop_demand_rast <- this_country_crop_adj_rast*this_demand_scalar
     

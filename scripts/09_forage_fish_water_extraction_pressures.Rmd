@@ -36,12 +36,12 @@ map(.x = fm_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
-  this_source <- str_extract(this_file, "EPC|NAT|OTH")
+  this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
   
   this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
-  saveName_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_water_km2_%s_%s.tif"), this_source, this_allocation_method)
-  saveName_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_water_km2_%s_%s.tif"), this_source, this_allocation_method)
+  saveName_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_water_km2_%s_%s.tif"), this_allocation_method, this_source)
+  saveName_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_water_km2_%s_%s.tif"), this_allocation_method, this_source)
   
   if(!file.exists(saveName_md) | !file.exists(saveName_pd)){
   
@@ -72,7 +72,7 @@ map(.x = fo_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
-  this_source <- str_extract(this_file, "EPC|NAT|OTH")
+  this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
   
   this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
