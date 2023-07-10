@@ -36,12 +36,12 @@ map(.x = fm_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
-  this_source <- str_extract(this_file, "EPC|NAT|OTH")
+  this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
   
   this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
-  saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_N_km2_%s_%s.tif"), this_source, this_allocation_method)
-  saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_N_km2_%s_%s.tif"), this_source, this_allocation_method)
+  saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_N_km2_%s_%s.tif"), this_allocation_method, this_source)
+  saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_N_km2_%s_%s.tif"), this_allocation_method, this_source)
   
   if(!file.exists(saveName_N_md) | !file.exists(saveName_N_pd)){
     
@@ -74,12 +74,12 @@ map(.x = fo_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
-  this_source <- str_extract(this_file, "EPC|NAT|OTH")
+   this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
   
   this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
-  saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_N_km2_%s_%s.tif"), this_source, this_allocation_method)
-  saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_N_km2_%s_%s.tif"), this_source, this_allocation_method)
+  saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_N_km2_%s_%s.tif"), this_allocation_method, this_source)
+  saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_N_km2_%s_%s.tif"), this_allocation_method, this_source)
   
   if(!file.exists(saveName_N_md) | !file.exists(saveName_N_pd)){
     
@@ -114,12 +114,12 @@ map(.x = fm_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
-  this_source <- str_extract(this_file, "EPC|NAT|OTH")
+   this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
   
   this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
-  saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_P_km2_%s_%s.tif"), this_source, this_allocation_method)
-  saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_P_km2_%s_%s.tif"), this_source, this_allocation_method)
+  saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_P_km2_%s_%s.tif"), this_allocation_method, this_source)
+  saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_P_km2_%s_%s.tif"), this_allocation_method, this_source)
   
   if(!file.exists(saveName_P_md) | !file.exists(saveName_P_pd)){
   
@@ -152,12 +152,12 @@ map(.x = fo_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
-  this_source <- str_extract(this_file, "EPC|NAT|OTH")
+  this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
   
   this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
-  saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_P_km2_%s_%s.tif"), this_source, this_allocation_method)
-  saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_P_km2_%s_%s.tif"), this_source, this_allocation_method)
+  saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_P_km2_%s_%s.tif"), this_allocation_method, this_source)
+  saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_P_km2_%s_%s.tif"), this_allocation_method, this_source)
   
   if(!file.exists(saveName_P_md) | !file.exists(saveName_P_pd)){
   
@@ -177,5 +177,81 @@ map(.x = fo_template_files, .f = \(this_file){
 rm(list = ls(all.names = TRUE))
 ```
 
+Now sum N and P for fishmeal and oil nutrient rasters
+
+Fishmeal first
+
+```{r}
+fm_N_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_N", full.names = TRUE)
+fm_P_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_P", full.names = TRUE)
+
+this_N_file <- fm_N_files[[1]]
+this_P_file <- fm_P_files[[1]]
+
+map2(.x = fm_N_files, .y = fm_P_files, .f=\(this_N_file, this_P_file){
+  
+  filename_N <- tools::file_path_sans_ext(this_N_file)
+  filename_P <- tools::file_path_sans_ext(this_P_file)
+  
+  this_source <- c(str_sub(filename_N, start = nchar(filename_N)-1, end= nchar(filename_N)), str_sub(filename_P, start = nchar(filename_P)-1, end= nchar(filename_P))) |> unique()
+  
+  this_allocation_method <- c(str_extract(this_N_file, "ge_allocation|mass_allocation"), str_extract(this_P_file, "ge_allocation|mass_allocation")) |> unique()
+  
+  #because these are zero - save to both marine and plant
+  saveName_nutrient_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_nutrient_km2_%s_%s.tif"), this_allocation_method, this_source)
+  saveName_nutrient_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_nutrient_km2_%s_%s.tif"), this_allocation_method, this_source)
+  
+  if(!file.exists(saveName_nutrient_md) | !file.exists(saveName_nutrient_pd)){
+  
+  this_r <- rast(this_N_file)+rast(this_P_file)
+  names(this_r) <- "total_nutrient_km2"
+  
+  #save nutrient fishmeal rasters
+  terra::writeRaster(x = this_r, filename = saveName_nutrient_md, overwrite = TRUE)
+  
+  terra::writeRaster(x = this_r, filename = saveName_nutrient_pd, overwrite = TRUE)
+  }
+  
+} )
+
+```
+
+
+Now fish oil
+
+```{r}
+fo_N_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_N", full.names = TRUE)
+fo_P_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_P", full.names = TRUE)
+
+this_N_file <- fo_N_files[[1]]
+this_P_file <- fo_P_files[[1]]
+
+map2(.x = fo_N_files, .y = fo_P_files, .f=\(this_N_file, this_P_file){
+  
+  filename_N <- tools::file_path_sans_ext(this_N_file)
+  filename_P <- tools::file_path_sans_ext(this_P_file)
+  
+  this_source <- c(str_sub(filename_N, start = nchar(filename_N)-1, end= nchar(filename_N)), str_sub(filename_P, start = nchar(filename_P)-1, end= nchar(filename_P))) |> unique()
+  
+  this_allocation_method <- c(str_extract(this_N_file, "ge_allocation|mass_allocation"), str_extract(this_P_file, "ge_allocation|mass_allocation")) |> unique()
+  
+  #because these are zero - save to both marine and plant
+  saveName_nutrient_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_nutrient_km2_%s_%s.tif"), this_allocation_method, this_source)
+  saveName_nutrient_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_nutrient_km2_%s_%s.tif"), this_allocation_method, this_source)
+  
+  if(!file.exists(saveName_nutrient_md) | !file.exists(saveName_nutrient_pd)){
+  
+  this_r <- rast(this_N_file)+rast(this_P_file)
+  names(this_r) <- "total_nutrient_km2"
+  
+  #save nutrient fishmeal rasters
+  terra::writeRaster(x = this_r, filename = saveName_nutrient_md, overwrite = TRUE)
+  
+  terra::writeRaster(x = this_r, filename = saveName_nutrient_pd, overwrite = TRUE)
+  }
+  
+} )
+
+```
 
 

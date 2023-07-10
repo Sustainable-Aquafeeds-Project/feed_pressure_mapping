@@ -145,7 +145,7 @@ ghg_raw_r_list_fm <-
   
   this_allocation_method <- unique(this_df$allocation_method)
   
-  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
+  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     
@@ -192,7 +192,7 @@ ghg_raw_r_list_fo <-
   
   this_allocation_method <- unique(this_df$allocation_method)
   
-  saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_source, this_allocation_method)
+  saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     

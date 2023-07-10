@@ -18,6 +18,9 @@ library(foreach)
 library(future)
 library(furrr)
 
+source(here("src/functions.R"))
+
+
 select <- dplyr::select
 values <- terra::values
 
@@ -33,13 +36,11 @@ gall_peters <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=
 base_rast <- rast(res=0.5)
 ext(base_rast) <- c(-180, 180, -90, 90)
 
-eq_area_rast <- project(base_rast, gall_peters) # this is down scaling the resolution so creates issues when changing square km values
-res(eq_area_rast) <- 10000
-
-# values(eq_area_rast) <- 1:ncell(eq_area_rast)
+eq_area_rast <- project(base_rast, gall_peters, res=10000) # this is down scaling the resolution so creates issues when changing square km values
+values(eq_area_rast) <- 1:ncell(eq_area_rast)
 
 #plot(eq_area_rast)
-#cellSize(eq_area_rast, unit="km")
+cellSize(eq_area_rast, unit="km", transform = FALSE)
 
 ```
 
@@ -57,7 +58,7 @@ marine_diet_disturbance <- marine_diet_disturbance[!grepl("forage_fish|_gp", mar
 
 #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA
 
-this_file <- marine_diet_disturbance[[1]]
+this_file <- marine_diet_disturbance[[25]]
 
 #marine diets
 md_reprojected_rasters <- 
@@ -66,7 +67,9 @@ md_reprojected_rasters <-
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
@@ -80,30 +83,21 @@ md_reprojected_rasters <-
       
       this_rast <- rast(this_file)
       
-      if(!grepl("fishmeal|fish oil", saveName)){
-        
-        # normalise by cell size for crops to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size. 
-        
-        this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
-        
-        this_reprojected_rast <-  project(this_prop_r, gall_peters)
-        
-        this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km")
-        names(this_adj_reprojected_rast) <- "km2"
-        
-        writeRaster(x = this_adj_reprojected_rast, filename = saveName, overwrite = TRUE)
-        
-        return(this_adj_reprojected_rast)
-        
-      } else {
-        
-        writeRaster(this_rast, filename = saveName, overwrite = TRUE)
-        
-        return(this_rast)
-         
-       }
+      # normalise by cell sizeto get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size. 
+      
+      this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
+      
+      this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
+      
+      this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
+      names(this_adj_reprojected_rast) <- "km2"
+      
+      writeRaster(x = this_adj_reprojected_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reprojected_rast)
       
     }
+    
   })
 
 
@@ -130,35 +124,26 @@ pd_reprojected_rasters <-
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+   if(file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
       this_rast <- rast(this_file)
       
-      if(!grepl("fishmeal|fish oil", saveName)){
-        
-        # normalise by cell size for crops to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size. 
-        
-        this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
-        
-        this_reprojected_rast <-  project(this_prop_r, gall_peters)
-        
-        this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km")
-        names(this_adj_reprojected_rast) <- "km2"
-        
-        writeRaster(x = this_adj_reprojected_rast, filename = saveName, overwrite = TRUE)
-        
-        return(this_adj_reprojected_rast)
-        
-      } else {
-        
-        writeRaster(this_rast, filename = saveName, overwrite = TRUE)
-        
-        return(this_rast)
-         
-      }
+      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size. 
+      
+      this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
+      
+      this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
+      
+      this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
+      names(this_adj_reprojected_rast) <- "km2"
+      
+      writeRaster(x = this_adj_reprojected_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reprojected_rast)
     }
+    
   })
 
 
@@ -169,7 +154,7 @@ pd_reprojected_rasters <-
 md_reprojected_rasters <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "disturbance_gp", full=TRUE)
 
 md_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="marine_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
 this_df <- md_ingredients_list[[1]]
 
