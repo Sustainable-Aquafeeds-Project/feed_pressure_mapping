@@ -76,7 +76,7 @@ md_reprojected_rasters <-
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -124,7 +124,7 @@ pd_reprojected_rasters <-
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-   if(!file.exists(saveName)){
+   if(file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -280,7 +280,7 @@ rescaled_marine_disturbance_rasters <-
     
     saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("Processing ", "'", this_basename, "'") 
       
@@ -331,7 +331,7 @@ rescaled_plant_disturbance_rasters <-
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
    message("Processing ", "'", this_basename, "'")
     
@@ -401,7 +401,7 @@ map(.x = marine_diet_ghg, .f =  \(this_file){
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_ghg_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -438,7 +438,7 @@ map(.x = plant_diet_ghg, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_ghg_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -571,7 +571,7 @@ rescaled_marine_ghg_rasters <-
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
       
       message("Processing ", "'", this_basename, "'") 
       
@@ -623,7 +623,7 @@ rescaled_plant_ghg_rasters <-
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing ", "'", this_basename, "'")
     
@@ -690,7 +690,7 @@ map(.x = marine_diet_nutrients, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/int/%s_nutrient_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
   
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -725,7 +725,7 @@ map(.x = plant_diet_nutrients, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_nutrient_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -965,7 +965,7 @@ First for Nitrogen
 #     
 #     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_N_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
 #     
-#     if(!file.exists(saveName)){
+#     if(file.exists(saveName)){
 #       
 #       message("Processing ", basename(saveName))
 #       
@@ -1000,7 +1000,7 @@ First for Nitrogen
 #     
 #     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_N_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
 #     
-#     if(!file.exists(saveName)){
+#     if(file.exists(saveName)){
 #       
 #       message("processing ", basename(saveName))
 #       
@@ -1123,7 +1123,7 @@ First for Nitrogen
 #   
 #   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
 #   
-#   if(!file.exists(saveName)){
+#   if(file.exists(saveName)){
 #     
 #      message("Processing", "'", this_basename, "'")
 #     
@@ -1168,7 +1168,7 @@ First for Nitrogen
 #   
 #   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
 #   
-#   if(!file.exists(saveName)){
+#   if(file.exists(saveName)){
 #     
 #     message("Processing", "'", this_basename, "'")
 #     
@@ -1234,7 +1234,7 @@ Repeat for phosphorus
 #     
 #     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_P_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
 #     
-#     if(!file.exists(saveName)){
+#     if(file.exists(saveName)){
 #       
 #       message("Processing ", basename(saveName))
 #       
@@ -1270,7 +1270,7 @@ Repeat for phosphorus
 #     
 #     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_P_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
 #     
-#     if(!file.exists(saveName)){
+#     if(file.exists(saveName)){
 #       
 #       message("processing ", basename(saveName))
 #       
@@ -1399,7 +1399,7 @@ Repeat for phosphorus
 #   
 #   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
 #   
-#   if(!file.exists(saveName)){
+#   if(file.exists(saveName)){
 #     
 #      message("Processing", "'", this_basename, "'")
 #     
@@ -1448,7 +1448,7 @@ Repeat for phosphorus
 #   
 #   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
 #   
-#   if(!file.exists(saveName)){
+#   if(file.exists(saveName)){
 #     
 #      message("Processing", "'", this_basename, "'")
 #     
@@ -1680,7 +1680,7 @@ map(.x= md_reprojected_rasters_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
      message("Processing", "'", this_basename, "'")
     
