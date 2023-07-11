@@ -147,45 +147,6 @@ marine_diet_rasters <-
   
 })
 
-
-
-  
-#load all files as rasters and adjust files a  NA -> 0
-#this_file <- marine_diet_files[[6]]
-# marine_source_rast_list <- list()
-# for(source in sources){
-#   
-#   marine_rast_list <- 
-#   map(.x = marine_source_file_list[[source]], .f = \(this_file){
-#   
-#   
-#   this_rast <- rast(this_file)
-#   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-#   
-#   this_rast[is.na(this_rast)] <- 0
-#   names(this_rast) <- this_source
-#   return(this_rast)
-# })
-#   
-#   marine_source_rast_list[[source]] <- marine_rast_list
-#   
-# }
-#stack and sum the pressures for all ingredients and source combinations
-# marine_diet_raster <- list()
-# options(warn = 0)
-# for(source in sources){
-#   
-#   #stack rasters for each sourcing combination
-#   marine_diet_raster[[source]] <- app(rast(marine_source_rast_list[[source]]), sum)
-#   marine_diet_raster[[source]][marine_diet_raster[[source]]==0] <- NA
-#   
-#   #reproject raster 
-#   marine_diet_raster[[source]] <- project(marine_diet_raster[[source]], moll_crs)
-#   
-# }
-# options(warn = 1)
-
-
 ```
 
 
@@ -278,48 +239,6 @@ plant_diet_rasters <-
   
 })
 
-
-
-
-# #adjust layers and replace NA with 0
-# plant_source_rast_list <- list()
-# 
-# for(source in sources){
-#   
-#   plant_rast_list <- 
-#   map(.x = plant_source_file_list[[source]], .f = \(this_file){
-#   
-#   
-#   this_rast <- rast(this_file)
-#   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-#   
-#   this_rast[is.na(this_rast)] <- 0
-#   names(this_rast) <- this_source
-#   return(this_rast)
-# })
-#   
-#   plant_source_rast_list[[source]] <- plant_rast_list
-#   
-# }
-# 
-# 
-# #stack and sum the pressures for all ingredients and source combinations
-# plant_diet_raster <- list()
-# oldw <- getOption("warn")
-# options(warn = -1) #just turns off the warnings of southern latitudes issues from converting from Gall-Peters to Mollweide
-# for(source in sources){
-#   
-#   #stack rasters for each sourcing combination
-#   plant_diet_raster[[source]] <- app(rast(plant_source_rast_list[[source]]), sum)
-#   plant_diet_raster[[source]][plant_diet_raster[[source]]==0] <- NA
-#   
-#   #reproject raster 
-#   plant_diet_raster[[source]] <- project(plant_diet_raster[[source]], moll_crs)
-#   
-# }
-# options(warn = oldw)
-# marine_diet_raster
-# plant_diet_raster
 ```
 
 Figure - maps comparing diet and sourcing
@@ -540,7 +459,7 @@ source_diet_map <-
           
 
           
-ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_ge_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 18, units = "cm")
+ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_ge_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 19, units = "cm")
 ```
 
 

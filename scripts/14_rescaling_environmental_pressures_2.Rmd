@@ -1,10 +1,8 @@
 ---
-title: "Rescaling environmental pressures"
-author: "Rich Cottrell"
-date: "30/06/2022"
+title: "Rescaling the pressure data to create the CPI"
 output: html_document
+date: "2023-07-11"
 ---
-
 This file is used to rescale all rasters' values for each pressure so that values among feeds may be compared.
 
 ```{r}
@@ -1760,10 +1758,3 @@ map(.x= pd_reprojected_rasters_h2o, .f = \(this_file){
 #clear the environment
 rm(list = ls(all.names = TRUE))
 ```
-
-
-
-
-
-
-

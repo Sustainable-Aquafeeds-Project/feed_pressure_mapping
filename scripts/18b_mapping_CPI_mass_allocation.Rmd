@@ -465,7 +465,7 @@ source_diet_map <-
           
 
           
-ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 18, units = "cm")
+ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 19, units = "cm")
 ```
 
 Save one cumulative pressure map for conceptual plot

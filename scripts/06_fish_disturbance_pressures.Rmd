@@ -276,14 +276,14 @@ carbon_conversion <- 9
               ppr_fm_ge = sum(ppr_fm_ge),
               ppr_fo_ge = sum(ppr_fo_ge)) |> 
     ungroup() |> 
-    mutate(ppr_prop_fm_mass = case_when(ppr_fm_mass/mean_npp_t_C_yr<1 ~ ppr_fm_mass/mean_npp_t_C_yr,
+    mutate(ppr_prop_fm_mass = case_when(ppr_fm_mass/max_npp_t_C_yr<1 ~ ppr_fm_mass/max_npp_t_C_yr,
                                         TRUE ~ ppr_fm_mass/max_npp_t_C_yr),
            
-           ppr_prop_fo_mass = case_when(ppr_fo_mass/mean_npp_t_C_yr<1 ~ ppr_fo_mass/mean_npp_t_C_yr,
+           ppr_prop_fo_mass = case_when(ppr_fo_mass/max_npp_t_C_yr<1 ~ ppr_fo_mass/max_npp_t_C_yr,
                                         TRUE ~ ppr_fo_mass/max_npp_t_C_yr),
-           ppr_prop_fm_ge = case_when(ppr_fm_ge/mean_npp_t_C_yr<1 ~ ppr_fm_ge/mean_npp_t_C_yr,
+           ppr_prop_fm_ge = case_when(ppr_fm_ge/max_npp_t_C_yr<1 ~ ppr_fm_ge/max_npp_t_C_yr,
                                       TRUE ~ ppr_fm_ge/max_npp_t_C_yr),
-           ppr_prop_fo_ge = case_when(ppr_fo_ge/mean_npp_t_C_yr<1 ~ ppr_fo_ge/mean_npp_t_C_yr,
+           ppr_prop_fo_ge = case_when(ppr_fo_ge/max_npp_t_C_yr<1 ~ ppr_fo_ge/max_npp_t_C_yr,
                                       TRUE ~ ppr_fo_ge/max_npp_t_C_yr)) |> 
     arrange(LonCentre, LatCentre) |> 
     left_join(cell_area) |> 
@@ -331,14 +331,14 @@ carbon_conversion <- 9
               ppr_fm_ge = sum(ppr_fm_ge),
               ppr_fo_ge = sum(ppr_fo_ge)) |> 
     ungroup() |> 
-     mutate(ppr_prop_fm_mass = case_when(ppr_fm_mass/mean_npp_t_C_yr<1 ~ ppr_fm_mass/mean_npp_t_C_yr,
+     mutate(ppr_prop_fm_mass = case_when(ppr_fm_mass/max_npp_t_C_yr<1 ~ ppr_fm_mass/max_npp_t_C_yr,
                                         TRUE ~ ppr_fm_mass/max_npp_t_C_yr),
            
-           ppr_prop_fo_mass = case_when(ppr_fo_mass/mean_npp_t_C_yr<1 ~ ppr_fo_mass/mean_npp_t_C_yr,
+           ppr_prop_fo_mass = case_when(ppr_fo_mass/max_npp_t_C_yr<1 ~ ppr_fo_mass/max_npp_t_C_yr,
                                         TRUE ~ ppr_fo_mass/max_npp_t_C_yr),
-           ppr_prop_fm_ge = case_when(ppr_fm_ge/mean_npp_t_C_yr<1 ~ ppr_fm_ge/mean_npp_t_C_yr,
+           ppr_prop_fm_ge = case_when(ppr_fm_ge/max_npp_t_C_yr<1 ~ ppr_fm_ge/max_npp_t_C_yr,
                                       TRUE ~ ppr_fm_ge/max_npp_t_C_yr),
-           ppr_prop_fo_ge = case_when(ppr_fo_ge/mean_npp_t_C_yr<1 ~ ppr_fo_ge/mean_npp_t_C_yr,
+           ppr_prop_fo_ge = case_when(ppr_fo_ge/max_npp_t_C_yr<1 ~ ppr_fo_ge/max_npp_t_C_yr,
                                       TRUE ~ ppr_fo_ge/max_npp_t_C_yr)) |> 
          arrange(LonCentre, LatCentre) |> 
     left_join(cell_area) |> 
@@ -368,7 +368,7 @@ all_fish_npp <-
 ```
 
 
-Now export the km2 equivalent as rasters =
+Now export the km2 equivalent as rasters
 
 ```{r}
 
