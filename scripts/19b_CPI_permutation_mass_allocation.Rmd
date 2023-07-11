@@ -747,7 +747,8 @@ Visualise the pressure disaggregation
 
 ```{r}
 marine_plant_pressure_disagg_df <- 
-  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds")) #|> 
+  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds")) |> 
+  mutate(pressure = factor(pressure, levels = c("")))
   # group_by(diet, source) |> 
   # nest() |> 
   # mutate(total = map(data, ~(sum(.$sum)))) |> 

@@ -13,9 +13,8 @@ library(here)
 library(sf)
 library(terra)
 library(rnaturalearth)
-#library(rnaturalearthdata)
+library(rnaturalearthdata)
 library(RColorBrewer)
-library(gameofthrones)
 library(parallel)
 library(ggdist)
 library(data.table)
@@ -43,9 +42,9 @@ moll_crs <- "ESRI:53009"
 gp_crs <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
 
-countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
-bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = moll_crs)
-coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
+countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = gp_crs)
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = gp_crs)
+coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = gp_crs)
 select <- dplyr::select
 values <- terra::values
 ```
@@ -67,9 +66,9 @@ Combine all values for pressures for a marine diet
 marine_source_ingredient <- 
   marine_diets |> 
   select(ingredient) |> 
-  mutate(source_1 = c(1, 1, 2, 2, 2, 5, 1),
-         source_2 = c(2, 3, 1, 1, 4, 2, 3),
-         source_3 = c(3, 5, 3, 3, 3, 2, 4)) |> 
+  mutate(source_1 = c(1, 1, 3, 4, 2, 5, 1),
+         source_2 = c(2, 3, 1, 2, 4, 2, 3),
+         source_3 = c(3, 5, 5, 1, 3, 2, 4))|> 
    mutate(row = row_number()) |> 
    group_split(row) 
   # select(ingredient, source_1 = `5`, source_2 = `9`, source_3 = `21`) |> 
@@ -87,7 +86,8 @@ this_df <- marine_source_ingredient[[4]]
 #Now prepare the files corresponding to the first source for each ingredient for each pressure
 sources <- c("source_1", "source_2", "source_3")
 source = "source_1"
-#gross energy allocation 
+
+#mass allocation 
 marine_source_file_list <- list()
 for(source in sources){
     
@@ -135,40 +135,21 @@ for(source in sources){
     
   }
   
-#load all files as rasters and adjust files a  NA -> 0
-#this_file <- marine_diet_files[[6]]
-marine_source_rast_list <- list()
-for(source in sources){
+
+
+#just need to add scores as pressures and ingredients are additive at this point
+
+marine_diet_rasters <- 
   
-  marine_rast_list <- 
-  map(.x = marine_source_file_list[[source]], .f = \(this_file){
+  map(.x = sources, .f = \(this_source){
+  
+  these_files <- marine_source_file_list[[this_source]]
+  
+  this_cum_rast <- app(rast(these_files), sum, na.rm=TRUE)
   
   
-  this_rast <- rast(this_file)
-  this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-  
-  this_rast[is.na(this_rast)] <- 0
-  names(this_rast) <- this_source
-  return(this_rast)
 })
-  
-  marine_source_rast_list[[source]] <- marine_rast_list
-  
-}
-#stack and sum the pressures for all ingredients and source combinations
-marine_diet_raster <- list()
-options(warn = 0)
-for(source in sources){
-  
-  #stack rasters for each sourcing combination
-  marine_diet_raster[[source]] <- app(rast(marine_source_rast_list[[source]]), sum)
-  marine_diet_raster[[source]][marine_diet_raster[[source]]==0] <- NA
-  
-  #reproject raster 
-  marine_diet_raster[[source]] <- project(marine_diet_raster[[source]], moll_crs)
-  
-}
-options(warn = 1)
+
 
 ```
 
@@ -179,9 +160,9 @@ Combine all values for a plant-dominant diet
 plant_source_ingredient <- 
   plant_diets |> 
   select(ingredient) |> 
-  mutate(source_1 = c(1, 1, 2, 4, 1, 1, 3, 1, 3, 4, 2, 2, 1),
-         source_2 = c(2, 2, 3, 3, 2, 2, 3, 3, 5, 1, 3, 5, 2),
-         source_3 = c(3, 3, 1, 5, 3, 3, 4, 2, 1, 2, 1, 3, 5)) |> 
+ mutate(source_1 = c(1, 1, 2, 4, 4, 3, 3, 1, 3, 4, 2, 2, 1),
+         source_2 = c(2, 2, 3, 3, 1, 2, 3, 3, 5, 1, 3, 5, 2),
+         source_3 = c(3, 3, 1, 5, 5, 1, 4, 2, 1, 2, 1, 3, 5)) |> 
    mutate(row = row_number()) |> 
   group_split(row) 
 # 
@@ -194,10 +175,12 @@ plant_source_ingredient <-
 #                             TRUE ~ source_3)) |> 
 #   mutate(row = row_number()) |> 
 #   group_split(row) 
+
 #test dataframe
 this_df <- plant_source_ingredient[[6]]
 sources <- c("source_1", "source_2", "source_3")
 plant_source_file_list <- list()
+
 #Now prepare the files corresponding to the first source for each ingredient for each pressure
 for(source in sources){
     
@@ -247,42 +230,21 @@ for(source in sources){
     
   }
   
-#adjust layers and replace NA with 0
-plant_source_rast_list <- list()
-for(source in sources){
+
+#stack rasters  
+plant_diet_rasters <- 
   
-  plant_rast_list <- 
-  map(.x = plant_source_file_list[[source]], .f = \(this_file){
+  map(.x = sources, .f = \(this_source){
+  
+  these_files <- plant_source_file_list[[this_source]]
+  
+  this_cum_rast <- app(rast(these_files), sum, na.rm=TRUE)
   
   
-  this_rast <- rast(this_file)
-  this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-  
-  this_rast[is.na(this_rast)] <- 0
-  names(this_rast) <- this_source
-  return(this_rast)
 })
-  
-  plant_source_rast_list[[source]] <- plant_rast_list
-  
-}
-#stack and sum the pressures for all ingredients and source combinations
-plant_diet_raster <- list()
-oldw <- getOption("warn")
-options(warn = -1) #just turns off the warnings of southern latitudes issues from converting from Gall-Peters to Mollweide
-for(source in sources){
-  
-  #stack rasters for each sourcing combination
-  plant_diet_raster[[source]] <- app(rast(plant_source_rast_list[[source]]), sum)
-  plant_diet_raster[[source]][plant_diet_raster[[source]]==0] <- NA
-  
-  #reproject raster 
-  plant_diet_raster[[source]] <- project(plant_diet_raster[[source]], moll_crs)
-  
-}
-options(warn = oldw)
-marine_diet_raster |> map(no_na_values) |> map(sum)
-plant_diet_raster |> map(no_na_values) |> map(sum)
+
+
+
 ```
 
 Figure - maps comparing diet and sourcing
@@ -503,7 +465,7 @@ source_diet_map <-
           
 
           
-ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 15.5, units = "cm")
+ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 18, units = "cm")
 ```
 
 Save one cumulative pressure map for conceptual plot
