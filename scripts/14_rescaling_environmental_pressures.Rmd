@@ -36,10 +36,9 @@ gall_peters <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=
 base_rast <- rast(res=0.5)
 ext(base_rast) <- c(-180, 180, -90, 90)
 
-eq_area_rast <- project(base_rast, gall_peters, res=10000) # this is down scaling the resolution so creates issues when changing square km values
+eq_area_rast <- project(base_rast, gall_peters) 
 values(eq_area_rast) <- 1:ncell(eq_area_rast)
 
-#plot(eq_area_rast)
 cellSize(eq_area_rast, unit="km", transform = FALSE)
 
 ```
@@ -83,10 +82,10 @@ md_reprojected_rasters <-
       
       this_rast <- rast(this_file)
       
-      # normalise by cell sizeto get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size. 
-      
+      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size.
+
       this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
-      
+
       this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
       
       this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
@@ -95,7 +94,6 @@ md_reprojected_rasters <-
       writeRaster(x = this_adj_reprojected_rast, filename = saveName, overwrite = TRUE)
       
       return(this_adj_reprojected_rast)
-      
     }
     
   })
@@ -132,10 +130,10 @@ pd_reprojected_rasters <-
       
       this_rast <- rast(this_file)
       
-      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size. 
-      
+      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size.
+
       this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
-      
+
       this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
       
       this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
@@ -476,7 +474,7 @@ map(.x = plant_diet_ghg, .f = \(this_file){
 md_reprojected_rasters_ghg <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "ghg_gp", full=TRUE)
 
 md_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="marine_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
 this_df <- md_ingredients_list[[1]]
 
@@ -513,7 +511,7 @@ pd_reprojected_rasters_ghg <- list.files(path = here("data/spatial/plant_diet/in
 
 
 pd_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="plant_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
 this_df <- md_ingredients_list[[1]]
 
@@ -534,6 +532,11 @@ maximum_ghg_scores_pd <-
   
   
 })
+
+
+#compare teh scores by diet
+maximum_ghg_scores_md
+maximum_ghg_scores_pd
 
 #get maximum ghg scores for each allocation method
 max_pd_ghg_ge <- maximum_ghg_scores_pd |> pull(max_ghg_ge) |> sum()
@@ -661,9 +664,9 @@ rescaled_plant_ghg_rasters <-
 
 Do first for aggregated nutrients
 ```{r}
-marine_diet_nutrients <- list.files(here("data/spatial/marine_diet/int"), pattern = "nutrient", full.names = TRUE)
+marine_diet_nutrients <- list.files(here("data/spatial/marine_diet/int"), pattern = "nutrient_km2", full.names = TRUE)
 
-plant_diet_nutrients <- list.files(here("data/spatial/plant_diet/int"), pattern = "nutrient", full.names = TRUE)
+plant_diet_nutrients <- list.files(here("data/spatial/plant_diet/int"), pattern = "nutrient_km2", full.names = TRUE)
 
 
 #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
@@ -677,7 +680,9 @@ map(.x = marine_diet_nutrients, .f = \(this_file){
     
   base <- tools::file_path_sans_ext(basename(this_file))  
   
-  this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+  this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
   
   this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
   
@@ -693,7 +698,7 @@ map(.x = marine_diet_nutrients, .f = \(this_file){
       
       this_reprojected_rast <- project(this_rast, gall_peters)
       
-      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
       names(this_adj_reproj_rast) <- "summed MT N/P eq."
 
       writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
@@ -711,7 +716,9 @@ map(.x = plant_diet_nutrients, .f = \(this_file){
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-   this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     this_ingredient <- str_extract(base, "[^_]+")
@@ -726,7 +733,7 @@ map(.x = plant_diet_nutrients, .f = \(this_file){
       
       this_reprojected_rast <- project(this_rast, gall_peters)
       
-      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
       
       names(this_adj_reproj_rast) <- "summed MT N/P eq."
       
@@ -754,7 +761,7 @@ map(.x = plant_diet_nutrients, .f = \(this_file){
 md_reprojected_rasters_nutrient <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "nutrient_gp", full=TRUE)
 
 md_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="marine_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
 
 #test function
@@ -793,9 +800,9 @@ pd_reprojected_rasters_nutrient <- list.files(path = here("data/spatial/plant_di
 
 
 pd_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="plant_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
-this_df <- pd_ingredients_list[[1]]
+this_df <- pd_ingredients_list[[5]]
 
 maximum_nutrient_scores_pd <-  
   
@@ -814,6 +821,10 @@ maximum_nutrient_scores_pd <-
   
   
 })
+
+#compare nutrient scores by ingredient by diet
+maximum_nutrient_scores_md
+maximum_nutrient_scores_pd
 
 #get maximum nutrient scores for each allocation method
 max_pd_nutrient_ge <- maximum_nutrient_scores_pd |> pull(max_nutrient_ge) |> sum()
@@ -842,7 +853,7 @@ map(.x= md_reprojected_rasters_nutrient, .f = \(this_file){
 
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
 
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
 
      message("Processing", "'", this_basename, "'")
 
@@ -887,7 +898,7 @@ map(.x= pd_reprojected_rasters_nutrient, .f = \(this_file){
 
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
 
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
 
     message("Processing", "'", this_basename, "'")
 
@@ -1480,11 +1491,10 @@ Repeat for phosphorus
 # Water extraction
 ```{r}
 
-marine_diet_h2o <- list.files(here("data/spatial/marine_diet/int"), pattern = "_water_", full.names = TRUE)
-marine_diet_h2o <- marine_diet_h2o[!grepl("forage_fish|_gp", marine_diet_h2o)]
+marine_diet_h2o <- list.files(here("data/spatial/marine_diet/int"), pattern = "_water_km2", full.names = TRUE)
 
-plant_diet_h2o <- list.files(here("data/spatial/plant_diet/int"), pattern = "_water_", full.names = TRUE)
-plant_diet_h2o <- plant_diet_h2o[!grepl("forage_fish|_gp", plant_diet_h2o)]
+plant_diet_h2o <- list.files(here("data/spatial/plant_diet/int"), pattern = "_water_km2", full.names = TRUE)
+
 
 
 #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
@@ -1498,7 +1508,9 @@ map(.x = marine_diet_h2o, .f = \(this_file){
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+     this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
@@ -1506,7 +1518,7 @@ map(.x = marine_diet_h2o, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_water_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("Processing ", basename(saveName))
       
@@ -1514,7 +1526,7 @@ map(.x = marine_diet_h2o, .f = \(this_file){
       
       this_reprojected_rast <- project(this_rast, gall_peters)
       
-      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
       names(this_adj_reproj_rast) <- "m3"
 
       writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
@@ -1534,7 +1546,9 @@ map(.x = plant_diet_h2o, .f = \(this_file){
     
     base <- tools::file_path_sans_ext(basename(this_file))  
     
-    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+     this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
     
@@ -1542,7 +1556,7 @@ map(.x = plant_diet_h2o, .f = \(this_file){
     
     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_water_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
@@ -1550,7 +1564,7 @@ map(.x = plant_diet_h2o, .f = \(this_file){
       
       this_reprojected_rast <- project(this_rast, gall_peters)
       
-      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
       
       names(this_adj_reproj_rast) <- "m3"
       
@@ -1579,9 +1593,9 @@ map(.x = plant_diet_h2o, .f = \(this_file){
 md_reprojected_rasters_h2o <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "water_gp", full=TRUE)
 
 md_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="marine_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
-this_df <- md_ingredients_list[[1]]
+this_df <- md_ingredients_list[[3]]
 
 
 maximum_h2o_scores_md <-  
@@ -1616,9 +1630,9 @@ pd_reprojected_rasters_h2o <- list.files(path = here("data/spatial/plant_diet/in
 
 
 pd_ingredients_list <- 
-  readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="plant_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
-this_df <- pd_ingredients_list[[1]]
+this_df <- pd_ingredients_list[[5]]
 
 maximum_h2o_scores_pd <-  
   
@@ -1645,6 +1659,10 @@ max_pd_h2o_mass <- maximum_h2o_scores_pd |> pull(max_h2o_mass) |> sum()
 
 max_total_h2o_ge <- max(max_md_h2o_ge,max_pd_h2o_ge)
 max_total_h2o_mass <- max(max_md_h2o_mass,max_pd_h2o_mass)
+
+#Compare water consumption by diet
+maximum_h2o_scores_md
+maximum_h2o_scores_pd
 
 
 
@@ -1707,7 +1725,7 @@ map(.x= pd_reprojected_rasters_h2o, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
      message("Processing", "'", this_basename, "'")
     

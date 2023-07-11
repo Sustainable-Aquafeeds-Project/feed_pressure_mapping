@@ -26,7 +26,7 @@ Fishmeal
 
 ```{r}
 
-fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg", full.names = TRUE)
+fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg_raw", full.names = TRUE)
 fm_template_files <- fm_template_files[grepl("allocation", fm_template_files)]
 
 this_file <- fm_template_files[[1]]
@@ -62,7 +62,7 @@ Fish oil
 
 ```{r}
 
-fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg", full.names = TRUE)
+fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg_raw", full.names = TRUE)
 fo_template_files <- fo_template_files[grepl("allocation", fo_template_files)]
 
 this_file <- fo_template_files[[1]]
@@ -77,8 +77,8 @@ map(.x = fo_template_files, .f = \(this_file){
   this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
   
-  saveName_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_water_km2_%s_%s.tif"), this_source, this_allocation_method)
-  saveName_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_water_km2_%s_%s.tif"), this_source, this_allocation_method)
+  saveName_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_water_km2_%s_%s.tif"),  this_allocation_method, this_source)
+  saveName_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_water_km2_%s_%s.tif"), this_allocation_method, this_source)
   
   if(!file.exists(saveName_md) | !file.exists(saveName_pd)){
   

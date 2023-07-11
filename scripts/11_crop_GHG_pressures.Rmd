@@ -73,6 +73,8 @@ map(md_crop_r_list, \(this_file){
   }
 })
 
+readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(impact == "Global warming" & raw_material=="Soybeans")
+
 
 ```
 

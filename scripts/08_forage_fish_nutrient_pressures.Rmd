@@ -27,7 +27,7 @@ Fishmeal
 
 ```{r}
 
-fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg", full.names = TRUE)
+fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg_raw", full.names = TRUE)
 fm_template_files <- fm_template_files[grepl("allocation", fm_template_files)]
 
 this_file <- fm_template_files[[3]]
