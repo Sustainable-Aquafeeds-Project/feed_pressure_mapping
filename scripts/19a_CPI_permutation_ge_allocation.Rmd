@@ -290,16 +290,16 @@ both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nf
                                                          diet == "marine diet" ~ "Fish-\ndominant\nfeed"),
                                         diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Fish-\ndominant\nfeed"))))+
   aes(x = sum, y = diet, colour = diet)+
-    geom_jitter(shape =20, size = 2.5, alpha = 0.1, height = 0.4
+    geom_jitter(shape =20, size = 1.8, alpha = 0.1, height = 0.4
   )+
   # ggdist::stat_gradientinterval(
   #   width = .3, color = "black", fill_type = "gradient"
   # )+
   scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
-  scale_x_continuous(limits = c(0.5,4))+
+  scale_x_continuous(limits = c(0,3))+
   theme_pubr()+
-  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.3, alpha = 0, linewidth=0.5)+
-  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1.8, alpha = 0.7, shape = 0)+
+  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.2, alpha = 0, linewidth=0.5)+
+  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1, alpha = 0.7, shape = 0)+
   labs(y = "Diet", x = "Cumulative pressure index (CPI)")+
   theme(text = element_text(size=8),
         axis.text = element_text(size=8),

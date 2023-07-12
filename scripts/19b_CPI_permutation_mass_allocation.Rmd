@@ -295,16 +295,16 @@ both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nf
                                                          diet == "marine diet" ~ "Fish-\ndominant\nfeed"),
                                         diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Fish-\ndominant\nfeed"))))+
   aes(x = sum, y = diet, colour = diet)+
-    geom_jitter(shape =20, size = 2.5, alpha = 0.1, height = 0.4
+    geom_jitter(shape =20, size = 1.8, alpha = 0.1, height = 0.4
   )+
   # ggdist::stat_gradientinterval(
   #   width = .3, color = "black", fill_type = "gradient"
   # )+
   scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
-  scale_x_continuous(limits = c(0.5,4))+
+  scale_x_continuous(limits = c(0,3))+
   theme_pubr()+
-  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.3, alpha = 0, linewidth=0.5)+
-  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1.8, alpha = 0.7, shape = 0)+
+  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.2, alpha = 0, linewidth=0.5)+
+  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1, alpha = 0.7, shape = 0)+
   labs(y = "Diet", x = "Cumulative pressure index (CPI)")+
   theme(text = element_text(size=8),
         axis.text = element_text(size=8),
@@ -738,7 +738,7 @@ marine_pressure_disagg <- readRDS(here("data/tidy_data/pressures/marine_disaggre
 plant_pressure_disagg <- readRDS(here("data/tidy_data/pressures/plant_disaggregated_pressures_df_mass_allocation.rds"))
 marine_plant_pressure_disagg_df <- bind_rows(marine_pressure_disagg, plant_pressure_disagg)
 saveRDS(object = marine_plant_pressure_disagg_df, file = here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds"))
-marine_pressure_disagg
+marine_pressure_disagg |>  filter(pressure=="Disturbance" & sum>=0.7 &sum<0.8)
 plant_pressure_disagg
 ```
 
@@ -747,12 +747,12 @@ Visualise the pressure disaggregation
 
 ```{r}
 marine_plant_pressure_disagg_df <- 
-  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds"))
-  # group_by(diet, source) |> 
-  # nest() |> 
-  # mutate(total = map(data, ~(sum(.$sum)))) |> 
-  # unnest(c(data, total)) |> 
-  # mutate(prop = sum/total)
+  readRDS(here("data/tidy_data/pressures/marine_plant_disaggreagted_pressures_combined_df_mass_allocation.rds")) |> 
+  group_by(diet, source) |>
+  nest() |>
+  mutate(total = map(data, ~(sum(.$sum)))) |>
+  unnest(c(data, total)) |>
+  mutate(prop = sum/total)
 
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
@@ -761,25 +761,28 @@ ggplot(data = marine_plant_pressure_disagg_df |>
                               mutate(diet = case_when(diet == "plant diet" ~ "Plant-dominant\nfeed",
                                                       diet == "marine diet" ~ "Fish-dominant\nfeed"),
                                                       diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed"))))+
-  aes(x = sum, y = reorder(pressure, sum), fill = diet)+
-  geom_point(pch = 21, position = position_jitterdodge(), alpha = 0.2)+
-  geom_boxplot(notch = TRUE, colour = "grey35", alpha = 0.5, linewidth=0.5)+
+  aes(x = prop, y = reorder(pressure, prop), fill = diet)+
+  geom_point(pch = 21, position = position_jitterdodge(jitter.width = 0.5), alpha = 0.1)+
+  geom_boxplot(notch = TRUE, colour = "grey35", alpha = 0.4, linewidth=0.5)+
   scale_fill_manual(values = my_pal[c(4,2)])+
+  scale_x_continuous(limits = c(0,1))+
   theme_pubr()+
-  theme(legend.position = "right",
+  theme(legend.position = c(0.85, 0.15),
+        legend.background = element_rect(fill="transparent"),
         legend.title = element_blank(),
         text = element_text(size=8),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
         axis.title.y = element_blank())+
-  labs(x = "CPI contribution")
+  labs(x = "Proportion of CPI")
   
 
-ggsave(filename = here("figures/disaggregation_of_pressures_mass_allocation.jpg"), width = 12, height=8, units = "cm", device = "jpg", dpi = 600)
+ggsave(filename = here("figures/disaggregation_of_pressures_mass_allocation.jpg"), width = 12, height=9, units = "cm", device = "jpg", dpi = 600)
 
 
 ```
 
+Might keep the run pressure iterations separate 
 
 Combine aggregated and disaggregated figures
 ```{r}
