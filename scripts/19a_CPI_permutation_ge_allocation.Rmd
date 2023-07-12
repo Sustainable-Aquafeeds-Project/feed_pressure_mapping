@@ -778,6 +778,7 @@ ggplot(data = marine_plant_pressure_disagg_df |>
 
 ggsave(filename = here("figures/disaggregation_of_pressures_ge_allocation.jpg"), width = 12, height=9, units = "cm", device = "jpg", dpi = 600)
 ```
+
 Combine aggregated and disaggregated figures
 ```{r}
 both_diets_agg_p+both_diets_disagg_p+
