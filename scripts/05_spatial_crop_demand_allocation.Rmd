@@ -15,7 +15,6 @@ source(here("src/spatial.R"))
 
 base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
-
 select <- dplyr::select
 ```
 
@@ -45,7 +44,7 @@ crop_demand_production_compare |>
          check_ge != TRUE)
 
 
-saveRDS(object = crop_demand_production_compare, file = here("data/tidy_data/demand/crop_demand_production_compare.rds"))
+saveRDS(object = crop_demand_production_compare, file = "/mnt/rdsi/github/feed_pressure_mapping/test.rds") #("data/tidy_data/demand/crop_demand_production_compare.rds"))
 
 
 ```
