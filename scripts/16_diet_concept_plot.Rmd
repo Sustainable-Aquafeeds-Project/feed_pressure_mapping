@@ -50,6 +50,10 @@ bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physica
 coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
 select <- dplyr::select
 values <- terra::values
+
+
+
+
 ```
 
 
@@ -110,7 +114,7 @@ both_diets <- bind_rows(marine_diet, plant_diet) |>
 both_diets_p <- ggplot(data = both_diets,
        aes(x = diet , y = prop, fill = ingredients))+
   geom_col()+
-  scale_fill_manual(values =  (colorRampPalette(colors = rcartocolor::carto_pal(n = 7, name = "Earth"))(16)))+
+  scale_fill_manual(values =  c("darkgoldenrod4", rev(colorRampPalette(brewer.pal(n=9, name = "Greens"))(12)),  brewer.pal(n=5, name = "Blues")[c(2,4)]))+
   theme_pubr()+
   theme(legend.title = element_blank(),
         legend.text = element_text(size=7),

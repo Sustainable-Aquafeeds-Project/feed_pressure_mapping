@@ -53,7 +53,7 @@ map(md_crop_r_list, \(this_file){
   
   saveName <- sprintf(here("data/spatial/%s/int/%s_ghg_km2_%s_%s.tif"), this_diet, this_ingredient,this_allocation_method, this_source)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
@@ -72,6 +72,8 @@ map(md_crop_r_list, \(this_file){
     
   }
 })
+
+readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(impact == "Global warming" & raw_material=="Soybeans")
 
 
 ```

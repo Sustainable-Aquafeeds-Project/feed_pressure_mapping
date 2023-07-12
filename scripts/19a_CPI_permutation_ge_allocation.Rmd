@@ -16,7 +16,7 @@ library(terra)
 library(rnaturalearth)
 #library(rnaturalearthdata)
 library(RColorBrewer)
-library(gameofthrones)
+#library(gameofthrones)
 library(parallel)
 library(ggdist)
 library(data.table)
@@ -36,8 +36,8 @@ discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick
 continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
 final_palette <- c(light_gray, continuous_pal, red)
 
-#source files
-source(here("src/fxns.R"))
+#source files - not sure why this isn't working
+#source(here("src/fxns.R"))
 
 #spatial products
 moll_crs <- "ESRI:53009"
@@ -75,6 +75,7 @@ marine_source_ingredient <-
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
                                            TRUE ~ .)) |> 
   group_split(row)
+
 sources <- bind_rows(marine_source_ingredient) |> select(-c("ingredient", "row")) |>  names()   
 marine_source_file_list <- list()
 this_df <- marine_source_ingredient[[1]]
@@ -289,16 +290,16 @@ both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nf
                                                          diet == "marine diet" ~ "Fish-\ndominant\nfeed"),
                                         diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Fish-\ndominant\nfeed"))))+
   aes(x = sum, y = diet, colour = diet)+
-    geom_jitter(shape =20, size = 2.5, alpha = 0.1, height = 0.4
+    geom_jitter(shape =20, size = 1.8, alpha = 0.1, height = 0.4
   )+
   # ggdist::stat_gradientinterval(
   #   width = .3, color = "black", fill_type = "gradient"
   # )+
   scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
-  scale_x_continuous(limits = c(0.5,4))+
+  scale_x_continuous(limits = c(0,3))+
   theme_pubr()+
-  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.3, alpha = 0, linewidth=0.5)+
-  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1.8, alpha = 0.7, shape = 0)+
+  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.2, alpha = 0, linewidth=0.5)+
+  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1, alpha = 0.7, shape = 0)+
   labs(y = "Diet", x = "Cumulative pressure index (CPI)")+
   theme(text = element_text(size=8),
         axis.text = element_text(size=8),
@@ -753,91 +754,31 @@ marine_plant_pressure_disagg_df <-
 
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
-test_plot <- ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet))+
-  geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
-  geom_point(position = position_dodge(width = 0.75), size=0.8)+
-  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.75), width = 0, linewidth = 0.5)+
-  #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
-  coord_polar(clip="off") +theme_bw()
 
-
-y_breaks <- ggplot2::ggplot_build(test_plot)$layout$panel_params[[1]]$r.major
-
-#USE THIS DATA FRAME IF YOU WANT PROPORTIONAL COMPARISONS
-
-# summarised_pressure_disagg_df <- 
-#   marine_plant_pressure_disagg_df |> 
-#   group_by(diet, pressure) |> 
-#   summarise(mean = mean(prop, na.rm=TRUE),
-#             sd = sd(prop, na.rm=TRUE),
-#             median = median(prop, na.rm = TRUE),
-#             lq = quantile(prop, 0.25),
-#             uq = quantile(prop, 0.75)) |> 
-#   mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed"))
-
-#USE THIS DATA FRAME IF YOU WANT ABSOLUTE COMPARISONS
-
-summarised_pressure_disagg_df <- 
-  marine_plant_pressure_disagg_df |> 
-  group_by(diet, pressure) |> 
-  summarise(mean = mean(sum, na.rm=TRUE),
-            sd = sd(sum, na.rm=TRUE),
-            median = median(sum, na.rm = TRUE),
-            lq = quantile(sum, 0.25),
-            uq = quantile(sum, 0.75)) |> 
-  mutate(diet = if_else(diet == "marine diet", true = "Fish-dominant feed", false = "Plant-dominant feed"))
-
-
-both_diets_disagg_p <- 
-  ggplot(data= summarised_pressure_disagg_df, aes(x = pressure, y = mean, fill = diet)
-       )+
-  geom_col( position = "dodge", width = 0.85, alpha = 0.8)+
-  geom_point(position = position_dodge(width = 0.75), size=0.8)+
-  geom_errorbar(aes(x = pressure, ymin = mean-sd, ymax = mean+sd), position = position_dodge(width=0.75), width = 0, linewidth = 0.5)+
-  #geom_point(aes(x=pressure, y = mean), colour = "red", shape = 5, position = position_dodge(width = 0.7), size=0.4)+
-  coord_polar(clip="off")+
-  theme_bw()+
-  theme(panel.border = element_blank(),
-        axis.title.x = element_blank(),
-        axis.line.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.title.y = element_text(hjust = 0.83),
-         axis.text.y = element_blank(),
-        legend.position = c(0.84, 0.01),
-        legend.title = element_blank(),
-        legend.text = element_text(size=6),
+ggplot(data = marine_plant_pressure_disagg_df |> 
+                              mutate(diet = case_when(diet == "plant diet" ~ "Plant-dominant\nfeed",
+                                                      diet == "marine diet" ~ "Fish-dominant\nfeed"),
+                                                      diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed"))))+
+  aes(x = prop, y = reorder(pressure, prop), fill = diet)+
+  geom_point(pch = 21, position = position_jitterdodge(jitter.width = 0.5), alpha = 0.1)+
+  geom_boxplot(notch = TRUE, colour = "grey35", alpha = 0.4, linewidth=0.5)+
+  scale_fill_manual(values = my_pal[c(4,2)])+
+  scale_x_continuous(limits = c(0,1))+
+  theme_pubr()+
+  theme(legend.position = c(0.85, 0.15),
         legend.background = element_rect(fill="transparent"),
-        legend.key.size = unit(0.4, "cm"),
-        plot.margin = unit(c(0, 0.3, 0, 0), "cm"),
-        text = element_text(size=8))+
-  scale_fill_manual(values = my_pal[c(2, 4)])+
-  #scale_y_continuous(breaks = c(0,50,100,150, 200,250,300,350,400,450,500))+
-  labs(y = "Absolute CPI contribution")+
-  guides(fill = guide_legend(override.aes = list(shape = NA)))+
-  annotate("text", x = 4.5, y = y_breaks, label = as.character(y_breaks), size=2, colour="grey10")
+        legend.title = element_blank(),
+        text = element_text(size=8),
+        axis.text = element_text(size=8),
+        axis.title = element_text(size=8),
+        axis.title.y = element_blank())+
+  labs(x = "Proportion of CPI")
 
-#boxplot version
-# ggplot(data= marine_plant_pressure_disagg_df, aes(x = pressure, y = sum, colour = diet, group = interaction(diet, pressure))
-#        )+
-#   geom_jitter(position = position_dodge2(width=0.8), alpha =0.08)+
-#   geom_boxplot(notch = TRUE, fill = "transparent", colour = "grey40")+
-#   
-#   coord_polar(clip="off")+
-#   theme_bw()+
-#   theme(panel.border = element_blank(),
-#         axis.title.x = element_blank(),
-#         legend.title = element_blank(),
-#         legend.position = c(0.84, 0.1),
-#         legend.background = element_rect(fill="transparent"),
-#         legend.key.size = unit(0.4, "cm"),
-#         text = element_text(size=8))+
-#   scale_colour_manual(values = my_pal[c(2, 4)])+
-#   scale_y_continuous(breaks = c(0,50,100,150, 200,250))+
-#   labs(y = "Normalised pressure index")+
-#   guides(fill = guide_legend(override.aes = list(shape = NA)))
 
-ggsave(filename = here("figures/disaggregation_of_pressures_ge_allocation.jpg"), width = 8.9, height=8, units = "cm", device = "jpg", dpi = 600)
+
+ggsave(filename = here("figures/disaggregation_of_pressures_ge_allocation.jpg"), width = 12, height=9, units = "cm", device = "jpg", dpi = 600)
 ```
+
 Combine aggregated and disaggregated figures
 ```{r}
 both_diets_agg_p+both_diets_disagg_p+

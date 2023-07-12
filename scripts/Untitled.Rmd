@@ -1,0 +1,1760 @@
+---
+title: "Untitled"
+output: html_document
+date: "2023-07-11"
+---
+This file is used to rescale all rasters' values for each pressure so that values among feeds may be compared.
+
+```{r}
+
+library(tidyverse)
+library(terra)
+library(here)
+library(parallel)
+library(doParallel)
+library(foreach)
+library(future)
+library(furrr)
+
+source(here("src/functions.R"))
+
+
+select <- dplyr::select
+values <- terra::values
+
+
+
+```
+
+Create equal area projection for rescaling
+```{r}
+
+gall_peters <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+#raster template 
+base_rast <- rast(res=0.5)
+ext(base_rast) <- c(-180, 180, -90, 90)
+
+eq_area_rast <- project(base_rast, gall_peters) 
+values(eq_area_rast) <- 1:ncell(eq_area_rast)
+
+cellSize(eq_area_rast, unit="km", transform = FALSE)
+
+```
+
+
+
+## Disturbance
+
+Bring in  forage fish and crop layers for disturbance for both diets. Reproject onto the equal area gall-peters projection and calcute the sum of disturbance for each diet.
+
+```{r}
+
+#ID files for disturbance for marine and plant diets
+marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
+marine_diet_disturbance <- marine_diet_disturbance[!grepl("forage_fish|_gp", marine_diet_disturbance) & grepl("allocation", marine_diet_disturbance)]
+
+#REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA
+
+this_file <- marine_diet_disturbance[[25]]
+
+#marine diets
+md_reprojected_rasters <- 
+  
+  map(.x = marine_diet_disturbance, .f = \(this_file){
+    
+    base <- tools::file_path_sans_ext(basename(this_file))  
+    
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+    
+    this_ingredient <- str_extract(base, "[^_]+")
+    
+    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    
+    if(file.exists(saveName)){
+      
+      message("processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size.
+
+      this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
+
+      this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
+      
+      this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
+      names(this_adj_reprojected_rast) <- "km2"
+      
+      writeRaster(x = this_adj_reprojected_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reprojected_rast)
+    }
+    
+  })
+
+
+
+
+#plant diets
+plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
+plant_diet_disturbance <- plant_diet_disturbance[!grepl("forage_fish|_gp", plant_diet_disturbance) & grepl("allocation", plant_diet_disturbance)]
+
+
+this_file <- plant_diet_disturbance[[50]]
+
+pd_reprojected_rasters <- 
+  
+  map(.x = plant_diet_disturbance, .f = \(this_file){
+    
+    base <- tools::file_path_sans_ext(basename(this_file))  
+    
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+    
+    this_ingredient <- str_extract(base, "[^_]+")
+    
+    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    
+   if(file.exists(saveName)){
+      
+      message("processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size.
+
+      this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
+
+      this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
+      
+      this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
+      names(this_adj_reprojected_rast) <- "km2"
+      
+      writeRaster(x = this_adj_reprojected_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reprojected_rast)
+    }
+    
+  })
+
+
+#NOW FIND THE MAXIMUM TOTAL SCORES FOR DISTURBANCE INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+
+#First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
+
+md_reprojected_rasters <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "disturbance_gp", full=TRUE)
+
+md_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+this_df <- md_ingredients_list[[1]]
+
+maximum_disturbance_scores_md <-  
+  
+  map_df(md_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- md_reprojected_rasters[grepl(this_ingredient, md_reprojected_rasters) & grepl("ge_allocation", md_reprojected_rasters)]
+  
+  these_ingredient_rasters_mass <- md_reprojected_rasters[grepl(this_ingredient, md_reprojected_rasters) & grepl("mass_allocation", md_reprojected_rasters)]
+  
+  max_disturbance_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_disturbance_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_disturbance_ge = max_disturbance_ge, max_disturbance_mass= max_disturbance_mass)
+  
+  
+})
+
+#get maximum disturbance scores for each allocation method
+max_md_disturbance_ge <- maximum_disturbance_scores_md |> pull(max_disturbance_ge) |> sum()
+max_md_disturbance_mass <- maximum_disturbance_scores_md |> pull(max_disturbance_mass) |> sum()
+
+
+
+pd_reprojected_rasters <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "disturbance_gp", full=TRUE)
+
+
+pd_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+this_df <- md_ingredients_list[[1]]
+
+maximum_disturbance_scores_pd <-  
+  
+  map_df(pd_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- pd_reprojected_rasters[grepl(this_ingredient, pd_reprojected_rasters) & grepl("ge_allocation", pd_reprojected_rasters)]
+  
+  these_ingredient_rasters_mass <- pd_reprojected_rasters[grepl(this_ingredient, pd_reprojected_rasters) & grepl("mass_allocation", pd_reprojected_rasters)]
+  
+  max_disturbance_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_disturbance_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_disturbance_ge = max_disturbance_ge, max_disturbance_mass= max_disturbance_mass)
+  
+  
+})
+
+
+
+
+#get maximum disturbance scores for each allocation method
+max_pd_disturbance_ge <- maximum_disturbance_scores_pd |> pull(max_disturbance_ge) |> sum()
+max_pd_disturbance_mass <- maximum_disturbance_scores_pd |> pull(max_disturbance_mass) |> sum()
+
+
+max_total_disturbance_ge <- max(max_md_disturbance_ge,max_pd_disturbance_ge)
+max_total_disturbance_mass <- max(max_md_disturbance_mass,max_pd_disturbance_mass)
+
+
+
+# #which diet has the highest disturbance values
+# marine_disturbance_vals_ge <- md_reprojected_rasters[grepl("ge_allocation", md_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+# plant_disturbance_vals_ge <-  pd_reprojected_rasters[grepl("ge_allocation", pd_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+# 
+# marine_disturbance_vals_mass <- md_reprojected_rasters[grepl("mass_allocation", md_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+# plant_disturbance_vals_mass <-  pd_reprojected_rasters[grepl("mass_allocation", pd_reprojected_rasters)] |> map(rast) |> map(no_na_values) |> unlist()
+# 
+# 
+# marine_diet_total_ge <- sum(marine_disturbance_vals_ge, na.rm = TRUE)
+# marine_diet_total_mass <- sum(marine_disturbance_vals_mass, na.rm=TRUE)
+# 
+# plant_diet_total_ge <- sum(plant_disturbance_vals_ge, na.rm = TRUE)
+# plant_diet_total_mass <- sum(plant_disturbance_vals_mass, na.rm=TRUE)
+# 
+# 
+# 
+# #check marine is appearing more intense (given forage fish disturbance values are much higher)
+# summary(marine_disturbance_vals_ge)
+# summary(plant_disturbance_vals_ge)
+# 
+# summary(marine_disturbance_vals_mass)
+# summary(plant_disturbance_vals_mass)
+# 
+# all_disturbance_vals_ge <- c(marine_disturbance_vals_ge, plant_disturbance_vals_ge) |> unlist()
+# all_disturbance_vals_mass <- c(marine_disturbance_vals_mass, plant_disturbance_vals_mass) |> unlist()
+# 
+# disturbance_energy_skewness <-  3*(mean(all_disturbance_vals_ge)-median(all_disturbance_vals_ge))/sd(all_disturbance_vals_ge)
+# disturbance_mass_skewness <- 3*(mean(all_disturbance_vals_mass)-median(all_disturbance_vals_mass))/sd(all_disturbance_vals_mass)
+# 
+# #determine the quantile for rescaling - given the extreme skew - 99.9% seems 
+# hist((all_disturbance_vals_ge), main = "", xlab = "Disturbance values") |> 
+# abline(v = quantile(all_disturbance_vals_ge, 0.999), lty=2)
+# 
+# hist((all_disturbance_vals_mass), main = "", xlab = "Disturbance values") |> 
+# abline(v = quantile(all_disturbance_vals_mass, 0.999), lty=2)
+# 
+# disturbance_rescale_val_ge <- quantile(all_disturbance_vals_ge, 0.999) |> as.numeric()
+# disturbance_rescale_val_mass <- quantile(all_disturbance_vals_mass, 0.999) |> as.numeric()
+
+
+#rescale all rasters by the proportion each cell represents of total possible disturbance for each diet globally (for both energy and mass allocation, this is marine_diet)
+
+#marine diets
+
+this_file <- md_reprojected_rasters[[11]]
+
+
+rescaled_marine_disturbance_rasters <- 
+  
+  map(.x= md_reprojected_rasters, .f = \(this_file){
+    
+    this_rast <- rast(this_file)
+    
+    this_basename <- str_replace(basename(this_file), pattern = "_km2_gp", replacement = "")
+    
+    this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+    
+    saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+    
+    if(file.exists(saveName)){
+      
+      message("Processing ", "'", this_basename, "'") 
+      
+      if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_disturbance_ge, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_disturbance_mass, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+        
+        }
+    }
+  })
+
+
+this_file <- pd_reprojected_rasters[[50]]
+
+
+#plant diets
+
+rescaled_plant_disturbance_rasters <- 
+  
+  map(.x= pd_reprojected_rasters, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_km2_gp", replacement = "")
+  
+  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(file.exists(saveName)){
+    
+   message("Processing ", "'", this_basename, "'")
+    
+    if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_disturbance_ge, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_disturbance_mass, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        }
+  }
+})
+
+
+
+```
+
+# Greenhouse gas pressures
+
+```{r}
+
+marine_diet_ghg <- list.files(here("data/spatial/marine_diet/int"), pattern = "ghg", full.names = TRUE)
+marine_diet_ghg <- marine_diet_ghg[!grepl("forage_fish|_gp", marine_diet_ghg)]
+
+plant_diet_ghg <- list.files(here("data/spatial/plant_diet/int"), pattern = "ghg", full.names = TRUE)
+plant_diet_ghg <- plant_diet_ghg[!grepl("forage_fish|_gp", plant_diet_ghg)]
+
+# marine_ghg_remove <- marine_diet_ghg[!grepl("allocation", marine_diet_ghg)]
+# plant_ghg_remove <- plant_diet_ghg[!grepl("allocation", plant_diet_ghg)]
+
+#REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
+
+this_file <- marine_diet_ghg[[1]]
+
+
+# Marine diets
+
+
+map(.x = marine_diet_ghg, .f =  \(this_file){
+    
+    base <- tools::file_path_sans_ext(basename(this_file))  
+    
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+    
+    this_ingredient <- str_extract(base, "[^_]+")
+    
+    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_ghg_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    
+    if(file.exists(saveName)){
+      
+      message("Processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      this_reprojected_rast <- project(this_rast, eq_area_rast)
+      
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km", transform = FALSE) #multiply up the footprints from per km2 to total based on 100km2
+      names(this_adj_reproj_rast) <- "kgCO2eq"
+
+      writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reproj_rast)
+    }
+})
+
+
+#Plant diets
+
+this_file <- plant_diet_ghg[[1]]
+
+  
+map(.x = plant_diet_ghg, .f = \(this_file){
+    
+    base <- tools::file_path_sans_ext(basename(this_file))  
+    
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+    
+    this_ingredient <- str_extract(base, "[^_]+")
+    
+    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_ghg_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    
+    if(file.exists(saveName)){
+      
+      message("processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      this_reprojected_rast <- project(this_rast, eq_area_rast)
+      
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km", transform = FALSE) #multiply up the footprints from per km2 to total based on 100km2
+      
+      names(this_adj_reproj_rast) <- "kgCO2eq"
+      
+      writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reproj_rast)
+    }
+  })
+  
+
+
+#RESCALE GHG DATA BY PROP OF MAXIMUM GLOBAL DISTURBANCE ACROSS DIETS
+
+
+#NOW FIND THE MAXIMUM TOTAL SCORES FOR DISTURBANCE INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+
+# First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
+# Then need to rescale using the maximum plausible disturbance for each diet as the denominator
+
+
+
+## Marine diets
+
+
+md_reprojected_rasters_ghg <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "ghg_gp", full=TRUE)
+
+md_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+this_df <- md_ingredients_list[[1]]
+
+
+
+maximum_ghg_scores_md <-  
+  
+  map_df(md_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- md_reprojected_rasters_ghg[grepl(this_ingredient, md_reprojected_rasters_ghg) & grepl("ge_allocation", md_reprojected_rasters_ghg)]
+  
+  these_ingredient_rasters_mass <- md_reprojected_rasters_ghg[grepl(this_ingredient, md_reprojected_rasters_ghg) & grepl("mass_allocation", md_reprojected_rasters_ghg)]
+  
+  max_ghg_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_ghg_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_ghg_ge = max_ghg_ge, max_ghg_mass= max_ghg_mass)
+  
+  
+})
+
+#get maximum marine diet disturbance scores for each allocation method
+max_md_ghg_ge <- maximum_ghg_scores_md |> pull(max_ghg_ge) |> sum()
+max_md_ghg_mass <- maximum_ghg_scores_md |> pull(max_ghg_mass) |> sum()
+
+
+
+
+#Plant diets
+
+pd_reprojected_rasters_ghg <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "ghg_gp", full=TRUE)
+
+
+pd_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+this_df <- md_ingredients_list[[1]]
+
+maximum_ghg_scores_pd <-  
+  
+  map_df(pd_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- pd_reprojected_rasters_ghg[grepl(this_ingredient, pd_reprojected_rasters_ghg) & grepl("ge_allocation", pd_reprojected_rasters_ghg)]
+  
+  these_ingredient_rasters_mass <- pd_reprojected_rasters_ghg[grepl(this_ingredient, pd_reprojected_rasters_ghg) & grepl("mass_allocation", pd_reprojected_rasters_ghg)]
+  
+  max_ghg_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_ghg_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_ghg_ge = max_ghg_ge, max_ghg_mass= max_ghg_mass)
+  
+  
+})
+
+
+#compare teh scores by diet
+maximum_ghg_scores_md
+maximum_ghg_scores_pd
+
+#get maximum ghg scores for each allocation method
+max_pd_ghg_ge <- maximum_ghg_scores_pd |> pull(max_ghg_ge) |> sum()
+max_pd_ghg_mass <- maximum_ghg_scores_pd |> pull(max_ghg_mass) |> sum()
+
+
+max_total_ghg_ge <- max(max_md_ghg_ge,max_pd_ghg_ge)
+max_total_ghg_mass <- max(max_md_ghg_mass,max_pd_ghg_mass)
+
+
+
+
+
+#RESCALE THE TOTAL GHG DATA
+
+#test file
+this_file <- md_reprojected_rasters_ghg[[1]]
+
+#Rescale all ghg rasters to the 99.9th percentile
+
+#MARINE DIETS 
+
+rescaled_marine_ghg_rasters <- 
+  
+  map(.x= md_reprojected_rasters_ghg, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+  
+  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+  
+  if(file.exists(saveName)){
+      
+      message("Processing ", "'", this_basename, "'") 
+      
+      if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_ghg_ge, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_ghg_mass, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        }
+  }
+  
+})
+
+
+
+#PLANT DIETS
+
+#test file
+this_file <- pd_reprojected_rasters_ghg[[1]]
+
+
+rescaled_plant_ghg_rasters <- 
+  
+  map(.x= pd_reprojected_rasters_ghg, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+  
+  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(file.exists(saveName)){
+    
+    message("Processing ", "'", this_basename, "'")
+    
+   if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_ghg_ge, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_ghg_mass, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        }
+    
+  }
+  
+})
+
+
+
+```
+
+# Nutrient pressures
+
+Do first for aggregated nutrients
+```{r}
+marine_diet_nutrients <- list.files(here("data/spatial/marine_diet/int"), pattern = "nutrient_km2", full.names = TRUE)
+
+plant_diet_nutrients <- list.files(here("data/spatial/plant_diet/int"), pattern = "nutrient_km2", full.names = TRUE)
+
+
+#REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
+
+this_file <- marine_diet_nutrients[[1]]
+
+
+# Marine diets
+  
+map(.x = marine_diet_nutrients, .f = \(this_file){
+    
+  base <- tools::file_path_sans_ext(basename(this_file))  
+  
+  this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+  
+  this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+  
+  this_ingredient <- str_extract(base, "[^_]+")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/int/%s_nutrient_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+  
+    if(file.exists(saveName)){
+      
+      message("Processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      this_reprojected_rast <- project(this_rast, gall_peters)
+      
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
+      names(this_adj_reproj_rast) <- "summed MT N/P eq."
+
+      writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reproj_rast)
+    }
+  })
+
+
+#Plant diets 
+
+this_file <- plant_diet_nutrients[[1]]
+
+map(.x = plant_diet_nutrients, .f = \(this_file){
+    
+    base <- tools::file_path_sans_ext(basename(this_file))  
+    
+    this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+    this_ingredient <- str_extract(base, "[^_]+")
+    
+    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_nutrient_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    
+    if(file.exists(saveName)){
+      
+      message("processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      this_reprojected_rast <- project(this_rast, gall_peters)
+      
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
+      
+      names(this_adj_reproj_rast) <- "summed MT N/P eq."
+      
+      writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reproj_rast)
+    }
+  })
+
+
+
+
+#RESCALE NUTRIENT DATA BY PROP OF MAXIMUM GLOBAL NUTRIENTS ACROSS DIETS
+
+
+#NOW FIND THE MAXIMUM TOTAL SCORES FOR NUTRIENTS INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+
+# First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
+# Then need to rescale using the maximum plausible nutrient for each diet as the denominator
+
+
+
+## Marine diets
+
+md_reprojected_rasters_nutrient <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "nutrient_gp", full=TRUE)
+
+md_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+
+#test function
+this_df <- md_ingredients_list[[1]]
+
+
+maximum_nutrient_scores_md <-  
+  
+  map_df(md_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- md_reprojected_rasters_nutrient[grepl(this_ingredient, md_reprojected_rasters_nutrient) & grepl("ge_allocation", md_reprojected_rasters_nutrient)]
+  
+  these_ingredient_rasters_mass <- md_reprojected_rasters_nutrient[grepl(this_ingredient, md_reprojected_rasters_nutrient) & grepl("mass_allocation", md_reprojected_rasters_nutrient)]
+  
+  max_nutrient_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_nutrient_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_nutrient_ge = max_nutrient_ge, max_nutrient_mass= max_nutrient_mass)
+  
+  
+})
+
+#get maximum marine diet nutrient scores for each allocation method
+max_md_nutrient_ge <- maximum_nutrient_scores_md |> pull(max_nutrient_ge) |> sum()
+max_md_nutrient_mass <- maximum_nutrient_scores_md |> pull(max_nutrient_mass) |> sum()
+
+
+
+
+
+#Plant diets
+
+pd_reprojected_rasters_nutrient <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "nutrient_gp", full=TRUE)
+
+
+pd_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+this_df <- pd_ingredients_list[[5]]
+
+maximum_nutrient_scores_pd <-  
+  
+  map_df(pd_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- pd_reprojected_rasters_nutrient[grepl(this_ingredient, pd_reprojected_rasters_nutrient) & grepl("ge_allocation", pd_reprojected_rasters_nutrient)]
+  
+  these_ingredient_rasters_mass <- pd_reprojected_rasters_nutrient[grepl(this_ingredient, pd_reprojected_rasters_nutrient) & grepl("mass_allocation", pd_reprojected_rasters_nutrient)]
+  
+  max_nutrient_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_nutrient_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_nutrient_ge = max_nutrient_ge, max_nutrient_mass= max_nutrient_mass)
+  
+  
+})
+
+#compare nutrient scores by ingredient by diet
+maximum_nutrient_scores_md
+maximum_nutrient_scores_pd
+
+#get maximum nutrient scores for each allocation method
+max_pd_nutrient_ge <- maximum_nutrient_scores_pd |> pull(max_nutrient_ge) |> sum()
+max_pd_nutrient_mass <- maximum_nutrient_scores_pd |> pull(max_nutrient_mass) |> sum()
+
+
+#get maximum total values for nutrients across diets 
+max_total_nutrient_ge <- max(max_md_nutrient_ge,max_pd_nutrient_ge)
+max_total_nutrient_mass <- max(max_md_nutrient_mass,max_pd_nutrient_mass)
+
+
+
+##rescale all rasters by the proportion each cell represents of total possible nitrogen pollution for each diet globally (for both energy and mass allocation, this is marine_diet)
+
+#marine diets
+
+this_file <- md_reprojected_rasters_nutrient[[1]]
+
+map(.x= md_reprojected_rasters_nutrient, .f = \(this_file){
+
+  this_rast <- rast(this_file)
+
+  this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+
+  this_allocation_method <- str_extract(string = this_basename, pattern = "ge_allocation|mass_allocation")
+
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+
+  if(file.exists(saveName)){
+
+     message("Processing", "'", this_basename, "'")
+
+    if(this_allocation_method=="ge_allocation"){
+
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_nutrient_ge, false = 0)})
+
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+
+        return(this_rescaled_rast)
+
+
+      } else {
+
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_nutrient_mass, false = 0)})
+
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+
+        return(this_rescaled_rast)
+    }
+  }
+
+})
+
+
+
+#plant diets 
+
+map(.x= pd_reprojected_rasters_nutrient, .f = \(this_file){
+
+  this_rast <- rast(this_file)
+
+  this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+
+  this_allocation_method <- str_extract(string = this_basename, pattern = "ge_allocation|mass_allocation")
+
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+
+  if(file.exists(saveName)){
+
+    message("Processing", "'", this_basename, "'")
+
+   if(this_allocation_method=="ge_allocation"){
+
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_nutrient_ge, false = 0)})
+
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+
+        return(this_rescaled_rast)
+
+
+      } else {
+
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_nutrient_mass, false = 0)})
+
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+
+        return(this_rescaled_rast)
+
+    }
+
+  }
+
+})
+
+
+```
+
+These two sections are for individual nutrients
+
+First for Nitrogen
+```{r}
+# marine_diet_N <- list.files(here("data/spatial/marine_diet/int"), pattern = "_N_", full.names = TRUE)
+# marine_diet_N <- marine_diet_N[!grepl("forage_fish|_gp", marine_diet_N)]
+# 
+# plant_diet_N <- list.files(here("data/spatial/plant_diet/int"), pattern = "_N_", full.names = TRUE)
+# plant_diet_N <- plant_diet_N[!grepl("forage_fish|_gp", plant_diet_N)]
+# 
+# 
+# 
+# #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
+# 
+# this_file <- marine_diet_N[[1]]
+# 
+# 
+# # Marine diets
+#   
+# map(.x = marine_diet_N, .f = \(this_file){
+#     
+#     base <- tools::file_path_sans_ext(basename(this_file))  
+#     
+#      this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+#     
+#     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+#     
+#     this_ingredient <- str_extract(base, "[^_]+")
+#     
+#     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_N_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+#     
+#     if(file.exists(saveName)){
+#       
+#       message("Processing ", basename(saveName))
+#       
+#       this_rast <- rast(this_file)
+#       
+#       this_reprojected_rast <- project(this_rast, gall_peters)
+#       
+#       this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+#       names(this_adj_reproj_rast) <- "N_eq"
+# 
+#       writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+#       
+#       return(this_adj_reproj_rast)
+#     }
+#   })
+# 
+# 
+# 
+# #Plant diets
+# 
+# this_file <- plant_diet_N[[1]]
+# 
+#   
+# map(.x = plant_diet_N, .f = \(this_file){
+#     
+#     base <- tools::file_path_sans_ext(basename(this_file))  
+#     
+#    this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+#     
+#     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+#     this_ingredient <- str_extract(base, "[^_]+")
+#     
+#     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_N_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+#     
+#     if(file.exists(saveName)){
+#       
+#       message("processing ", basename(saveName))
+#       
+#       this_rast <- rast(this_file)
+#       
+#       this_reprojected_rast <- project(this_rast, gall_peters)
+#       
+#       this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+#       
+#       names(this_adj_reproj_rast) <- "N_eq"
+#       
+#       writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+#       
+#       return(this_adj_reproj_rast)
+#     }
+#   })
+# 
+# 
+# #RESCALE NITROGEN DATA BY PROP OF MAXIMUM GLOBAL NITROGEN ACROSS DIETS
+# 
+# 
+# #NOW FIND THE MAXIMUM TOTAL SCORES FOR NITOGREN INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+# 
+# # First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
+# # Then need to rescale using the maximum plausible nitrogen for each diet as the denominator
+# 
+# 
+# 
+# ## Marine diets
+# 
+# 
+# md_reprojected_rasters_N <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "N_gp", full=TRUE)
+# 
+# md_ingredients_list <- 
+#   readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="marine_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+# 
+# 
+# #test function
+# this_df <- md_ingredients_list[[1]]
+# 
+# 
+# 
+# maximum_N_scores_md <-  
+#   
+#   map_df(md_ingredients_list, .f = \(this_df){
+#   
+#   this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+#   
+#   these_ingredient_rasters_ge <- md_reprojected_rasters_N[grepl(this_ingredient, md_reprojected_rasters_N) & grepl("ge_allocation", md_reprojected_rasters_N)]
+#   
+#   these_ingredient_rasters_mass <- md_reprojected_rasters_N[grepl(this_ingredient, md_reprojected_rasters_N) & grepl("mass_allocation", md_reprojected_rasters_N)]
+#   
+#   max_N_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   max_N_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   
+#   this_adj_df <- bind_cols(this_df, max_N_ge = max_N_ge, max_N_mass= max_N_mass)
+#   
+#   
+# })
+# 
+# #get maximum marine diet disturbance scores for each allocation method
+# max_md_N_ge <- maximum_N_scores_md |> pull(max_N_ge) |> sum()
+# max_md_N_mass <- maximum_N_scores_md |> pull(max_N_mass) |> sum()
+# 
+# 
+# 
+# 
+# #Plant diets
+# 
+# pd_reprojected_rasters_N <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "N_gp", full=TRUE)
+# 
+# 
+# pd_ingredients_list <- 
+#   readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="plant_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+# 
+# this_df <- pd_ingredients_list[[1]]
+# 
+# maximum_N_scores_pd <-  
+#   
+#   map_df(pd_ingredients_list, .f = \(this_df){
+#   
+#   this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+#   
+#   these_ingredient_rasters_ge <- pd_reprojected_rasters_N[grepl(this_ingredient, pd_reprojected_rasters_N) & grepl("ge_allocation", pd_reprojected_rasters_N)]
+#   
+#   these_ingredient_rasters_mass <- pd_reprojected_rasters_N[grepl(this_ingredient, pd_reprojected_rasters_N) & grepl("mass_allocation", pd_reprojected_rasters_N)]
+#   
+#   max_N_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   max_N_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   
+#   this_adj_df <- bind_cols(this_df, max_N_ge = max_N_ge, max_N_mass= max_N_mass)
+#   
+#   
+# })
+# 
+# #get maximum N scores for each allocation method
+# max_pd_N_ge <- maximum_N_scores_pd |> pull(max_N_ge) |> sum()
+# max_pd_N_mass <- maximum_N_scores_pd |> pull(max_N_mass) |> sum()
+# 
+# 
+# max_total_N_ge <- max(max_md_N_ge,max_pd_N_ge)
+# max_total_N_mass <- max(max_md_N_mass,max_pd_N_mass)
+# 
+# 
+# 
+# 
+# ##rescale all rasters by the proportion each cell represents of total possible nitrogen pollution for each diet globally (for both energy and mass allocation, this is marine_diet)
+# 
+# #marine diets
+# 
+# this_file <- md_reprojected_rasters_N[[1]]
+# 
+# map(.x= md_reprojected_rasters_N, .f = \(this_file){
+#   
+#   this_rast <- rast(this_file)
+#   
+#   this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+#   
+#   this_allocation_method <- str_extract(string = this_basename, pattern = "ge_allocation|mass_allocation")
+#   
+#   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+#   
+#   if(file.exists(saveName)){
+#     
+#      message("Processing", "'", this_basename, "'")
+#     
+#     if(this_allocation_method=="ge_allocation"){
+#         
+#         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_N_ge, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#         
+#         
+#       } else { 
+#         
+#          this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_N_mass, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#     }
+#   }
+#   
+# })
+# 
+# 
+# 
+# #plant diets _ Nitrogen
+# 
+# map(.x= pd_reprojected_rasters_N, .f = \(this_file){
+#   
+#   this_rast <- rast(this_file)
+#   
+#   this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+#   
+#   this_allocation_method <- str_extract(string = this_basename, pattern = "ge_allocation|mass_allocation")
+#   
+#   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+#   
+#   if(file.exists(saveName)){
+#     
+#     message("Processing", "'", this_basename, "'")
+#     
+#    if(this_allocation_method=="ge_allocation"){
+#         
+#         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_N_ge, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#         
+#         
+#       } else { 
+#         
+#          this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_N_mass, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#       
+#     }
+#     
+#   }
+#   
+# })
+```
+
+
+Repeat for phosphorus
+
+```{r}
+# Phosphorus
+# marine_diet_P <- list.files(here("data/spatial/marine_diet/int"), pattern = "_P_", full.names = TRUE)
+# marine_diet_P <- marine_diet_P[!grepl("forage_fish|_gp", marine_diet_P)]
+# 
+# plant_diet_P <- list.files(here("data/spatial/plant_diet/int"), pattern = "_P_", full.names = TRUE)
+# plant_diet_P <- plant_diet_P[!grepl("forage_fish|_gp", plant_diet_P)]
+# 
+# 
+# 
+# #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
+# 
+# this_file <- marine_diet_P[[1]]
+# 
+# 
+# # Marine diets
+#   
+# map(.x = marine_diet_P, .f = \(this_file){
+#     
+#     base <- tools::file_path_sans_ext(basename(this_file))  
+#     
+#     this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+#     
+#     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+#     
+#     this_ingredient <- str_extract(base, "[^_]+")
+#     
+#     saveName <- sprintf(here("data/spatial/marine_diet/int/%s_P_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+#     
+#     if(file.exists(saveName)){
+#       
+#       message("Processing ", basename(saveName))
+#       
+#       this_rast <- rast(this_file)
+#       
+#       this_reprojected_rast <- project(this_rast, gall_peters)
+#       
+#       this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+#       names(this_adj_reproj_rast) <- "P_eq"
+# 
+#       writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+#       
+#       return(this_adj_reproj_rast)
+#     }
+#   })
+# 
+# 
+# 
+# #Plant diets
+# 
+# this_file <- plant_diet_P[[1]]
+# 
+#   
+# map(.x = plant_diet_P, .f = \(this_file){
+#     
+#     base <- tools::file_path_sans_ext(basename(this_file))  
+#     
+#     this_country <- if_else(grepl("EPC|NAT|OTH", base), true = str_extract(base, "EPC|NAT|OTH"), false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+#     
+#     this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+#     
+#     this_ingredient <- str_extract(base, "[^_]+")
+#     
+#     saveName <- sprintf(here("data/spatial/plant_diet/int/%s_P_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+#     
+#     if(file.exists(saveName)){
+#       
+#       message("processing ", basename(saveName))
+#       
+#       this_rast <- rast(this_file)
+#       
+#       this_reprojected_rast <- project(this_rast, gall_peters)
+#       
+#       this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km") #multiply up the footprints from per km2 to total based on cellsize
+#       
+#       names(this_adj_reproj_rast) <- "P_eq"
+#       
+#       writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+#       
+#       return(this_adj_reproj_rast)
+#     }
+#   })
+# 
+# 
+# 
+# 
+# #RESCALE PHOSPHORUS DATA BY PROP OF MAXIMUM GLOBAL PHOSPHOROUS ACROSS DIETS
+# 
+# 
+# #NOW FIND THE MAXIMUM TOTAL SCORES FOR PHOSPHOROUS INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+# 
+# # First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
+# # Then need to rescale using the maximum plausible disturbance for each diet as the denominator
+# 
+# 
+# 
+# ## Marine diets
+# 
+# 
+# md_reprojected_rasters_P <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "P_gp", full=TRUE)
+# 
+# md_ingredients_list <- 
+#   readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="marine_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+# 
+# this_df <- md_ingredients_list[[1]]
+# 
+# 
+# 
+# maximum_P_scores_md <-  
+#   
+#   map_df(md_ingredients_list, .f = \(this_df){
+#   
+#   this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+#   
+#   these_ingredient_rasters_ge <- md_reprojected_rasters_P[grepl(this_ingredient, md_reprojected_rasters_P) & grepl("ge_allocation", md_reprojected_rasters_P)]
+#   
+#   these_ingredient_rasters_mass <- md_reprojected_rasters_P[grepl(this_ingredient, md_reprojected_rasters_P) & grepl("mass_allocation", md_reprojected_rasters_P)]
+#   
+#   max_P_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   max_P_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   
+#   this_adj_df <- bind_cols(this_df, max_P_ge = max_P_ge, max_P_mass= max_P_mass)
+#   
+#   
+# })
+# 
+# #get maximum marine diet disturbance scores for each allocation method
+# max_md_P_ge <- maximum_P_scores_md |> pull(max_P_ge) |> sum()
+# max_md_P_mass <- maximum_P_scores_md |> pull(max_P_mass) |> sum()
+# 
+# 
+# 
+# 
+# #Plant diets
+# 
+# pd_reprojected_rasters_P <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "P_gp", full=TRUE)
+# 
+# 
+# pd_ingredients_list <- 
+#   readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> filter(diet=="plant_diet" & total_ingredient_demand>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+# 
+# this_df <- pd_ingredients_list[[1]]
+# 
+# maximum_P_scores_pd <-  
+#   
+#   map_df(pd_ingredients_list, .f = \(this_df){
+#   
+#   this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+#   
+#   these_ingredient_rasters_ge <- pd_reprojected_rasters_P[grepl(this_ingredient, pd_reprojected_rasters_P) & grepl("ge_allocation", pd_reprojected_rasters_P)]
+#   
+#   these_ingredient_rasters_mass <- pd_reprojected_rasters_P[grepl(this_ingredient, pd_reprojected_rasters_P) & grepl("mass_allocation", pd_reprojected_rasters_P)]
+#   
+#   max_P_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   max_P_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+#   
+#   this_adj_df <- bind_cols(this_df, max_P_ge = max_P_ge, max_P_mass= max_P_mass)
+#   
+#   
+# })
+# 
+# #get maximum N scores for each allocation method
+# max_pd_P_ge <- maximum_P_scores_pd |> pull(max_P_ge) |> sum()
+# max_pd_P_mass <- maximum_P_scores_pd |> pull(max_P_mass) |> sum()
+# 
+# 
+# max_total_P_ge <- max(max_md_P_ge,max_pd_P_ge)
+# max_total_P_mass <- max(max_md_P_mass,max_pd_P_mass)
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# # Now rescale pressure by the total plausible phosphorus pollution value 
+# 
+# #marine diets - Phosphorus
+# 
+# #this_file <- marine_diet_P[[1]]
+# 
+# map(.x= md_reprojected_rasters_P, .f = \(this_file){
+#   
+#   this_rast <- rast(this_file)
+#   
+#   this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+#   
+#   this_allocation_method <- str_extract(this_basename, "ge_allocation|mass_allocation")
+#   
+#   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+#   
+#   if(file.exists(saveName)){
+#     
+#      message("Processing", "'", this_basename, "'")
+#     
+#     if(this_allocation_method=="ge_allocation"){
+#         
+#         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_P_ge, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#         
+#         
+#       } else { 
+#         
+#          this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_P_mass, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#       
+#     }
+#     
+#     
+#    
+#   }
+#   
+# })
+# 
+# 
+# 
+# #plant diets - Phosphorus
+# 
+# map(.x= pd_reprojected_rasters_P, .f = \(this_file){
+#   
+#   this_rast <- rast(this_file)
+#   
+#   this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+#   
+#   this_allocation_method <- str_extract(this_basename, "ge_allocation|mass_allocation")
+#   
+#   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+#   
+#   if(file.exists(saveName)){
+#     
+#      message("Processing", "'", this_basename, "'")
+#     
+#     if(this_allocation_method=="ge_allocation"){
+#         
+#         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_P_ge, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#         
+#         
+#       } else { 
+#         
+#          this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+#           if_else(this_cell>0, true = this_cell/max_total_P_mass, false = 0)})
+#         
+#         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+#       
+#         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+#       
+#         return(this_rescaled_rast)
+#       
+#     }
+#     
+#   }
+#   
+# })
+# 
+
+
+
+
+```
+
+
+# Water extraction
+```{r}
+
+marine_diet_h2o <- list.files(here("data/spatial/marine_diet/int"), pattern = "_water_km2", full.names = TRUE)
+
+plant_diet_h2o <- list.files(here("data/spatial/plant_diet/int"), pattern = "_water_km2", full.names = TRUE)
+
+
+
+#REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
+
+this_file <- marine_diet_h2o[[1]]
+
+
+# Marine diets
+  
+map(.x = marine_diet_h2o, .f = \(this_file){
+    
+    base <- tools::file_path_sans_ext(basename(this_file))  
+    
+     this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+    
+    this_ingredient <- str_extract(base, "[^_]+")
+    
+    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_water_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    
+    if(file.exists(saveName)){
+      
+      message("Processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      this_reprojected_rast <- project(this_rast, gall_peters)
+      
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
+      names(this_adj_reproj_rast) <- "m3"
+
+      writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reproj_rast)
+    }
+  })
+
+
+
+#Plant diets
+
+this_file <- plant_diet_h2o[[1]]
+
+  
+map(.x = plant_diet_h2o, .f = \(this_file){
+    
+    base <- tools::file_path_sans_ext(basename(this_file))  
+    
+     this_country <- if_else(grepl("fishmeal|fish oil", base), 
+                            true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
+                            false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
+    
+    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
+    
+    this_ingredient <- str_extract(base, "[^_]+")
+    
+    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_water_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    
+    if(file.exists(saveName)){
+      
+      message("processing ", basename(saveName))
+      
+      this_rast <- rast(this_file)
+      
+      this_reprojected_rast <- project(this_rast, gall_peters)
+      
+      this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform=FALSE) #multiply up the footprints from per km2 to total based on cellsize
+      
+      names(this_adj_reproj_rast) <- "m3"
+      
+      writeRaster(x = this_adj_reproj_rast, filename = saveName, overwrite = TRUE)
+      
+      return(this_adj_reproj_rast)
+    }
+  })
+
+
+
+
+#RESCALE WATER DATA BY PROP OF MAXIMUM GLOBAL WATER USE ACROSS DIETS
+
+
+#NOW FIND THE MAXIMUM TOTAL SCORES FOR WATER INCLUDING ALL INGREDIENTS FOR EACH DIET AND ALLOCATION METHOD - THIS WILL BE USED TO GET A GIVEN CELLS' PROPORTIONAL CONTRIBUTION
+
+# First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
+# Then need to rescale using the maximum plausible water consumption for each diet as the denominator
+
+
+
+## Marine diets
+
+
+md_reprojected_rasters_h2o <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "water_gp", full=TRUE)
+
+md_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+this_df <- md_ingredients_list[[3]]
+
+
+maximum_h2o_scores_md <-  
+  
+  map_df(md_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- md_reprojected_rasters_h2o[grepl(this_ingredient, md_reprojected_rasters_h2o) & grepl("ge_allocation", md_reprojected_rasters_h2o)]
+  
+  these_ingredient_rasters_mass <- md_reprojected_rasters_h2o[grepl(this_ingredient, md_reprojected_rasters_h2o) & grepl("mass_allocation", md_reprojected_rasters_h2o)]
+  
+  max_h2o_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_h2o_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_h2o_ge = max_h2o_ge, max_h2o_mass= max_h2o_mass)
+  
+  
+})
+
+#get maximum marine diet disturbance scores for each allocation method
+max_md_h2o_ge <- maximum_h2o_scores_md |> pull(max_h2o_ge) |> sum()
+max_md_h2o_mass <- maximum_h2o_scores_md |> pull(max_h2o_mass) |> sum()
+
+
+
+
+#Plant diets
+
+pd_reprojected_rasters_h2o <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "water_gp", full=TRUE)
+
+
+
+pd_ingredients_list <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
+
+this_df <- pd_ingredients_list[[5]]
+
+maximum_h2o_scores_pd <-  
+  
+  map_df(pd_ingredients_list, .f = \(this_df){
+  
+  this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
+  
+  these_ingredient_rasters_ge <- pd_reprojected_rasters_h2o[grepl(this_ingredient, pd_reprojected_rasters_h2o) & grepl("ge_allocation", pd_reprojected_rasters_h2o)]
+  
+  these_ingredient_rasters_mass <- pd_reprojected_rasters_h2o[grepl(this_ingredient, pd_reprojected_rasters_h2o) & grepl("mass_allocation", pd_reprojected_rasters_h2o)]
+  
+  max_h2o_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  max_h2o_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
+  
+  this_adj_df <- bind_cols(this_df, max_h2o_ge = max_h2o_ge, max_h2o_mass= max_h2o_mass)
+  
+  
+})
+
+#get maximum N scores for each allocation method
+max_pd_h2o_ge <- maximum_h2o_scores_pd |> pull(max_h2o_ge) |> sum()
+max_pd_h2o_mass <- maximum_h2o_scores_pd |> pull(max_h2o_mass) |> sum()
+
+
+max_total_h2o_ge <- max(max_md_h2o_ge,max_pd_h2o_ge)
+max_total_h2o_mass <- max(max_md_h2o_mass,max_pd_h2o_mass)
+
+#Compare water consumption by diet
+maximum_h2o_scores_md
+maximum_h2o_scores_pd
+
+
+
+#Rescale each diet by the max disturbance denomintor for each diet and allocation method
+
+#marine diets - Water
+
+map(.x= md_reprojected_rasters_h2o, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+  
+  this_allocation_method <- str_extract(this_basename, "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
+  
+  if(file.exists(saveName)){
+    
+     message("Processing", "'", this_basename, "'")
+    
+     if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_h2o_ge, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_h2o_mass, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+    }
+  }
+  
+})
+
+
+
+#plant diets - water
+
+map(.x= pd_reprojected_rasters_h2o, .f = \(this_file){
+  
+  this_rast <- rast(this_file)
+  
+  this_basename <- str_replace(basename(this_file), pattern = "_gp", replacement = "")
+  
+  this_allocation_method <- str_extract(this_basename, "ge_allocation|mass_allocation")
+  
+  saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
+  
+  if(file.exists(saveName)){
+    
+     message("Processing", "'", this_basename, "'")
+    
+      if(this_allocation_method=="ge_allocation"){
+        
+        this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_h2o_ge, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+        
+        
+      } else { 
+        
+         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
+          if_else(this_cell>0, true = this_cell/max_total_h2o_mass, false = 0)})
+        
+        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
+      
+        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
+      
+        return(this_rescaled_rast)
+    } 
+  }
+  
+})
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
+```

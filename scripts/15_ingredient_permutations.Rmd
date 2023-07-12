@@ -48,18 +48,9 @@ for(i in 1:1000){
       
     this_ingredient <- this_df |> pull(ingredient) |> unique()
       
-    if(this_ingredient != "fishmeal"  & this_ingredient != "fish oil"){
+    source_select <- sample(x=1:5, replace = FALSE, size=1)
       
-      source_select <- sample(x=1:5, replace = FALSE, size=1)
-      
-      this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
-      
-    } else {
-    
-    source_select <- sample(x=1:3, replace = FALSE, size=1) 
-    
     this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
-    }
     
     })
     
@@ -90,19 +81,10 @@ for(i in 1:1000){
     map_df(pd_ingredient_source_list, \(this_df){
       
     this_ingredient <- this_df |> pull(ingredient) |> unique()
- 
-    if(this_ingredient != "fishmeal"  & this_ingredient != "fish oil"){
       
-      source_select <- sample(x=1:5, replace = FALSE, size=1)
+    source_select <- sample(x=1:5, replace = FALSE, size=1)
       
       this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
-      
-    } else {
-    
-    source_select <- sample(x=1:3, replace = FALSE, size=1) 
-    
-    this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
-    }
     })
     
   pd_df_list[[i]] <- this_diet_df

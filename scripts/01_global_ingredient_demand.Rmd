@@ -128,15 +128,14 @@ Now calculate ingredient demand per diet to supply 1000 tonnes of salmon based o
 diet_files <- list.files(here("data/tidy_data/diet-scenarios"), full.names = TRUE)
 
 
-#calculate ingredient demand for 1000 tonnes using the weighted efcr
+#calculate ingredient demand for 100,000 tonnes using the weighted efcr
 
 map_df(diet_files, readRDS) |> 
-  mutate(production_tonnes = 1000, 
+  mutate(production_tonnes = 100000, 
          efcr = efcr) |> 
   mutate(ingredient_demand_tonnes = prop*production_tonnes*efcr) |> 
   filter(ingredient_demand_tonnes>0) |> 
   saveRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
-
 
 
 ```

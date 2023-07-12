@@ -165,7 +165,7 @@ crop_demand_production_compare <- readRDS(here("data/tidy_data/demand/crop_deman
 
 ingredient_per_country_per_diet_all <- 
   crop_demand_production_compare |>  
-  filter(total_ingredient_demand != 0) |> 
+  filter(ingredient_demand_tonnes != 0) |> 
   group_split(diet, ingredients, FAOSTAT_name)
 
 
