@@ -31,6 +31,7 @@ select <- dplyr::select
 
 # Uncomment for when RDSI is down
 watson_dir <- watson_backup_dir
+rdsi_dir
 
 ```
 
@@ -104,7 +105,7 @@ Import ecosystem transfer-efficiency
 
 ```{r}
 
-ecosystem_te <- read_csv("/Users/rsc2/OneDrive - University of Tasmania/ARC Linkage - Optimising aquafeeds/rdsi/raw_data/cashion/ecosystem_te.csv") |> select(TE, fao_area_code) |> group_by(fao_area_code) |> summarise(te=mean(TE, na.rm = TRUE)) |> mutate(te= te/100)
+ecosystem_te <- read_csv(file.path(rdsi_dir, "raw_data/cashion/ecosystem_te.csv")) |> select(TE, fao_area_code) |> group_by(fao_area_code) |> summarise(te=mean(TE, na.rm = TRUE)) |> mutate(te= te/100)
 
 
 ```
@@ -188,6 +189,7 @@ Get trimmings species trophic levels  - needed for calculating the primary produ
    filter(binomial==2) |> 
    pull(TaxonName) |> 
    unique() )
+
 
 
 this_sp <- forage_spp[[1]]
@@ -365,6 +367,56 @@ all_fish_npp <-
   left_join(cell_area)
 
 
+# Mass allocation
+#fishmeal
+trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fm_mass)  |> sum()/ (38400*0.3)
+
+#fo trim 
+trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fo_mass)  |> sum() /(27600*0.4)
+
+
+#fishmeal
+forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fm_mass)  |> sum() / (38400*0.7)
+
+#fo trim 
+forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fo_mass)  |> sum() / (27600*0.6)
+
+total_ingredient_demand_by_diet
+
+
+#Energetic 
+
+#fishmeal trim
+trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fm_ge)  |> sum()/ (38400*0.3)
+
+#fo trim 
+trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fo_ge)  |> sum() /(27600*0.4)
+
+
+#fishmeal forage
+forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fm_ge)  |> sum() / (38400*0.7)
+
+#fo forage 
+forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fo_ge)  |> sum() / (27600*0.6)
+
+trim_npp |> pull(fao_area_code) |> unique()
+
+
+
+
+trim_npp|> filter(fao_area_code == "27" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
+trim_npp|> filter(fao_area_code == "31" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
+trim_npp|> filter(fao_area_code == "67" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
+trim_npp|> filter(fao_area_code == "61" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
+trim_npp|> filter(fao_area_code == "87" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
 ```
 
 

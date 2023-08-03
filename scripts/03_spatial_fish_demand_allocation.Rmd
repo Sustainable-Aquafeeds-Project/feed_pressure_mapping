@@ -51,11 +51,11 @@ rm(total_ingredient_demand)
 
 
 # #global values for later
-globalav_foragefish_fm_mass <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fishmeal") |> pull(mass_value)
-globalav_foragefish_fm_ge <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fishmeal") |> pull(ge_value)
+globalav_foragefish_fm_mass <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(mass_value)
+globalav_foragefish_fm_ge <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(ge_value)
 
-globalav_foragefish_fo_mass <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fish oil") |> pull(mass_value)
-globalav_foragefish_fo_ge <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fish oil") |> pull(ge_value)
+globalav_foragefish_fo_mass <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(mass_value)
+globalav_foragefish_fo_ge <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(ge_value)
 ```
 
 Isolate catch for trimmings first
@@ -465,9 +465,9 @@ forage_catch |>
             filter(fao_area_code %in% fish_sourcing_areas$fao_area_code) |> 
   mutate(ingredient = "Fish oil")) |> 
   #add the conversion factors for forage
-  left_join(foragefish_cfs, by = c("ingredient" , "TaxonName" = "sci_name", "CommonName")) |> 
+  left_join(foragefish_cfs, by = c("ingredient" , "TaxonName" = "sci_name", "CommonName" = "common_name")) |> 
   #fill in NA values through species group values for mass and energetic allocation
-  mutate(mass_value = case_when(#when the na group is ones we know from trimmings - assign speciically from Cashion 2016 data
+  mutate(mass_value = case_when(#when the na group is ones we know from trimmings - assign specifically from Cashion 2016 data
                                       is.na(mass_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fishmeal" ~ 2.44,
                                       is.na(mass_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fish oil" ~ 2.44,
                                       is.na(mass_value) & TaxonName == "Engraulis ringens" & ingredient == "Fishmeal" ~ foragefish_cfs |>
@@ -480,7 +480,7 @@ forage_catch |>
                                       is.na(mass_value) & ingredient == "Fish oil" ~ globalav_foragefish_fo_mass,
                                       TRUE ~ mass_value),
          #now for energetic allocation
-         ge_value = case_when( is.na(ge_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fishmeal" ~ 1.66,
+         ge_value = case_when( is.na(ge_value) & TaxonName == "Sardina pilchardus" & ingredient == "Fishmeal" ~ 1.66,
                                       is.na(ge_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fish oil" ~ 3.43,
                                       is.na(ge_value) & TaxonName == "Engraulis ringens" & ingredient == "Fishmeal" ~ foragefish_cfs |>
                                         filter(sci_name == "Engraulis ringens" & ingredient == "Fishmeal") |> pull(ge_value),
@@ -574,7 +574,8 @@ forage_supply_demand_by_diet <-
              total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge,
              total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass
              ) |> 
-      relocate(diet, .before = fao_area_code)
+      relocate(diet, .before = fao_area_code) |> 
+      as.data.frame()
     
   })
 
