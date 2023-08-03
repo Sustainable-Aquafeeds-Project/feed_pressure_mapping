@@ -1,4 +1,4 @@
----
+  ---
 title: "Calculate embodied fish demand in feeds"
 output: html_document
 ---
@@ -39,7 +39,7 @@ fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 rm(total_ingredient_demand)
 
 (foragefish_cfs <- read_csv(here("data/raw_data/allocation/embodied_fish_allocation_tidy.csv")) |> 
-  select(CommonName, sci_name, ingredient, ge_value, mass_value) |> 
+  select(common_name, sci_name, ingredient, ge_value, mass_value) |> 
   mutate(sci_name = case_when(sci_name == "Brevoorti patronus" ~ "Brevoortia patronus",
                               TRUE ~ sci_name)) |> distinct())
 
@@ -51,11 +51,11 @@ rm(total_ingredient_demand)
 
 
 # #global values for later
-globalav_foragefish_fm_mass <- foragefish_cfs |> filter(CommonName |> is.na() & ingredient == "Fishmeal") |> pull(mass_value)
-globalav_foragefish_fm_ge <- foragefish_cfs |> filter(CommonName |> is.na() & ingredient == "Fishmeal") |> pull(ge_value)
+globalav_foragefish_fm_mass <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fishmeal") |> pull(mass_value)
+globalav_foragefish_fm_ge <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fishmeal") |> pull(ge_value)
 
-globalav_foragefish_fo_mass <- foragefish_cfs |> filter(CommonName |> is.na() & ingredient == "Fish oil") |> pull(mass_value)
-globalav_foragefish_fo_ge <- foragefish_cfs |> filter(CommonName |> is.na() & ingredient == "Fish oil") |> pull(ge_value)
+globalav_foragefish_fo_mass <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fish oil") |> pull(mass_value)
+globalav_foragefish_fo_ge <- foragefish_cfs |> filter(common_name |> is.na() & ingredient == "Fish oil") |> pull(ge_value)
 ```
 
 Isolate catch for trimmings first
@@ -525,6 +525,9 @@ Find out how much fishmeal and oil is available globally from the species used i
 
 ```{r}
  
+trim_fmfo_yield <- fread(here("data/large_data/embodied_fmfo_potential_from_trimmings.csv"))
+forage_fmfo_yield <- fread(here("data/large_data/embodied_fmfo_potential_from_foragefish.csv"))
+
 
 #forage
 (total_fm_available_mass <- forage_fmfo_yield$yield_mass_fishmeal |> sum())
@@ -675,6 +678,8 @@ embodied_trimingsfish_demand_by_diet_source <-
 saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
 
 trim_fmfo_yield |> filter(fao_area_code==61)
+
+readRDS(here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
 ```
 ```{r}
 

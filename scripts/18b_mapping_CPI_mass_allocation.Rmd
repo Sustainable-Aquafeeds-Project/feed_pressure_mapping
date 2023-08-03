@@ -465,19 +465,17 @@ source_diet_map <-
           
 
           
-ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 19, units = "cm")
+# ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 19, units = "cm")
 ```
 
 Save one cumulative pressure map for conceptual plot
 ```{r}
-
-marine_diet3_df <- terra::as.data.frame(marine_diet_raster[["source_3"]], xy=TRUE)
-(marine_sourcing_p3 <- 
+    
   ggplot()+
-  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
+  geom_sf(data = bbox |> st_transform(crs = moll_crs), colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
+  geom_sf(data = countries |> st_transform(crs = moll_crs), fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet3_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
+  geom_sf(data = coastline |> st_transform(crs = moll_crs), colour="grey45", linewidth= 0.15)+
   theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
@@ -504,7 +502,18 @@ ggsave(here("figures/single_CPI_map.jpeg"), device = "jpg", dpi = 600, width = 8
 
 ```
 
+Make map into robinson projection for website
+```{r}
 
+moll_rast <- rast(crs = moll_crs)
+values(moll_rast) <- 1:ncell(moll_rast)
+
+
+marine_rast <- rast(marine_diet3_df, type="xyz", crs = gp_crs)
+
+project(marine_rast, moll_rast)
+
+```
 
 
 

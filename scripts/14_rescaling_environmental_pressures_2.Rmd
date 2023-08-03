@@ -39,6 +39,23 @@ values(eq_area_rast) <- 1:ncell(eq_area_rast)
 
 cellSize(eq_area_rast, unit="km", transform = FALSE)
 
+
+moll_rast <- project(base_rast, "ESRI:53009")
+values(moll_rast) <- 1:ncell(moll_rast)
+
+
+marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
+marine_diet_disturbance <- marine_diet_disturbance[!grepl("forage_fish|_gp", marine_diet_disturbance) & grepl("allocation", marine_diet_disturbance)]
+
+test <- rast(marine_diet_disturbance[[1]])
+test_rp <- project(test, moll_rast)
+test_rs <- resample(test_rp, moll_rast)
+
+test |> no_na_values() |> sum()
+test_rs |> no_na_values() |> sum()
+test_rp |> no_na_values() |> sum()
+
+
 ```
 
 
