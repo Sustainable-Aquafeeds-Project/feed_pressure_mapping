@@ -26,7 +26,7 @@ values <- terra::values
 
 
 
-Now we need to work out how the ingredient demand converts to forage fish biomass. This will depend on species which depends on geographic region. So we need different conversions from different species. First bring in the demand data and the data from Kok et al re embodied fisg depending on species. This also requires the species list for forage fish.
+Now we need to work out how the ingredient demand converts to embodied fish biomass. This will depend on species which depends on geographic region and also the degree of trimmings used for FMFO in this region. So we need different conversions from different species and forage and trimmings sources.
   
 
 ```{r}
@@ -44,10 +44,17 @@ rm(total_ingredient_demand)
                               TRUE ~ sci_name)) |> distinct())
 
 
+#bring in trimmings weightings and add to conversion factors
+
+trimmings_wghts <- read_csv(here("data/tidy_data/demand/trimmings_weightings.csv")) |> 
+  group_by(group) |> 
+  summarise(trimmings_weight = sum(share_of_trimmings))
+
+
 (trimmings_cfs <- 
   readRDS(here("data/tidy_data/allocation/trimmings_conversion_factors.csv")) |> 
-  select(CommonName, TaxonName, ingredient, mass_byproduct_cf, ge_byproduct_cf, group)
-)
+  select(CommonName, TaxonName, ingredient, mass_byproduct_cf, ge_byproduct_cf, group))
+
 
 
 # #global values for later
@@ -146,7 +153,8 @@ plot((total_forage_raster))
 sum(values(total_forage_raster), na.rm = TRUE)
 
 
-fao_areas_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+fao_areas_shp <- 
+  read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
   mutate(F_AREA = as.numeric(F_AREA)) |> 
   group_by(F_AREA) |> 
   group_split()
@@ -209,7 +217,11 @@ fish_sourcing_areas <-
 saveRDS(object = fish_sourcing_areas, file = here("data/tidy_data/production-data/fao_regions_fish_production_potential.rds"))
 
 
+
 ```
+
+
+
 
 Now we have to calculate the yield of fishmeal and oil per cell of the fisheries data for both trimmings and forage.
 
@@ -251,6 +263,7 @@ trimmings_spp_catch |>
                            grepl("Blue whiting", CommonName) ~ "Blue whiting")) |> 
   #add the conversion factors for trimmings
   left_join(trimmings_cfs, by = c("TaxonName", "CommonName", "ingredient", "group")) |> 
+  left_join(trimmings_wghts, by = "group") |> 
   #fill in NA values through species group values for mass and energetic allocation
   mutate(mass_byproduct_cf = case_when(#when the na group is anchovies make it Peruvian anchoveta conversion factor
                                       is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Anchovies"~
@@ -426,17 +439,13 @@ trimmings_spp_catch |>
     select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
   #turn to wide format to reverse duplicate rows created from duplicate dataframe for FM and FO
     pivot_wider(names_from = "ingredient", values_from = c("mass_byproduct_cf", "ge_byproduct_cf", "yield_mass", "yield_ge")) |> 
-  #calculate the proportion each record represents for each FAO fishing area - this can be multiplied by demand under each diet
-  group_by(fao_area_code) |> 
-  nest() |> 
-  mutate(prop_fm_mass = map(data, ~(.$yield_mass_fishmeal/sum(.$yield_mass_fishmeal))),
-         prop_fo_mass = map(data, ~(.$yield_mass_fish_oil/sum(.$yield_mass_fish_oil))),
-         prop_fm_ge = map(data, ~(.$yield_ge_fishmeal/sum(.$yield_ge_fishmeal))),
-         prop_fo_ge = map(data, ~(.$yield_ge_fish_oil/sum(.$yield_ge_fish_oil)))) |> 
-  unnest(cols = c(data, prop_fm_mass, prop_fo_mass, prop_fm_ge, prop_fo_ge)) |> 
-  mutate())
+  mutate(type="trimmings"))
+ 
 
 fwrite(trim_fmfo_yield, file = here("data/large_data/embodied_fmfo_potential_from_trimmings.csv"))
+
+
+
 
 
 ```
@@ -499,18 +508,16 @@ forage_catch |>
     mutate(ingredient = gsub(" ", "_", tolower(ingredient))) |> 
     select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
   #turn to wide format to reverse duplicate rows created from duplicate dataframe for FM and FO
-    pivot_wider(names_from = "ingredient", values_from = c("mass_value", "ge_value", "yield_mass", "yield_ge")) |> 
+    pivot_wider(names_from = "ingredient", values_from = c("mass_value", "ge_value", "yield_mass", "yield_ge")) |>  
   #calculate the proportion each record represents for each FAO fishing area - this can be multiplied by demand under each diet
-  group_by(fao_area_code) |> 
+ group_by(fao_area_code) |> 
   nest() |> 
   mutate(prop_fm_mass = map(data, ~(.$yield_mass_fishmeal/sum(.$yield_mass_fishmeal))),
          prop_fo_mass = map(data, ~(.$yield_mass_fish_oil/sum(.$yield_mass_fish_oil))),
          prop_fm_ge = map(data, ~(.$yield_ge_fishmeal/sum(.$yield_ge_fishmeal))),
          prop_fo_ge = map(data, ~(.$yield_ge_fish_oil/sum(.$yield_ge_fish_oil)))) |> 
   unnest(cols = c(data, prop_fm_mass, prop_fo_mass, prop_fm_ge, prop_fo_ge)) |> 
-  mutate()
-
-)
+  mutate(type="foragefish"))
 
 
 fwrite(x = forage_fmfo_yield, file =  here("data/large_data/embodied_fmfo_potential_from_foragefish.csv"))
@@ -614,21 +621,45 @@ saveRDS(object = embodied_foragefish_demand_by_diet_source, file = here("data/ti
 
 #Trimmings
 
-#use the proportions for each region to divide the demand up and work out how the spp_based demand converts to embodied fish
+
+#use the proportions for each region and weight by group to divide the demand up and work out how the spp_based demand converts to embodied fish
 
 trim_supply_demand_by_diet <- 
   map_df(.x =  c("marine_diet", "plant_diet"), .f = \(this_diet){
     
-    this_df <- trim_fmfo_yield |> 
+    this_trimmings_df <- trim_fmfo_yield 
+    
+    these_weight_sums <- 
+      map_df(this_demand_df |> 
+      group_by(fao_area_code) |> 
+      group_split(), \(this_df){
+        
+       return(tibble(fao_area_code = this_df |> pull(fao_area_code) |> unique(), trimmings_weight_sum = this_df |> pull(trimmings_weight) |> unique() |> sum()))
+      })
+    
+    this_demand_df <- 
+      this_trimmings_df |>
+      left_join(these_weight_sums) |> 
       mutate(diet = this_diet,
              #extract total fmfo demand for each diet
              total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal") |> pull(ingredient_demand_tonnes),
-             total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil") |> pull(ingredient_demand_tonnes),
-             #distribute fishmeal and oil demand according to its distribution
-             distributed_fm_demand_mass = total_fm_needed_for_diet * prop_fm_mass,
-             distributed_fo_demand_mass = total_fo_needed_for_diet * prop_fo_mass,
-             distributed_fm_demand_ge = total_fm_needed_for_diet * prop_fm_ge,
-             distributed_fo_demand_ge = total_fo_needed_for_diet * prop_fo_ge,
+             total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil") |> pull(ingredient_demand_tonnes)) |> 
+      mutate(weighted_fm_needed = total_fm_needed_for_diet*trimmings_weight/trimmings_weight_sum,
+             weighted_fo_needed = total_fo_needed_for_diet*trimmings_weight/trimmings_weight_sum) |> 
+      #now see the yield for each area from each group that cell represents
+      group_by(fao_area_code, group) |> 
+      nest() |> 
+  mutate(prop_fm_mass = map(data, ~(.$yield_mass_fishmeal/sum(.$yield_mass_fishmeal))),
+         prop_fo_mass = map(data, ~(.$yield_mass_fish_oil/sum(.$yield_mass_fish_oil))),
+         prop_fm_ge = map(data, ~(.$yield_ge_fishmeal/sum(.$yield_ge_fishmeal))),
+         prop_fo_ge = map(data, ~(.$yield_ge_fish_oil/sum(.$yield_ge_fish_oil)))) |> 
+  unnest(cols = c(data, prop_fm_mass, prop_fo_mass, prop_fm_ge, prop_fo_ge)) |> 
+      mutate(
+        #distribute fishmeal and oil demand according to its distribution and the weight of that group in trimmings
+             distributed_fm_demand_mass =  weighted_fm_needed * prop_fm_mass,
+             distributed_fo_demand_mass = weighted_fo_needed * prop_fo_mass,
+             distributed_fm_demand_ge = weighted_fm_needed * prop_fm_ge,
+             distributed_fo_demand_ge = weighted_fo_needed * prop_fo_ge,
             
              #calculate embodied demand
              #calculated the embodied fish from fm and fo
@@ -644,8 +675,10 @@ trim_supply_demand_by_diet <-
              total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass
              ) |> 
       relocate(diet, .before = fao_area_code)
+      
+    return(this_demand_df)
     
-  })
+  }) |> ungroup()
 
 fwrite(trim_supply_demand_by_diet, file = here("data/large_data/embodied_fishfromtrimmings_per_cell.csv"))
 
@@ -666,7 +699,7 @@ embodied_trimingsfish_demand_by_diet_source <-
                   embodied_fish_demand_mass = sum(this_df$total_embodied_fish_mass)))
     
   }) |> 
-  pivot_longer(cols = -c(diet, fao_area_code), names_to = "demand_from", values_to = "embodied_foragefish" ) |> 
+  pivot_longer(cols = -c(diet, fao_area_code), names_to = "demand_from", values_to = "embodied_fish" ) |> 
   mutate(allocation = case_when(grepl("_ge", demand_from) ~ "Energetic allocation",
                                 TRUE ~ "Mass allocation"
                                 )) |> 
@@ -678,9 +711,9 @@ embodied_trimingsfish_demand_by_diet_source <-
 
 saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
 
-trim_fmfo_yield |> filter(fao_area_code==61)
-
 readRDS(here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
+
+
 ```
 ```{r}
 

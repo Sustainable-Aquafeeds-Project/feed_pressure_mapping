@@ -30,8 +30,8 @@ source(here("src/spatial.R"))
 select <- dplyr::select
 
 # Uncomment for when RDSI is down
-watson_dir <- watson_backup_dir
-rdsi_dir
+# watson_dir <- watson_backup_dir
+# rdsi_dir
 
 ```
 

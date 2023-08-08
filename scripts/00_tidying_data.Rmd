@@ -580,6 +580,27 @@ trimmings_spp_catch |> pull(CommonName) |> unique()
 
 saveRDS(trimmings_spp_catch, file = "data/input/trimmings_spp_catch.rds")
 
+
+
+trimmings_contributions <- read_csv(file.path(rdsi_dir, "raw_data/biomar/trimmings_share_by_spp.csv")) |> 
+  rename(CommonName = spp) |> 
+  mutate(CommonName = gsub("\\s*\\([^\\)]+\\)", "", CommonName)) |> 
+  mutate(group = case_when(grepl("sprat|Sprat", CommonName) ~ "Sprats",
+                           grepl("anchovy|anchoita|Anchovies|anchoveta|Anchovy", CommonName) ~ "Anchovies",
+                           grepl("Tuna|tuna|Albacore", CommonName) ~ "Tunas",
+                           grepl("cod|pollack|Pollock", CommonName) ~ "Cods",
+                            grepl("sardinella|Sardinella|sardine", CommonName) ~ "Sardines",
+                           grepl("mackerel", CommonName) ~ "Mackerels",
+                           grepl("herring|Herring", CommonName) ~ "Herrings",
+                           grepl("menhaden|Mehaden", CommonName) ~ "Menhaden",
+                           grepl("Capelin", CommonName) ~ "Capelin",
+                           grepl("Blue whiting|Blue Whiting", CommonName) ~ "Blue whiting",
+                           grepl("Sandeel", CommonName) ~ "Sandeel")) |> 
+  drop_na(group) |> 
+  write_csv(here("data/tidy_data/demand/trimmings_weightings.csv"))
+
+
+
 ```
 
 
