@@ -23,6 +23,7 @@ library(future)
 library(furrr)
 #library(doParallel)
 library(rfishbase)
+library(RColorBrewer)
 
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
@@ -367,13 +368,28 @@ all_fish_npp <-
   left_join(cell_area)
 
 
+
+all_fish_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |> 
+  pull(area_fm_mass)  |> sum()/ (38400)
+all_fish_npp |> filter(fao_area_code == "31" & diet == "marine_diet") |> 
+  pull(area_fm_mass)  |> sum()/ (38400)
+all_fish_npp |> filter(fao_area_code == "61" & diet == "marine_diet") |> 
+  pull(area_fm_mass)  |> sum()/ (38400)
+all_fish_npp |> filter(fao_area_code == "67" & diet == "marine_diet") |> 
+  pull(area_fm_mass)  |> sum()/ (38400)
+all_fish_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+  pull(area_fm_mass)  |> sum()/ (38400)
+
+
+
+#TRIM
 # Mass allocation
 #fishmeal
-trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+trim_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |> 
   pull(area_fm_mass)  |> sum()/ (38400*0.3)
 
 #fo trim 
-trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+trim_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |> 
   pull(area_fo_mass)  |> sum() /(27600*0.4)
 
 
@@ -388,14 +404,14 @@ forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |>
 total_ingredient_demand_by_diet
 
 
-#Energetic 
+#Forage 
 
 #fishmeal trim
-trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+trim_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |> 
   pull(area_fm_ge)  |> sum()/ (38400*0.3)
 
 #fo trim 
-trim_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
+trim_npp |> filter(fao_area_code == "67" & diet == "marine_diet") |> 
   pull(area_fo_ge)  |> sum() /(27600*0.4)
 
 
@@ -412,11 +428,11 @@ trim_npp |> pull(fao_area_code) |> unique()
 
 
 
-trim_npp|> filter(fao_area_code == "27" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
-trim_npp|> filter(fao_area_code == "31" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
-trim_npp|> filter(fao_area_code == "67" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
-trim_npp|> filter(fao_area_code == "61" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
-trim_npp|> filter(fao_area_code == "87" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)
+trim_npp|> filter(fao_area_code == "27" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch) |> as_tibble()
+trim_npp|> filter(fao_area_code == "31" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch) |> as_tibble()
+trim_npp|> filter(fao_area_code == "67" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch) |> as_tibble()
+trim_npp|> filter(fao_area_code == "61" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)|> as_tibble()
+trim_npp|> filter(fao_area_code == "87" & diet == "marine_diet") |> group_by(CommonName) |> summarise(catch = sum(ReportedIND, na.rm = TRUE)) |> arrange(-catch)|> as_tibble()
 ```
 
 
@@ -511,6 +527,35 @@ map(.x = all_fish_npp_list, .f = \(this_diet_fao_area){
 
 ```
 
+
+
+
+Some supplementary plots of the fish embodied by zone
+
+```{r}
+
+#Fishmeal - Mass allocation
+
+fm_mass_stack <- list.files(here("data/spatial/marine_diet/int"), pattern = "fishmeal_disturbance_km2_mass", full=TRUE) |> rast()
+
+fm_mass_all <- app(fm_mass_stack, sum, na.rm=TRUE)
+
+
+
+ggplot()+
+  geom_tile(data = fm_mass_all |> 
+              terra::as.data.frame(xy=TRUE) |> filter(sum>0), aes(x=x, y=y, fill=(sum+1)))+
+  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
+  scale_fill_gradientn(colours = brewer.pal(n=8, "BuPu"),
+                       trans = "log10")+
+  theme(panel.background = element_rect(fill="transparent"))+
+  labs(fill=bquote(Marine~footprint~km^2), title = "Disturbance, fishmeal, mass allocation")
+
+ggsave(file = here("figures/presos/fishmeal_forage_mass_disturbance.jpg"), height = 4, width=7)
+
+
+
+```
 
 
 

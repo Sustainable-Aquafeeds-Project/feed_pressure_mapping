@@ -510,20 +510,21 @@ forage_catch |>
   #turn to wide format to reverse duplicate rows created from duplicate dataframe for FM and FO
     pivot_wider(names_from = "ingredient", values_from = c("mass_value", "ge_value", "yield_mass", "yield_ge")) |>  
   #calculate the proportion each record represents for each FAO fishing area - this can be multiplied by demand under each diet
+filter(!across(everything(), is.infinite) %>% purrr::reduce(`|`)) |> #this drops one record of Euphausia superba where reported industrial catch was 0.2 tonnes
  group_by(fao_area_code) |> 
-  nest() |> 
+  nest() |>
   mutate(prop_fm_mass = map(data, ~(.$yield_mass_fishmeal/sum(.$yield_mass_fishmeal))),
          prop_fo_mass = map(data, ~(.$yield_mass_fish_oil/sum(.$yield_mass_fish_oil))),
          prop_fm_ge = map(data, ~(.$yield_ge_fishmeal/sum(.$yield_ge_fishmeal))),
          prop_fo_ge = map(data, ~(.$yield_ge_fish_oil/sum(.$yield_ge_fish_oil)))) |> 
   unnest(cols = c(data, prop_fm_mass, prop_fo_mass, prop_fm_ge, prop_fo_ge)) |> 
-  mutate(type="foragefish"))
+  ungroup() |> 
+  mutate(type="foragefish")) 
 
 
 fwrite(x = forage_fmfo_yield, file =  here("data/large_data/embodied_fmfo_potential_from_foragefish.csv"))
 
 
-trim_fmfo_yield |> filter(fao_area_code==61)
 ```
 
 
@@ -647,6 +648,7 @@ trim_supply_demand_by_diet <-
       mutate(weighted_fm_needed = total_fm_needed_for_diet*trimmings_weight/trimmings_weight_sum,
              weighted_fo_needed = total_fo_needed_for_diet*trimmings_weight/trimmings_weight_sum) |> 
       #now see the yield for each area from each group that cell represents
+      as_tibble() |> 
       group_by(fao_area_code, group) |> 
       nest() |> 
   mutate(prop_fm_mass = map(data, ~(.$yield_mass_fishmeal/sum(.$yield_mass_fishmeal))),
@@ -714,11 +716,87 @@ saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/
 readRDS(here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
 
 
+
+
 ```
+
+
+
 ```{r}
 
 data.table::fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> pull(fao_area_code) |> unique()
 data.table::fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> pull(fao_area_code) |> unique()
+
+```
+
+Supplementary plots
+
+```{r}
+
+trimmings_fm_mass <- fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
+  select(fao_area_code, LonCentre, LatCentre, fm_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fm_embodied_fish_mass = sum(fm_embodied_fish_mass, na.rm=TRUE)) 
+
+
+ggplot()+
+  geom_tile(data = trimmings_fm_mass |> filter(fm_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fm_embodied_fish_mass+1))+
+  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
+  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
+                       trans = "log10")+
+  theme(panel.background = element_rect(fill="transparent"))+
+  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fish meal -", 38400*0.4),  "MT demand, trimmings, fish-dominant"))
+
+ggsave(file = here("figures/presos/fishmeal_trimmings_mass.jpg"), height = 4, width=7)
+
+
+trimmings_fo_mass <- fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
+  select(fao_area_code, LonCentre, LatCentre, fo_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fo_embodied_fish_mass = sum(fo_embodied_fish_mass, na.rm=TRUE)) 
+
+
+ggplot()+
+  geom_tile(data = trimmings_fo_mass |> filter(fo_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fo_embodied_fish_mass+1))+
+  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
+  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
+                       trans = "log10")+
+  theme(panel.background = element_rect(fill="transparent"))+
+  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fish oil -", 27900*0.3),  "MT demand, trimmings, fish-dominant"))
+
+ggsave(file = here("figures/presos/fish oil_trimmings_mass.jpg"), height = 4, width=7)
+
+#forage fish
+
+forage_fm_mass <- fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
+  select(fao_area_code, LonCentre, LatCentre, fm_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fm_embodied_fish_mass = sum(fm_embodied_fish_mass, na.rm=TRUE)) 
+
+
+ggplot()+
+  geom_tile(data = forage_fm_mass |> filter(fm_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fm_embodied_fish_mass+1))+
+  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
+  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
+                       trans = "log10")+
+  theme(panel.background = element_rect(fill="transparent"))+
+  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fishmeal -", 38400*0.6),  "MT demand, forage fish, fish-dominant"))
+
+ggsave(file = here("figures/presos/fishmeal_forage_mass.jpg"), height = 4, width=7)
+
+
+forage_fo_mass <- fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
+  select(fao_area_code, LonCentre, LatCentre, fo_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fo_embodied_fish_mass = sum(fo_embodied_fish_mass, na.rm=TRUE)) 
+
+
+ggplot()+
+  geom_tile(data = forage_fo_mass |> filter(fo_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fo_embodied_fish_mass+1))+
+  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
+  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
+                
+                       trans = "log10"
+                       )+
+  theme(panel.background = element_rect(fill="transparent"))+
+  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fish oil -", 27900*0.7),  "MT demand, forage fish, fish-dominant"))
+
+ggsave(file = here("figures/presos/fish oil_forage_mass.jpg"), height = 4, width=7)
+
+forage_fo_mass$fo_embodied_fish_mass |> max()
+trimmings_fm_mass |> filter(fm_embodied_fish_mass>0) |> pull(fm_embodied_fish_mass) |> min()
 
 ```
 
