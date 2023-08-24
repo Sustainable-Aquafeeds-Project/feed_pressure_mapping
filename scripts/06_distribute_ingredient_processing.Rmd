@@ -1,0 +1,166 @@
+---
+title: "Identify the location of ingredient processing"
+author: "Rich Cottrell"
+date: '2023-08-23'
+output: html_document
+---
+
+Setup
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(sf)
+library(here)
+
+#allocation preference
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
+```
+
+Ingredient demand
+
+```{r}
+
+ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
+
+
+
+```
+
+
+
+# Distributing marine ingredient processing over relevant ports
+
+
+First bring in ports data
+```{r}
+
+wpi <- read_sf(here("data/spatial/ports/WPI_shapefile")) |> 
+
+ggplot()+
+  geom_sf(data = wpi)
+
+
+#which fishing areas are we interested in from the distribution of catch in Step 3
+
+areas_of_interest <- readRDS(here("data/tidy_data/production-data/fao_regions_fish_production_potential.rds")) |> 
+  pull(fao_area_code) |> unique()
+  
+
+
+#Now bring in FAO fishing areas (no coastline) to intersect with the ports for each FAO fishing area of interest
+fao_areas_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR" & F_CODE %in% areas_of_interest) |> 
+  mutate(F_AREA = as.numeric(F_AREA)) |> 
+  group_by(F_AREA) |> 
+  group_split()
+
+
+#test function
+#this_area <- fao_areas_shp[[3]]
+
+#get the number of ports in each fishing area
+port_number <- map_df(fao_areas_shp, \(this_area){
+  
+  sf_use_s2(FALSE)
+  
+  this_fao_area <-  this_area |> pull(F_AREA) |> unique()
+  
+  these_ports <- st_intersection(wpi, this_area) |> mutate(fao_area = this_fao_area)
+  
+  write_sf(these_ports, sprintf(here("data/spatial/ports/fishing_area_ports/ports_fao_%s.shp"), this_fao_area))
+  
+ return(tibble(fao_area_code = this_fao_area, no_ports = nrow(these_ports)))
+  
+})
+
+
+
+#Now for each diet distribute the demand evenly for each ingredient across all ports
+
+#Break marine ingredients into a list per diet per ingredient
+marine_ingredient_list <- ingredient_demand |> 
+  filter(ingredients %in% c("fishmeal", "fish oil")) |> 
+  rownames_to_column() |> 
+  group_by(rowname) |> 
+  group_split()
+
+#test function
+this_df <- marine_ingredient_list[[1]]
+
+#create a data frame of demand per port for each fishing area
+marine_ingredient_demand_to_ports <- 
+  
+  map_df(marine_ingredient_list, \(this_df){
+  
+  this_diet <- this_df$diet
+  
+  this_ingredient <- this_df$ingredients
+  
+  this_demand <- this_df$ingredient_demand_tonnes
+  
+  return(port_number |> 
+    mutate(diet = this_diet,
+           ingredient = this_ingredient,
+           ingredient_demand = this_demand,
+           demand_per_port = ingredient_demand/no_ports))
+}) |> 
+      rownames_to_column()
+
+saveRDS(object = marine_ingredient_demand_to_ports, file = here("data/tidy_data/demand/marine_ingredient_demand_to ports.rds"))
+
+
+
+all_relevant_ports <- list.files(path = here("data/spatial/ports/fishing_area_ports"), pattern = ".shp", full.names = TRUE) |> map_df(read_sf)
+
+all_relevant_ports_w_demand <- 
+  marine_ingredient_demand_to_ports |> 
+  left_join(all_relevant_ports, by = c("fao_area_code" = "fao_area")) |> 
+  group_by(fao_area_code, diet, ingredient) |> 
+  group_split()
+
+
+#test function
+this_areas_ports <- all_relevant_ports_w_demand[[3]]
+
+
+
+#now rasterise the ports data with the tonnage of ingredient for processing
+
+map(all_relevant_ports_w_demand, \(this_areas_ports){
+  
+  this_area <- this_areas_ports$fao_area_code |> unique()
+  this_diet <- this_areas_ports$diet |> unique()
+  this_ingredient <- this_areas_ports$ingredient |> unique()
+  
+  rasterize(x=vect(st_as_sf(this_areas_ports)), y=rast(res=0.5) , field = this_areas_ports$demand_per_port, sum, 
+          filename = sprintf(here("data/spatial/%s/processing/%s_%s.tif"), this_diet, this_ingredient, this_area), overwrite=TRUE)
+
+})
+
+#check the rasters are summing correctly and still represent the correct biomass
+(fm_spatial_27 <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/processing/fishmeal_27.tif") |> values() |> sum(na.rm=TRUE))
+
+(fm_demand_27 <- ingredient_demand |> filter(diet == "marine_diet", ingredients == "fishmeal") |> pull(ingredient_demand_tonnes)
+) 
+#looks good
+
+```
+
+
+# Distributing terrestrial ingredient processing on country centroids for each crop
+
+
+```{r}
+
+#pull in the country sourcing rasters for each crop
+
+sourcing_countries <- readRDS(here("data/tidy_data/demand/sourcing_countries_crops.rds"))
+
+
+
+
+
+```
+

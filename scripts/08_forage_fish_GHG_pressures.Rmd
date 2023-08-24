@@ -1,0 +1,218 @@
+---
+title: "08_forage_fish_GHG_pressures"
+author: "Rich Cottrell"
+date: "29/06/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(terra)
+library(sf)
+library(data.table)
+library(dtplyr)
+library(here)
+
+source(here("src/directories.R"))
+source(here("src/spatial.R"))
+
+select <- dplyr::select
+
+```
+
+Bringing in the emission intensity data from Halpern et al stored in RDSI and tidy to distinct categories with functional groups associated with the Watson data.
+```{r}
+
+ei_data <- read_csv(here("data/raw_data/fisheries/all_catch_emissions_2017.csv"))
+  
+
+```
+
+Now join the embodied fish demand xy data with the emission intensity data and calculate the emissions from each gear in each cell. Then we can save the rasters for each diet and source, for both fishmeal and oil ingredients
+
+```{r}
+embodied_fish_trim <- fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv"))
+embodied_fish_forage <- fread(here("data/large_data/embodied_foragefish_per_cell.csv"))
+
+#take a look at the differences between gears for watson data and the ei data 
+unique(ei_data$ParkerGearName)
+unique(embodied_fish_trim$VBDesc)
+
+#Gear classifications are different. So we need the join file with Parker Data created in Halpern et al food systems project
+parker_gear_join <- read_csv(here("data/raw_data/fisheries/parker_gear_join.csv"))
+
+#now join parker gear data to the embodied fish by the parker gear categories, species and description from watson. Adjust the emissions intensities to reflect per tonne pressures
+
+#trimmings
+
+embodied_fish_trim_new_gear <- 
+  embodied_fish_trim |> 
+  lazy_dt(immutable = FALSE) |> 
+  left_join(parker_gear_join, by="Gear") |> 
+  left_join(ei_data, by = c("Taxonkey", "Descript", "ParkerGearName")) |> 
+  as_tibble() |>
+  mutate(ei_kgco2_tonnecatch = ei_kgco2_kgcatch*1000)|> 
+  mutate(ei_kg_CO2_eq_fm_mass = fm_embodied_fish_mass*ei_kgco2_tonnecatch,
+         ei_kg_CO2_eq_fm_ge = fm_embodied_fish_ge*ei_kgco2_tonnecatch,
+         ei_kg_CO2_eq_fo_mass = fo_embodied_fish_mass*ei_kgco2_tonnecatch,
+         ei_kg_CO2_eq_fo_ge = fo_embodied_fish_ge*ei_kgco2_tonnecatch)
+
+embodied_fish_trim_new_gear |> filter(is.na(ei_kgco2_kgcatch))
+#no missing emissions intensity data - what we want.
+
+
+
+#forage fish
+
+embodied_fish_forage_new_gear <- 
+  embodied_fish_forage |> 
+  lazy_dt(immutable = FALSE) |> 
+  left_join(parker_gear_join, by="Gear") |> 
+  left_join(ei_data, by = c("Taxonkey", "Descript", "ParkerGearName")) |> 
+  as_tibble() |>
+  mutate(ei_kgco2_tonnecatch = ei_kgco2_kgcatch*1000)|> 
+  mutate(ei_kg_CO2_eq_fm_mass = fm_embodied_fish_mass*ei_kgco2_tonnecatch,
+         ei_kg_CO2_eq_fm_ge = fm_embodied_fish_ge*ei_kgco2_tonnecatch,
+         ei_kg_CO2_eq_fo_mass = fo_embodied_fish_mass*ei_kgco2_tonnecatch,
+         ei_kg_CO2_eq_fo_ge = fo_embodied_fish_ge*ei_kgco2_tonnecatch)
+
+#no missing emissions intensity data - what we want.
+embodied_fish_forage_new_gear |> filter(is.na(ei_kgco2_kgcatch))
+
+
+
+#check the embedded fish across the fm and fo per diet
+embodied_fish_trim_new_gear |> 
+  select(diet, fao_area_code, fm_embodied_fish_ge, fm_embodied_fish_mass, fo_embodied_fish_ge, fo_embodied_fish_mass) |> 
+  group_by(diet, fao_area_code) |> 
+  summarise(fo_embedded_ge = sum(fo_embodied_fish_ge, na.rm=TRUE),
+            fm_embedded_ge = sum(fm_embodied_fish_ge, na.rm = TRUE),
+            fo_embedded_mass = sum(fo_embodied_fish_mass, na.rm=TRUE),
+            fm_embedded_mass = sum(fm_embodied_fish_mass, na.rm = TRUE))
+
+embodied_fish_forage_new_gear |> 
+  select(diet, fao_area_code, fm_embodied_fish_ge, fm_embodied_fish_mass, fo_embodied_fish_ge, fo_embodied_fish_mass) |> 
+  group_by(diet, fao_area_code) |> 
+  summarise(fo_embedded_ge = sum(fo_embodied_fish_ge, na.rm=TRUE),
+            fm_embedded_ge = sum(fm_embodied_fish_ge, na.rm = TRUE),
+            fo_embedded_mass = sum(fo_embodied_fish_mass, na.rm=TRUE),
+            fm_embedded_mass = sum(fm_embodied_fish_mass, na.rm = TRUE))
+
+
+
+#combine the trimmings and forage data to break into diet and fao_area later
+
+embodied_fish_new_gear <- 
+  
+  bind_rows(embodied_fish_forage_new_gear |> 
+            select(diet, fao_area_code, Gear,TaxonName, LonCentre, LatCentre, VBDesc, 
+                   ei_kgco2_tonnecatch, ei_kg_CO2_eq_fm_mass, ei_kg_CO2_eq_fm_ge, ei_kg_CO2_eq_fo_mass,  ei_kg_CO2_eq_fo_ge ),
+          
+          embodied_fish_trim_new_gear |> select(diet, fao_area_code, Gear, TaxonName, LonCentre, LatCentre, VBDesc, 
+                   ei_kgco2_tonnecatch, ei_kg_CO2_eq_fm_mass, ei_kg_CO2_eq_fm_ge, ei_kg_CO2_eq_fo_mass,  ei_kg_CO2_eq_fo_ge ))
+
+
+
+```
+
+
+
+
+# Fishmeal
+```{r}
+
+ghg_list_fm <- embodied_fish_new_gear |> 
+  select(diet, fao_area_code, LonCentre, LatCentre, ei_kg_CO2_eq_fm_ge, ei_kg_CO2_eq_fm_mass) |> 
+  rename(ge_allocation = ei_kg_CO2_eq_fm_ge, mass_allocation = ei_kg_CO2_eq_fm_mass) |> 
+  pivot_longer(names_to = "allocation_method", values_to = "ei_kg_CO2_eq_fm", cols = -c(diet, fao_area_code, LonCentre, LatCentre)) |> 
+  group_by(diet, fao_area_code, LonCentre, LatCentre, allocation_method) |> 
+  summarise(total_kgCO2_fm = sum(ei_kg_CO2_eq_fm, na.rm=TRUE)) |> 
+  ungroup() |>
+  group_by(diet, fao_area_code, allocation_method) |> 
+  group_split()
+
+#testing function
+this_df <- ghg_list_fm[[1]]
+
+ghg_raw_r_list_fm <- 
+  
+  map(.x = ghg_list_fm, .f = \(this_df) {
+  
+  this_source <- unique(this_df$fao_area_code)
+  
+  this_diet <- unique(this_df$diet)
+  
+  this_allocation_method <- unique(this_df$allocation_method)
+  
+  saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    this_xy <- this_df |> select(LonCentre, LatCentre, total_kgCO2_fm)
+    
+    this_r <- rast(this_xy, type = "xyz", crs = "EPSG:4326") |> extend(ext(rast(res=0.5)))
+    
+    this_r_km2 <- this_r/cellSize(this_r, unit="km")
+    
+    writeRaster(x = this_r_km2, filename = saveName, overwrite=TRUE)
+    
+    return(this_r_km2)
+  }
+})
+
+#check the rasters
+plot(rast(ghg_raw_r_list_fm))
+
+```
+
+# Fish oil
+
+```{r}
+
+ghg_list_fo <- embodied_fish_new_gear |> 
+  select(diet, fao_area_code, LonCentre, LatCentre, ei_kg_CO2_eq_fo_ge, ei_kg_CO2_eq_fo_mass) |> 
+  rename(ge_allocation = ei_kg_CO2_eq_fo_ge, mass_allocation = ei_kg_CO2_eq_fo_mass) |> 
+  pivot_longer(names_to = "allocation_method", values_to = "ei_kg_CO2_eq_fo", cols = -c(diet, fao_area_code, LonCentre, LatCentre)) |> 
+  group_by(diet, fao_area_code, LonCentre, LatCentre, allocation_method) |> 
+  summarise(total_kgCO2_fo = sum(ei_kg_CO2_eq_fo, na.rm=TRUE)) |> 
+  ungroup() |> 
+  group_by(diet, fao_area_code, allocation_method) |> 
+  group_split()
+
+
+
+ghg_raw_r_list_fo <- 
+  
+  map(.x = ghg_list_fo, .f = \(this_df) {
+  
+  this_source <- unique(this_df$fao_area_code)
+  
+  this_diet <- unique(this_df$diet)
+  
+  this_allocation_method <- unique(this_df$allocation_method)
+  
+  saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_raw_%s_%s_%s.tif"), this_diet, this_diet, this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    this_xy <- this_df |> select(LonCentre, LatCentre, total_kgCO2_fo)
+    
+    this_r <- rast(this_xy, type = "xyz", crs = "EPSG:4326") |> extend(ext(rast(res=0.5)))
+    
+    this_r_km2 <- this_r/cellSize(this_r, unit="km")
+    
+    writeRaster(x = this_r_km2, filename = saveName, overwrite=TRUE)
+    
+    return(this_r_km2)
+  }
+})
+
+#check the rasters
+plot(rast(ghg_raw_r_list_fo))
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
+
+```
+

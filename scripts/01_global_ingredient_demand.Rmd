@@ -17,6 +17,14 @@ library(dtplyr)
 source(here("src/directories.R"))
 
 select <- dplyr::select
+
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
+
+
 ```
 
 
@@ -50,7 +58,7 @@ aquaculture %>% filter(species == "Atlantic salmon" & year %in% c(1990, 2019)) |
 #Global production
 round(sum(top_salmon_producers$value), digits = 20)
 
-#Average production levels
+#Average production levels - mean production is ~ 200,000 tonnes, median is 75,000.
 
 top_salmon_producers |> pull(value) |> mean()
 
@@ -69,7 +77,8 @@ Feed conversion ratios were sourced from Tacon and Metian 2008 which has country
 
 fcrs <- read_csv(here("data/raw_data/FCR.csv"))
 
-(feed_demand <- 
+
+(fcr_trends <- 
   top_salmon_producers %>% 
   left_join(fcrs, by = "country") %>% 
   mutate(eFCR_min = if_else(is.na(eFCR_min), true = fcrs %>% filter(country=="Globe") %>% pull(eFCR_mean), false = eFCR_min),
@@ -78,7 +87,7 @@ fcrs <- read_csv(here("data/raw_data/FCR.csv"))
   mutate(weighted_mean = sum(prop*eFCR_min)/sum(prop))
 )
 
-efcr <- feed_demand |> pull(weighted_mean) |> unique() |> round(digits = 1)
+efcr <- fcr_trends |> pull(weighted_mean) |> unique() |> round(digits = 1)
 
 ```
 
