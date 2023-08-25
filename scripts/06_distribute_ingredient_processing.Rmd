@@ -11,6 +11,7 @@ Setup
 library(tidyverse)
 library(sf)
 library(here)
+library(rnaturalearth)
 
 #allocation preference
 this_allocation_method <- "econ_allocation"
@@ -154,13 +155,41 @@ map(all_relevant_ports_w_demand, \(this_areas_ports){
 
 ```{r}
 
-#pull in the country sourcing rasters for each crop
+#pull in the country sourcing rasters for each crop and create a list for attributing demand for ingredients under different diets=
 
-sourcing_countries <- readRDS(here("data/tidy_data/demand/sourcing_countries_crops.rds"))
+sourcing_countries <- readRDS(here("data/tidy_data/demand/sourcing_countries_crops.rds")) |> 
+  select(ingredients, diet, source_iso3c, ingredient_demand_tonnes) |> 
+  distinct() |> 
+  rownames_to_column() |> 
+  group_by(rowname) |> 
+  group_split()
+
+countries_shp <- ne_countries(scale = "medium", type = "countries", returnclass = "sf")
 
 
+# pull in the country rasters
+country_raster_files <- list.files(here("data/spatial/country-rasters"), full.names = TRUE)
 
 
+#test function
+this_diet_ingredient_demand <- sourcing_countries[[1]]
 
+map(sourcing_countries, \(this_diet_ingredient_demand){
+  
+  this_diet <- this_diet_ingredient_demand$diet |> unique()
+  this_ingredient <- this_diet_ingredient_demand$ingredients |> unique()
+  this_country <- this_diet_ingredient_demand$source_iso3c |> unique()
+  this_demand <- this_diet_ingredient_demand$ingredient_demand_tonnes
+  
+  this_country_shp <- filter(countries_shp, iso_a3==this_country)
+  this_centroid <- centroids(vect(this_country_shp), inside = TRUE) 
+  this_centroid_raster <- rasterize(this_centroid, rast(res=0.5))*this_demand
+  
+  writeRaster(this_centroid_raster, filename = sprintf(here("data/spatial/%s/processing/%s_%s.tif"), this_diet, this_ingredient, this_country), overwrite=TRUE)
+  
+})
+
+
+plot(this_centroid_raster)
 ```
 
