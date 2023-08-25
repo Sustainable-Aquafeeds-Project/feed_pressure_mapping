@@ -190,6 +190,5 @@ map(sourcing_countries, \(this_diet_ingredient_demand){
 })
 
 
-plot(this_centroid_raster)
 ```
 
