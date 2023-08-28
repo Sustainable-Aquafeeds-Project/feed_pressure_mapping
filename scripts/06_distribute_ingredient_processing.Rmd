@@ -13,11 +13,7 @@ library(sf)
 library(here)
 library(rnaturalearth)
 
-#allocation preference
-this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
-
+select <- dplyr::select
 ```
 
 Ingredient demand
@@ -181,12 +177,17 @@ map(sourcing_countries, \(this_diet_ingredient_demand){
   this_country <- this_diet_ingredient_demand$source_iso3c |> unique()
   this_demand <- this_diet_ingredient_demand$ingredient_demand_tonnes
   
-  this_country_shp <- filter(countries_shp, iso_a3==this_country)
-  this_centroid <- centroids(vect(this_country_shp), inside = TRUE) 
-  this_centroid_raster <- rasterize(this_centroid, rast(res=0.5))*this_demand
+  saveName <- sprintf(here("data/spatial/%s/processing/%s_%s.tif"), this_diet, this_ingredient, this_country)
   
-  writeRaster(this_centroid_raster, filename = sprintf(here("data/spatial/%s/processing/%s_%s.tif"), this_diet, this_ingredient, this_country), overwrite=TRUE)
-  
+  if(!file.exists(saveName)){
+    
+    this_country_shp <- filter(countries_shp, iso_a3==this_country)
+    this_centroid <- centroids(vect(this_country_shp), inside = TRUE) 
+    this_centroid_raster <- rasterize(this_centroid, rast(res=0.5))*this_demand
+    
+    writeRaster(this_centroid_raster, filename = saveName, overwrite=TRUE)
+    
+  }
 })
 
 

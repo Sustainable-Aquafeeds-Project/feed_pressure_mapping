@@ -761,11 +761,11 @@ ggplot(data = marine_plant_pressure_disagg_df |>
                               mutate(diet = case_when(diet == "plant diet" ~ "Plant-dominant\nfeed",
                                                       diet == "marine diet" ~ "Fish-dominant\nfeed"),
                                                       diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed"))))+
-  aes(x = prop, y = reorder(pressure, prop), fill = diet)+
+  aes(x = sum, y = reorder(pressure, sum), fill = diet)+
   geom_point(pch = 21, position = position_jitterdodge(jitter.width = 0.5), alpha = 0.1)+
   geom_boxplot(notch = TRUE, colour = "grey35", alpha = 0.4, linewidth=0.5)+
   scale_fill_manual(values = my_pal[c(4,2)])+
-  scale_x_continuous(limits = c(0,1))+
+  #scale_x_continuous(limits = c(0,1))+
   theme_pubr()+
   theme(legend.position = c(0.85, 0.15),
         legend.background = element_rect(fill="transparent"),
@@ -774,7 +774,7 @@ ggplot(data = marine_plant_pressure_disagg_df |>
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
         axis.title.y = element_blank())+
-  labs(x = "Proportion of CPI")
+  labs(x = "CPI contribution")
   
 
 ggsave(filename = here("figures/disaggregation_of_pressures_mass_allocation.jpg"), width = 12, height=9, units = "cm", device = "jpg", dpi = 600)
