@@ -34,7 +34,7 @@ ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand
 First bring in ports data
 ```{r}
 
-wpi <- read_sf(here("data/spatial/ports/WPI_shapefile")) |> 
+wpi <- read_sf(here("data/spatial/ports/WPI_shapefile")) 
 
 ggplot()+
   geom_sf(data = wpi)
@@ -110,6 +110,20 @@ saveRDS(object = marine_ingredient_demand_to_ports, file = here("data/tidy_data/
 
 
 all_relevant_ports <- list.files(path = here("data/spatial/ports/fishing_area_ports"), pattern = ".shp", full.names = TRUE) |> map_df(read_sf)
+
+#which countries is the processing happening in for each FAO area?
+(fmfo_processing_countries_by_area <- 
+  map_df(.x = all_relevant_ports |> 
+  select(COUNTRY, fao_area) |> 
+  group_by(fao_area) |> 
+  group_split(), .f = \(this_fao_area){
+    
+ these_countries = this_fao_area |> pull(COUNTRY) |> unique()
+ return(tibble(fao_area = rep(this_fao_area |> pull(fao_area) |> unique()), country = these_countries))
+  }))
+
+write_csv(here("data/tidy_data"))
+
 
 all_relevant_ports_w_demand <- 
   marine_ingredient_demand_to_ports |> 
