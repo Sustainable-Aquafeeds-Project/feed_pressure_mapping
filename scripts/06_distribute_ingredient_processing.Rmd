@@ -118,11 +118,13 @@ all_relevant_ports <- list.files(path = here("data/spatial/ports/fishing_area_po
   group_by(fao_area) |> 
   group_split(), .f = \(this_fao_area){
     
- these_countries = this_fao_area |> pull(COUNTRY) |> unique()
- return(tibble(fao_area = rep(this_fao_area |> pull(fao_area) |> unique()), country = these_countries))
-  }))
+ these_countries <-  this_fao_area |> pull(COUNTRY) |> unique()
+ these_countries_iso3 <- countrycode::countrycode(these_countries, origin = "iso2c", destination = "iso3c", warn=TRUE)
+ return(tibble(fao_area = rep(this_fao_area |> pull(fao_area) |> unique()), country_iso2 = these_countries, country_iso3 = these_countries_iso3))
+  }) |> drop_na() #just removes unknown 2 digit country codes (only two)
+  )
 
-write_csv(here("data/tidy_data"))
+write_csv(x = fmfo_processing_countries_by_area, file = here("data/tidy_data/LCA/processing_countries.csv"))
 
 
 all_relevant_ports_w_demand <- 
@@ -134,8 +136,6 @@ all_relevant_ports_w_demand <-
 
 #test function
 this_areas_ports <- all_relevant_ports_w_demand[[3]]
-
-
 
 #now rasterise the ports data with the tonnage of ingredient for processing
 

@@ -19,6 +19,14 @@ All scripts need to be run in order as later scripts depend on outputs generated
 
 ```{r}
 
+
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
+
+
 #Function to run the rmarkdowns without output
 source_rmd = \(file, ...) {
   tmp_file = tempfile(fileext=".R")

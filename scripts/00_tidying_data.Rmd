@@ -450,6 +450,37 @@ energy allocation
 <https://link.springer.com/content/pdf/10.1065/lca2006.11.284.pdf>
 
 ```{r}
+# Pull in all allocation factor data
+
+crop_allocation_factors <- 
+  read_csv(file.path(rdsi_dir, "raw_data/allocation/crop_ingredient_allocation_factors.csv")) |> 
+  select(ingredient, item, gaez_code, mass_allocation_factor, ge_allocation_factor, econ_allocation_factor) |> 
+  distinct() |> 
+  write_csv(file = here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv"))
+
+
+forage_allocation_factors <- 
+  read_csv(file.path(rdsi_dir, "raw_data/allocation/forage_fish_allocation_factors.csv")) |> 
+  select(CommonName, sci_name, ingredient, mass_value, ge_value, econ_value) |> 
+  rename(common_name = CommonName,
+         mass_allocation_factor = mass_value,
+         ge_allocation_factor = ge_value,
+         econ_allocation_factor = econ_value) |> 
+  distinct() |> 
+  write_csv(file = here("data/tidy_data/allocation/forage_fish_allocation_factors.csv"))
+  
+  
+trimmings_allocations_factors <- 
+  read_csv(file.path(rdsi_dir, "raw_data/allocation/trimmings_allocation_factors.csv")) |> 
+  rename(mass_allocation_factor = mass_byproduct_cf,
+         ge_allocation_factor = ge_byproduct_cf,
+         econ_allocation_factor = econ_byproduct_cf) |> 
+  select(common_name, sci_name, ingredient, mass_allocation_factor, ge_allocation_factor, econ_allocation_factor) |> 
+  distinct() |> 
+  drop_na() |> 
+  write_csv(file = here("data/tidy_data/allocation/trimmings_allocation_factors.csv"))
+
+
 
 ingredient_cf_data <- read_csv("/mnt/rdsi/raw_data/allocation/top_crop_producers_conversions.csv")
 write_csv(ingredient_cf_data, here("data/tidy_data/production-data/top_crop_producers_conversions.csv"))  

@@ -1,0 +1,31 @@
+common_name,sci_name,ingredient,mass_allocation_factor,ge_allocation_factor,econ_allocation_factor
+Atlantic herring,Clupea harengus,Fishmeal,1.90625,1.799501303,0.180847153
+Atlantic herring,Clupea harengus,Fish oil,1.90625,3.200018154,0.235465421
+Atlantic sardine,Sardina pilchardus,Fishmeal,0.926829268,0.88380148,0.04094846
+Atlantic sardine,Sardina pilchardus,Fish oil,0.926829268,1.828073588,0.053315444
+Skipjack tuna,Katsuwonus pelamis,Fishmeal,1.461538462,1.641255504,0.035302237
+Skipjack tuna,Katsuwonus pelamis,Fish oil,1.461538462,3.225067065,0.045963987
+Atlantic mackerel,Scomber scombrus,Fishmeal,1.018276762,0.965042138,0.055807398
+Atlantic mackerel,Scomber scombrus,Fish oil,1.018276762,1.896307802,0.072661982
+Blue whiting,Micromesistius poutassou,Fishmeal,2.318181818,2.420162457,0.367224192
+Blue whiting,Micromesistius poutassou,Fish oil,2.318181818,5.284021364,0.478130827
+Yellowfin tuna,Thunnus albacares,Fishmeal,1.615384615,1.79018976,0.043833469
+Yellowfin tuna,Thunnus albacares,Fish oil,1.615384615,3.517722879,0.057071765000000003
+Capelin,Mallotus villosus,Fishmeal,1.6,1.690683036,0.185242912
+Capelin,Mallotus villosus,Fish oil,1.6,3.322192166,0.241188758
+Pacific mackerel,Scomber japonicus,Fishmeal,1.1227154050000001,1.037364765,0.10313204
+Pacific mackerel,Scomber japonicus,Fish oil,1.1227154050000001,2.038421764,0.134279301
+Albacore,Thunnus alalunga,Fishmeal,1.615384615,1.79018976,0.028071527
+Albacore,Thunnus alalunga,Fish oil,1.615384615,3.517722879,0.036549505
+European sprat,Sprattus sprattus,Fishmeal,1.62962963,1.708989043,0.096271173
+European sprat,Sprattus sprattus,Fish oil,1.62962963,3.35816347,0.12534636
+Gulf menhaden,Brevoorti patronus,Fishmeal,1.054054054,1.069636558,0.057137445
+Gulf menhaden,Brevoorti patronus,Fish oil,1.054054054,2.20087522,0.07439372
+Pacific anchoveta,Cetengraulis mysticetus,Fishmeal,1.357142857,1.580575696,0.102102888
+Pacific anchoveta,Cetengraulis mysticetus,Fish oil,1.357142857,3.375903524,0.13293933
+Peruvian anchovy,Engraulis ringens,Fishmeal,1.357142857,1.580575696,0.1008285
+Peruvian anchovy,Engraulis ringens,Fish oil,1.357142857,3.375903524,0.13128006
+Alaska pollack,Gadus chalcogrammus,Fishmeal,3.155080214,3.224476557,0.720477388
+Alaska pollack,Gadus chalcogrammus,Fish oil,3.155080214,6.887061342,0.93807123
+Atlantic cod,Gadus morhua,Fishmeal,2.834224599,2.951648892,0.230509294
+Atlantic cod,Gadus morhua,Fish oil,2.834224599,6.304337035,0.300126195

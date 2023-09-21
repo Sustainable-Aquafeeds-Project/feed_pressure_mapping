@@ -12,7 +12,6 @@ library(janitor)
 library(countrycode)
 library(data.table)
 library(dtplyr)
-library(raster)
 library(terra)
 library(sf)
 library(jsonlite)
@@ -22,6 +21,11 @@ source(here("src/directories.R"))
 
 select <- dplyr::select
 values <- terra::values
+
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
 ```
 
 #CROP INGREDIENTS
