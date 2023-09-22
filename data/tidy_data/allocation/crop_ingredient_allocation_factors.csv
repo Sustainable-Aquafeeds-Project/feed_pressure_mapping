@@ -1,17 +1,17 @@
 ingredient,item,gaez_code,mass_allocation_factor,ge_allocation_factor,econ_allocation_factor
-soy protein concentrate,Soya beans,Soybean,1.259445844,1.085902015,1.105625978
-soybean meal,Soya beans,Soybean,1.023541453,0.77373715,0.863945813
-soy oil,Soya beans,Soybean,1.040582726,1.763605594,1.720803988
+soy protein concentrate,Soybeans,Soybean,1.259445844,1.085902015,1.105625978
+soybean meal,Soybeans,Soybean,1.023541453,0.77373715,0.863945813
+soy oil,Soybeans,Soybean,1.040582726,1.763605594,1.720803988
 wheat gluten,Wheat,Wheat,1,1.114210133,2.554552047
 wheat,Wheat,Wheat,1,1,1
-corn gluten meal,Maize (corn),Maize,0.853242321,1.074253719,0.451523893
-corn starch,Maize (corn),Maize,0.825082508,0.88847179,0.90412359
+corn gluten meal,Maize,Maize,0.853242321,1.074253719,0.451523893
+corn starch,Maize,Maize,0.825082508,0.88847179,0.90412359
 pea protein concentrate,"Peas, dry",Pulses,1.204819277,1.495108642,2.580686785
 pea starch,"Peas, dry",Pulses,1.204819277,1.237069587,0.798399974
 sunflower meal,Sunflower seed,Sunflower,1.57480315,0.844136268,0.653206651
 linseed oil,Linseed,CropsNES,1.01010101,1.629642715,1.47968792
-guar meal,Other pulses n.e.c.,Pulses,1,1.065488565,0.448275862
-faba beans,"Broad beans and horse beans, dry",Pulses,1,1,1
-canola oil,Rape or colza seed,Rapeseed,1.013171226,1.596705377,1.697863569
+guar meal,Pulses nes,Pulses,1,1.065488565,0.448275862
+faba beans,"Broad beans, horse beans, dry",Pulses,1,1,1
+canola oil,Rapeseed,Rapeseed,1.013171226,1.596705377,1.697863569
 coconut oil,"Coconuts, in shell",CropsNES,0.986193294,2.005537026,3.55405911
 pea flour,"Peas, dry",Pulses,1.176470588,1.176470588,1.176470588

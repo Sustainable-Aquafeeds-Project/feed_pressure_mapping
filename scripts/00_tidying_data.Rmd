@@ -456,6 +456,12 @@ crop_allocation_factors <-
   read_csv(file.path(rdsi_dir, "raw_data/allocation/crop_ingredient_allocation_factors.csv")) |> 
   select(ingredient, item, gaez_code, mass_allocation_factor, ge_allocation_factor, econ_allocation_factor) |> 
   distinct() |> 
+  mutate(item = case_when(item == "Soya beans" ~ "Soybeans",
+                          item == "Maize (corn)" ~ "Maize", 
+                          item == "Other pulses n.e.c." ~ "Pulses nes",
+                          item == "Broad beans and horse beans, dry" ~ "Broad beans, horse beans, dry",
+                          item == "Rape or colza seed" ~ "Rapeseed",
+                          TRUE ~ item)) |> 
   write_csv(file = here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv"))
 
 
@@ -482,16 +488,16 @@ trimmings_allocations_factors <-
 
 
 
-ingredient_cf_data <- read_csv("/mnt/rdsi/raw_data/allocation/top_crop_producers_conversions.csv")
-write_csv(ingredient_cf_data, here("data/tidy_data/production-data/top_crop_producers_conversions.csv"))  
-
-cf_coproduct_data <- read_csv("/mnt/rdsi/raw_data/allocation/coproduct_conversions.csv") |> select(ingredient, coproduct,country, coproduct_cf)
-write_csv(x = cf_coproduct_data, file = here("data/raw_data/allocation/coproduct_conversions.csv"))
-
-ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv") |> 
-  mutate(coproduct = if_else(ingredient == "guar meal", true = "guar gum", false = coproduct)) 
-write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv"))
-
+# ingredient_cf_data <- read_csv("/mnt/rdsi/raw_data/allocation/top_crop_producers_conversions.csv")
+# write_csv(ingredient_cf_data, here("data/tidy_data/production-data/top_crop_producers_conversions.csv"))  
+# 
+# cf_coproduct_data <- read_csv("/mnt/rdsi/raw_data/allocation/coproduct_conversions.csv") |> select(ingredient, coproduct,country, coproduct_cf)
+# write_csv(x = cf_coproduct_data, file = here("data/raw_data/allocation/coproduct_conversions.csv"))
+# 
+# ge_values <- read_csv("/mnt/rdsi/raw_data/allocation/feed_coproduct_ge_allocation.csv") |> 
+#   mutate(coproduct = if_else(ingredient == "guar meal", true = "guar gum", false = coproduct)) 
+# write_csv(ge_values, file = here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv"))
+# 
 
 
 ```

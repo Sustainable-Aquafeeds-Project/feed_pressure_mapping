@@ -1,0 +1,15 @@
+ingredient,raw_material,FAOSTAT_name,FAO_code,map_spam_code,gaez_code,mass_allocation_factor,ge_allocation_factor,econ_allocation_factor
+corn starch,maize,Maize,56,maiz,Maize,0.825082508,0.88847179,0.90412359
+pea starch,peas,"Peas, dry",187,opul,Pulses,1.204819277,1.237069587,0.798399974
+wheat,wheat,Wheat,15,whea,Wheat,1,1,1
+canola oil,rapeseed,Rapeseed,270,rape,Rapeseed,1.013171226,1.596705377,1.697863569
+linseed oil,flax,Linseed,333,ooil,CropsNES,1.01010101,1.629642715,1.47968792
+soy oil,soybean,Soybeans,236,soyb,Soybean,1.040582726,1.763605594,1.720803988
+corn gluten meal,maize,Maize,56,maiz,Maize,0.853242321,1.074253719,0.451523893
+faba beans,faba beans,"Broad beans, horse beans, dry",181,opul,Pulses,1,1,1
+guar meal,guar,Pulses nes,211,opul,Pulses,1,1.065488565,0.448275862
+pea protein concentrate,peas,"Peas, dry",187,opul,Pulses,1.204819277,1.495108642,2.580686785
+soy protein concentrate,soybean,Soybeans,236,soyb,Soybean,1.259445844,1.085902015,1.105625978
+soybean meal,soybean,Soybeans,236,soyb,Soybean,1.023541453,0.77373715,0.863945813
+sunflower meal,sunflower,Sunflower seed,267,sunf,Sunflower,1.57480315,0.844136268,0.653206651
+wheat gluten,wheat,Wheat,15,whea,Wheat,1,1.114210133,2.554552047

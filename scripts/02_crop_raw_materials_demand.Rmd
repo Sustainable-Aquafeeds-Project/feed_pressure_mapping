@@ -85,6 +85,11 @@ saveRDS(object = top_10_crop_producers, file = here("data/tidy_data/production-d
 Now we have the top 10 producers for each crop that is used as a raw material in feed, we need to get conversion factors from ingredients to each of these raw materials in different places and also the gross energy values of each ingredient and co-product so that energetic allocation and mass allocation conversion to embodied raw material can be achieved. This was done separately in the Sustainable Aquafeeds Project Teams interface and imported here.
 
 ```{r}
+
+#pull in crop allocation codes
+
+crop_allocation_factors <- read_csv(here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv"))
+
 #import codes that will be compatible with MAPSPAM layers
 
 plant_ingredient_codes <- 
@@ -95,50 +100,72 @@ plant_ingredient_codes <-
   mutate(FAOSTAT_name = if_else(FAOSTAT_name == "Peas, dry; Peas, green", true = "Peas, dry", false = FAOSTAT_name),
          ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient))
 
-#join codes to top 20 producers and conversion factors data
-(top_10_crop_w_cf <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
-    select(-X7, -mean_value) |> 
-  left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name"))
-)
 
-#get yield data from main ingredients
-cf_data <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
-  mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient)) |> filter(ingredient!="soy oil")
-
-# get coproduct yield data
-cf_coproduct_data <- read_csv(here("data/raw_data/allocation/coproduct_conversions.csv"))
-
-#join product and coproduct yield (conversion) data
-all_cf_data <- 
-  cf_data |> 
-  select(-X7) |> 
-  filter(!ingredient %in% c("tapioca starch", "lupins")) |> #not included in the diet information
-  left_join(cf_coproduct_data, by = c("ingredient", "iso3c"="country"))
+crop_conversion_lookup <- 
+  plant_ingredient_codes |> 
+  left_join(crop_allocation_factors, by = c("ingredient", "FAOSTAT_name" = "item")) |> 
+  drop_na()
+  
+write_csv(x = crop_conversion_lookup, here("data/tidy_data/allocation/crop_conversion_lookup.csv"))
 
 
-#bring in the gross energy values
-ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv")) |> 
-  select(-c(unit,reference, notes)) |> 
-  filter(!ingredient %in% c("fishmeal", "fish oil") & !coproduct %in% c("soybean meal", "soy protein isolate")) |> 
-  mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))# |> 
-  #mutate(gross_energy_coproduct = if_else(coproduct == "guar gum", true = 1.7, false = gross_energy_coproduct))
 
-#calculate the allocation factors for gross energy and mass allocation
 
-(allocation_raw <- 
-  ge_values |> 
-  left_join(all_cf_data, by = c("ingredient", "coproduct")) |> 
-  mutate(energy_cf_product = gross_energy_product*cf,
-         energy_cf_coproduct = gross_energy_coproduct*coproduct_cf) |> 
-  ungroup() |> 
-  group_by(ingredient, area) |> 
-  nest() |> 
-  mutate(ge_allocation_factor = map(data, ~(.$gross_energy_product/ (sum(unique(.$energy_cf_product), sum(.$energy_cf_coproduct))))),
-         mass_allocation_factor = map(data, ~((.$cf/ (sum(unique(.$cf), sum(.$coproduct_cf))))/.$cf)) #need to divide by yield again here otherwise it is just the partitioning factor (for mass allocation only)
-         ) |> 
-  unnest(c(data, ge_allocation_factor, mass_allocation_factor)))
 
-write_csv(x = allocation_raw, file = here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv"))
+# 
+# 
+# 
+# #join codes to top 20 producers and conversion factors data
+# (top_10_crop_w_cf <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
+#     select(-X7, -mean_value) |> 
+#   left_join(plant_ingredient_codes |> select(-raw_material), by = c("ingredient", "item" = "FAOSTAT_name"))
+# )
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# #get yield data from main ingredients
+# cf_data <- read_csv(here("data/tidy_data/production-data/top_crop_producers_conversions.csv")) |> 
+#   mutate(ingredient = if_else(ingredient == "canola/camelina oil", true = "canola oil", false = ingredient)) |> filter(ingredient!="soy oil")
+# 
+# # get coproduct yield data
+# cf_coproduct_data <- read_csv(here("data/raw_data/allocation/coproduct_conversions.csv"))
+# 
+# #join product and coproduct yield (conversion) data
+# all_cf_data <- 
+#   cf_data |> 
+#   select(-X7) |> 
+#   filter(!ingredient %in% c("tapioca starch", "lupins")) |> #not included in the diet information
+#   left_join(cf_coproduct_data, by = c("ingredient", "iso3c"="country"))
+# 
+# 
+# #bring in the gross energy values
+# ge_values <- read_csv(here("data/raw_data/allocation/feed_coproduct_ge_allocation.csv")) |> 
+#   select(-c(unit,reference, notes)) |> 
+#   filter(!ingredient %in% c("fishmeal", "fish oil") & !coproduct %in% c("soybean meal", "soy protein isolate")) |> 
+#   mutate(coproduct = if_else(coproduct == "soybean meal" & ingredient == "soybean meal", true = "soy protein concentrate", false = coproduct ))# |> 
+#   #mutate(gross_energy_coproduct = if_else(coproduct == "guar gum", true = 1.7, false = gross_energy_coproduct))
+# 
+# #calculate the allocation factors for gross energy and mass allocation
+# 
+# (allocation_raw <- 
+#   ge_values |> 
+#   left_join(all_cf_data, by = c("ingredient", "coproduct")) |> 
+#   mutate(energy_cf_product = gross_energy_product*cf,
+#          energy_cf_coproduct = gross_energy_coproduct*coproduct_cf) |> 
+#   ungroup() |> 
+#   group_by(ingredient, area) |> 
+#   nest() |> 
+#   mutate(ge_allocation_factor = map(data, ~(.$gross_energy_product/ (sum(unique(.$energy_cf_product), sum(.$energy_cf_coproduct))))),
+#          mass_allocation_factor = map(data, ~((.$cf/ (sum(unique(.$cf), sum(.$coproduct_cf))))/.$cf)) #need to divide by yield again here otherwise it is just the partitioning factor (for mass allocation only)
+#          ) |> 
+#   unnest(c(data, ge_allocation_factor, mass_allocation_factor)))
+# 
+# write_csv(x = allocation_raw, file = here("data/tidy_data/allocation/crop_ingredient_allocation_factors.csv"))
 
 ```
 
