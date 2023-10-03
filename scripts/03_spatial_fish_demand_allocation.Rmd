@@ -22,14 +22,23 @@ select <- dplyr::select
 values <- terra::values
 
 
-```
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
 
+
+```
 
 
 Now we need to work out how the ingredient demand converts to embodied fish biomass. This will depend on species which depends on geographic region and also the degree of trimmings used for FMFO in this region. So we need different conversions from different species and forage and trimmings sources.
   
 
 ```{r}
+#select column for the correct allocation method
+this_allocation_column <- paste0(this_allocation_method, "_factor")
+
+
 #bring in total ingredient demand data and isolate fishmeal and oil demand
 
 total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
@@ -38,10 +47,10 @@ fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
 
 rm(total_ingredient_demand)
 
-(foragefish_cfs <- read_csv(here("data/raw_data/allocation/embodied_fish_allocation_tidy.csv")) |> 
-  select(common_name, sci_name, ingredient, ge_value, mass_value) |> 
+(foragefish_allocation_factors <- read_csv(here("data/tidy_data/allocation/forage_fish_allocation_factors.csv")) |> 
+  select(common_name, sci_name, ingredient, this_allocation_column) |> 
   mutate(sci_name = case_when(sci_name == "Brevoorti patronus" ~ "Brevoortia patronus",
-                              TRUE ~ sci_name)) |> distinct())
+                              TRUE ~ sci_name)) |> distinct() |> drop_na(this_allocation_column))
 
 
 #bring in trimmings weightings and add to conversion factors
@@ -51,18 +60,29 @@ trimmings_wghts <- read_csv(here("data/tidy_data/demand/trimmings_weightings.csv
   summarise(trimmings_weight = sum(share_of_trimmings))
 
 
-(trimmings_cfs <- 
-  readRDS(here("data/tidy_data/allocation/trimmings_conversion_factors.csv")) |> 
-  select(CommonName, TaxonName, ingredient, mass_byproduct_cf, ge_byproduct_cf, group))
+(trimmings_allocation_factors <- 
+  read_csv(here("data/tidy_data/allocation/trimmings_allocation_factors.csv")) |> 
+  select(common_name, sci_name, ingredient, this_allocation_column) |> 
+  mutate(group = case_when(grepl("sprat|Sprat", common_name) ~ "Sprats",
+                           grepl("anchovy|anchoita|Anchovies|anchoveta|Anchovy", common_name) ~ "Anchovies",
+                           grepl("Tuna|tuna|Albacore", common_name) ~ "Tunas",
+                           grepl("cod|pollack|Pollock", common_name) ~ "Cods",
+                            grepl("sardinella|Sardinella|sardine", common_name) ~ "Sardines",
+                           grepl("mackerel", common_name) ~ "Mackerels",
+                           grepl("herring|Herring", common_name) ~ "Herrings",
+                           grepl("menhaden|Mehaden", common_name) ~ "Menhaden",
+                           grepl("Capelin", common_name) ~ "Capelin",
+                           grepl("Blue whiting|Blue Whiting", common_name) ~ "Blue whiting",
+                           grepl("Sandeel", common_name) ~ "Sandeel"))
+  )
 
 
-
-# #global values for later
-globalav_foragefish_fm_mass <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(mass_value)
-globalav_foragefish_fm_ge <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(ge_value)
-
-globalav_foragefish_fo_mass <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(mass_value)
-globalav_foragefish_fo_ge <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(ge_value)
+# # #global values for later
+# globalav_foragefish_fm_mass <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(mass_value)
+# globalav_foragefish_fm_ge <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(ge_value)
+# 
+# globalav_foragefish_fo_mass <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(mass_value)
+# globalav_foragefish_fo_ge <- foragefish_cfs |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(ge_value)
 ```
 
 Isolate catch for trimmings first
@@ -70,7 +90,8 @@ Isolate catch for trimmings first
 
 trimmings_spp_catch <- readRDS(here("data/large_data/trimmings_spp_catch.rds")) |> filter(IYear == 2017)
 
-trimmings_xyz <- trimmings_spp_catch |> group_by(LonCentre, LatCentre) |> 
+trimmings_xyz <- trimmings_spp_catch |> 
+  group_by(LonCentre, LatCentre) |> 
   summarise(total_catch = sum(ReportedIND)) |> 
   #select(LonCentre, LatCentre, total_catch) |> 
   rename(x=LonCentre, y= LatCentre, z = total_catch) 
@@ -85,7 +106,8 @@ plot(total_trimmings_raster)
 
 #bring in the FAO regions shape file
 
-fao_areas_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+fao_areas_shp <- 
+  read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
   mutate(F_AREA = as.numeric(F_AREA)) |> 
   group_by(F_AREA) |> 
   group_split()
@@ -262,191 +284,104 @@ trimmings_spp_catch |>
                            grepl("Capelin", CommonName) ~ "Capelin",
                            grepl("Blue whiting", CommonName) ~ "Blue whiting")) |> 
   #add the conversion factors for trimmings
-  left_join(trimmings_cfs, by = c("TaxonName", "CommonName", "ingredient", "group")) |> 
+  left_join(trimmings_allocation_factors, by = c("CommonName" = "common_name", "TaxonName" = "sci_name", "ingredient", "group")) |> 
   left_join(trimmings_wghts, by = "group") |> 
+  rename(byproduct_allocation_factor = this_allocation_column) |> 
   #fill in NA values through species group values for mass and energetic allocation
-  mutate(mass_byproduct_cf = case_when(#when the na group is anchovies make it Peruvian anchoveta conversion factor
-                                      is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Anchovies"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Peruvian anchovy" & ingredient == "Fishmeal") |> 
-                                         pull(mass_byproduct_cf),
+  mutate(byproduct_allocation_factor = case_when(#when the na group is anchovies make it Peruvian anchoveta conversion factor
+                                      is.na(byproduct_allocation_factor) & ingredient == "Fishmeal" & group == "Anchovies" ~ 
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Peruvian anchovy" & ingredient == "Fishmeal") |> 
+                                         pull(this_allocation_column),
                                        
-                                       is.na(mass_byproduct_cf) & ingredient == "Fish oil" & group == "Anchovies"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Peruvian anchovy" & ingredient == "Fish oil") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fish oil" & group == "Anchovies"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Peruvian anchovy" & ingredient == "Fish oil") |> 
+                                         pull(this_allocation_column),
                                       
                                       
                                       #when the na species is chub mackerels make it Pacific mackerel conversion factor
-                                      is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Mackerels"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Pacific mackerel" & ingredient == "Fishmeal") |> 
-                                         pull(mass_byproduct_cf),
+                                      is.na(byproduct_allocation_factor) & ingredient == "Fishmeal" & group == "Mackerels"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Pacific mackerel" & ingredient == "Fishmeal") |> 
+                                         pull(this_allocation_column),
                                        
-                                       is.na(mass_byproduct_cf) & ingredient == "Fish oil" & group == "Mackerels"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Pacific mackerel" & ingredient == "Fish oil") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fish oil" & group == "Mackerels"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Pacific mackerel" & ingredient == "Fish oil") |> 
+                                         pull(this_allocation_column),
                                       
                                       #when the na group is a menhaden sp make it Gulf menhaden conversion factor
                                       
-                                       is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Menhaden"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Gulf menhaden" & ingredient == "Fishmeal") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fishmeal" & group == "Menhaden"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Gulf menhaden" & ingredient == "Fishmeal") |> 
+                                         pull(this_allocation_column),
                                        
-                                       is.na(mass_byproduct_cf) & ingredient == "Fish oil" & group == "Menhaden"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Gulf menhaden" & ingredient == "Fish oil") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fish oil" & group == "Menhaden"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Gulf menhaden" & ingredient == "Fish oil") |> 
+                                         pull(this_allocation_column),
                                       
                                        
                                        #Where sardines make it the Atlantic sardine (pilchard) conversion factor
-                                       is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Sardines"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Atlantic sardine" & ingredient == "Fishmeal") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fishmeal" & group == "Sardines"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Atlantic sardine" & ingredient == "Fishmeal") |> 
+                                         pull(this_allocation_column),
                                        
-                                       is.na(mass_byproduct_cf) & ingredient == "Fish oil" & group == "Sardines"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Atlantic sardine" & ingredient == "Fish oil") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fish oil" & group == "Sardines"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Atlantic sardine" & ingredient == "Fish oil") |> 
+                                         pull(this_allocation_column),
                                       
                                       #Where cods make it the Alaska pollack conversion factor (the binomial in Reg's data is different)
-                                       is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Cods"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Alaska pollack" & ingredient == "Fishmeal") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fishmeal" & group == "Cods"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Alaska pollack" & ingredient == "Fishmeal") |> 
+                                         pull(this_allocation_column),
                                        
-                                       is.na(mass_byproduct_cf) & ingredient == "Fish oil" & group == "Cods"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Alaska pollack" & ingredient == "Fish oil") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fish oil" & group == "Cods"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Alaska pollack" & ingredient == "Fish oil") |> 
+                                         pull(this_allocation_column),
                                       
                                       #where sprats is na - make conversion factors same as European sprat
-                                      is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Sprats"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "European sprat" & ingredient == "Fishmeal") |> 
-                                         pull(mass_byproduct_cf),
+                                      is.na(byproduct_allocation_factor) & ingredient == "Fishmeal" & group == "Sprats"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "European sprat" & ingredient == "Fishmeal") |> 
+                                         pull(this_allocation_column),
                                        
-                                       is.na(mass_byproduct_cf) & ingredient == "Fish oil" & group == "Sprats"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "European sprat" & ingredient == "Fish oil") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fish oil" & group == "Sprats"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "European sprat" & ingredient == "Fish oil") |> 
+                                         pull(this_allocation_column),
                                       
                                       #where tunas is na - make conversion factors same as Skipjack tuna
-                                      is.na(mass_byproduct_cf) & ingredient == "Fishmeal" & group == "Tunas"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Skipjack tuna" & ingredient == "Fishmeal") |> 
-                                         pull(mass_byproduct_cf),
+                                      is.na(byproduct_allocation_factor) & ingredient == "Fishmeal" & group == "Tunas"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Skipjack tuna" & ingredient == "Fishmeal") |> 
+                                         pull(this_allocation_column),
                                        
-                                       is.na(mass_byproduct_cf) & ingredient == "Fish oil" & group == "Tunas"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Skipjack tuna" & ingredient == "Fish oil") |> 
-                                         pull(mass_byproduct_cf),
+                                       is.na(byproduct_allocation_factor) & ingredient == "Fish oil" & group == "Tunas"~
+                                        trimmings_allocation_factors |> 
+                                         filter(common_name == "Skipjack tuna" & ingredient == "Fish oil") |> 
+                                         pull(this_allocation_column),
                                       
-                                      #else keep the same
-                                      TRUE ~ mass_byproduct_cf ),
-         
-       ge_byproduct_cf = case_when(#when the na group is anchovies make it Peruvian anchoveta conversion factor
-                                      is.na(ge_byproduct_cf) & ingredient == "Fishmeal" & group == "Anchovies"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Peruvian anchovy" & ingredient == "Fishmeal") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                       is.na(ge_byproduct_cf) & ingredient == "Fish oil" & group == "Anchovies"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Peruvian anchovy" & ingredient == "Fish oil") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                      
-                                      #when the na species is chub mackerels make it Pacific mackerel conversion factor (same species)
-                                      is.na(ge_byproduct_cf) & ingredient == "Fishmeal" & group == "Mackerels"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Pacific mackerel" & ingredient == "Fishmeal") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                       is.na(ge_byproduct_cf) & ingredient == "Fish oil" & group == "Mackerels"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Pacific mackerel" & ingredient == "Fish oil") |> 
-                                         pull(ge_byproduct_cf),
-        
-                                       #when the na group is a menhaden sp make it Gulf menhaden conversion factor
-                                      
-                                       is.na(ge_byproduct_cf) & ingredient == "Fishmeal" & group == "Menhaden"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Gulf menhaden" & ingredient == "Fishmeal") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                       is.na(ge_byproduct_cf) & ingredient == "Fish oil" & group == "Menhaden"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Gulf menhaden" & ingredient == "Fish oil") |> 
-                                         pull(ge_byproduct_cf),
-                                      
-                                       #Where sardines, make it the Atlantic sardine (pilchard) conversion factor
-                                       is.na(ge_byproduct_cf) & ingredient == "Fishmeal" & group == "Sardines"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Atlantic sardine" & ingredient == "Fishmeal") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                       is.na(ge_byproduct_cf) & ingredient == "Fish oil" & group == "Sardines"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Atlantic sardine" & ingredient == "Fish oil") |> 
-                                         pull(ge_byproduct_cf),
-                                      
-                                      #Where cods make it the Alaska pollack conversion factor (the binomial in Reg's data is different)
-                                       is.na(ge_byproduct_cf) & ingredient == "Fishmeal" & group == "Cods"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Alaska pollack" & ingredient == "Fishmeal") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                       is.na(ge_byproduct_cf) & ingredient == "Fish oil" & group == "Cods"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Alaska pollack" & ingredient == "Fish oil") |> 
-                                         pull(ge_byproduct_cf),
-                                      
-                                      #where sprats is na - make conversion factors same as European sprat
-                                      is.na(ge_byproduct_cf) & ingredient == "Fishmeal" & group == "Sprats"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "European sprat" & ingredient == "Fishmeal") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                       is.na(ge_byproduct_cf) & ingredient == "Fish oil" & group == "Sprats"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "European sprat" & ingredient == "Fish oil") |> 
-                                         pull(ge_byproduct_cf),
-                                      
-                                      #where tunas is na - make conversion factors same as Skipjack tuna
-                                      is.na(ge_byproduct_cf) & ingredient == "Fishmeal" & group == "Tunas"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Skipjack tuna" & ingredient == "Fishmeal") |> 
-                                         pull(ge_byproduct_cf),
-                                       
-                                       is.na(ge_byproduct_cf) & ingredient == "Fish oil" & group == "Tunas"~
-                                        trimmings_cfs |> 
-                                         filter(CommonName == "Skipjack tuna" & ingredient == "Fish oil") |> 
-                                         pull(ge_byproduct_cf),
-                                      
-                                      #else keep the same
-                                      TRUE ~ ge_byproduct_cf )
-       ) |> 
+                                       TRUE ~ byproduct_allocation_factor)) |> 
+  
   # add the proportion of demand coming from trimmings from different FAO fishing areas
    left_join(fish_sourcing_areas |> select(fao_area_name, fao_area_code, max_fm_trim_prop, max_fo_trim_prop)) |>
   #calculate the yield of FMFO for each cell
-     mutate(yield_mass = ReportedIND/mass_byproduct_cf,
-         yield_ge = ReportedIND/ge_byproduct_cf) |> 
+     mutate(yield = ReportedIND/byproduct_allocation_factor) |> 
     mutate(ingredient = gsub(" ", "_", tolower(ingredient))) |> 
     select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
   #turn to wide format to reverse duplicate rows created from duplicate dataframe for FM and FO
-    pivot_wider(names_from = "ingredient", values_from = c("mass_byproduct_cf", "ge_byproduct_cf", "yield_mass", "yield_ge")) |> 
+    pivot_wider(names_from = "ingredient", values_from = c(byproduct_allocation_factor, yield)) |> 
   mutate(type="trimmings"))
  
 
 fwrite(trim_fmfo_yield, file = here("data/large_data/embodied_fmfo_potential_from_trimmings.csv"))
-
-
-
-
 
 ```
 
@@ -474,50 +409,116 @@ forage_catch |>
             filter(fao_area_code %in% fish_sourcing_areas$fao_area_code) |> 
   mutate(ingredient = "Fish oil")) |> 
   #add the conversion factors for forage
-  left_join(foragefish_cfs, by = c("ingredient" , "TaxonName" = "sci_name", "CommonName" = "common_name")) |> 
+  left_join(foragefish_allocation_factors, by = c("ingredient" , "TaxonName" = "sci_name", "CommonName" = "common_name")) |> 
+  #add group information
+  rename(forage_allocation_factor = this_allocation_column) |> 
+  mutate(group = case_when(grepl("sprat", CommonName) ~ "Sprats",
+                           grepl("anchovy|anchoita|Anchovies|nchoveta|nchovies", CommonName) ~ "Anchovies",
+                           grepl("Tuna|tuna|Albacore", CommonName) ~ "Tunas",
+                           grepl("cod|pollack", CommonName) ~ "Cods",
+                            grepl("sardinella|Sardinella|sardine|pilchard", CommonName) ~ "Sardines",
+                           grepl("ackerel", CommonName) ~ "Mackerels",
+                           grepl("erring", CommonName) ~ "Herrings",
+                           grepl("menhaden", CommonName) ~ "Menhaden",
+                           grepl("Capelin", CommonName) ~ "Capelin",
+                           grepl("Blue whiting", CommonName) ~ "Blue whiting")) |> 
   #fill in NA values through species group values for mass and energetic allocation
-  mutate(mass_value = case_when(#when the na group is ones we know from trimmings - assign specifically from Cashion 2016 data
-                                      is.na(mass_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fishmeal" ~ 2.44,
-                                      is.na(mass_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fish oil" ~ 2.44,
-                                      is.na(mass_value) & TaxonName == "Engraulis ringens" & ingredient == "Fishmeal" ~ foragefish_cfs |>
-                                        filter(sci_name == "Engraulis ringens" & ingredient == "Fishmeal") |> pull(mass_value),
-                                      is.na(mass_value) & TaxonName == "Engraulis ringens" & ingredient == "Fish oil" ~ foragefish_cfs |>
-                                        filter(sci_name == "Engraulis ringens" & ingredient == "Fish oil") |> pull(mass_value),
-                                      is.na(mass_value) & TaxonName == "Scomber japonicus" & ingredient == "Fishmeal" ~ 2.61,
-                                      is.na(mass_value) & TaxonName == "Scomber japonicus" & ingredient == "Fish oil" ~ 2.61,
-                                      is.na(mass_value) & ingredient == "Fishmeal" ~ globalav_foragefish_fm_mass,
-                                      is.na(mass_value) & ingredient == "Fish oil" ~ globalav_foragefish_fo_mass,
-                                      TRUE ~ mass_value),
-         #now for energetic allocation
-         ge_value = case_when( is.na(ge_value) & TaxonName == "Sardina pilchardus" & ingredient == "Fishmeal" ~ 1.66,
-                                      is.na(ge_value) & TaxonName == "Sardina pilchardus" &ingredient == "Fish oil" ~ 3.43,
-                                      is.na(ge_value) & TaxonName == "Engraulis ringens" & ingredient == "Fishmeal" ~ foragefish_cfs |>
-                                        filter(sci_name == "Engraulis ringens" & ingredient == "Fishmeal") |> pull(ge_value),
-                                      is.na(ge_value) & TaxonName == "Engraulis ringens" & ingredient == "Fish oil" ~ foragefish_cfs |>
-                                        filter(sci_name == "Engraulis ringens" & ingredient == "Fish oil") |> pull(ge_value),
-                                      is.na(ge_value) & TaxonName == "Scomber japonicus" & ingredient == "Fishmeal" ~ 1.78,
-                                      is.na(ge_value) & TaxonName == "Scomber japonicus" & ingredient == "Fish oil" ~ 3.49,
-                                      is.na(ge_value) & ingredient == "Fishmeal" ~ globalav_foragefish_fm_ge,
-                                      is.na(ge_value) & ingredient == "Fish oil" ~ globalav_foragefish_fo_ge,
-                                      TRUE ~ ge_value)) |> 
+  mutate(forage_allocation_factor = case_when(#when the na group is ones we know from trimmings - assign to groups or prominent species
+                                      
+                                      #For the Peruvian Anchoveta specify its own one 
+                                      is.na(forage_allocation_factor) & TaxonName == "Engraulis ringens" & ingredient == "Fishmeal" ~ 
+                                        forage_allocation_factors |>
+                                        filter(sci_name == "Engraulis ringens" & ingredient == "Fishmeal") |> 
+                                        pull(this_allocation_column),
+                                      is.na(forage_allocation_factor) & TaxonName == "Engraulis ringens" & ingredient == "Fish oil" ~  
+                                        forage_allocation_factors |>
+                                        filter(sci_name == "Engraulis ringens" & ingredient == "Fish oil") |> 
+                                        pull(this_allocation_column),
+                                
+                                      
+                                      #for other species in the herring group assign the mean from herring species
+                                       is.na(forage_allocation_factor) & group == "Herrings" & ingredient == "Fishmeal"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("erring", common_name) & ingredient == "Fishmeal") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      is.na(forage_allocation_factor) & group == "Herrings" & ingredient == "Fish oil"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("erring", common_name) & ingredient == "Fish oil") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      
+                                      
+                                      #for other species in the mackerel group assign the mean from herring species
+                                       is.na(forage_allocation_factor) & group == "Mackerels" & ingredient == "Fishmeal"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("ackerel", common_name) & ingredient == "Fishmeal") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      is.na(forage_allocation_factor) & group == "Mackerels" & ingredient == "Fish oil"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("ackerel", common_name) & ingredient == "Fish oil") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      
+                                      #for other species in anchovy group assign mean from anchovy species
+                                      is.na(forage_allocation_factor) & group == "Anchovies" & ingredient == "Fishmeal"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("anchovy|anchoita|Anchovies|nchoveta|nchovies", common_name) & ingredient == "Fishmeal") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      is.na(forage_allocation_factor) & group == "Anchovies" & ingredient == "Fish oil"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("anchovy|anchoita|Anchovies|nchoveta|nchovies", common_name) & ingredient == "Fish oil") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      
+                                        #for other species in sardines group assign mean from sardine/sardinella species
+                                      is.na(forage_allocation_factor) & group == "Sardines" & ingredient == "Fishmeal"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("sardinella|Sardinella|sardine|pilchard", common_name) & ingredient == "Fishmeal") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      
+                                      is.na(forage_allocation_factor) & group == "Sardines" & ingredient == "Fish oil"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("sardinella|Sardinella|sardine|pilchard", common_name) & ingredient == "Fish oil") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      
+                                      #for menhaden do the same
+                                       is.na(forage_allocation_factor) & group == "Menhaden" & ingredient == "Fishmeal"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("enhaden", common_name) & ingredient == "Fishmeal") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      
+                                      is.na(forage_allocation_factor) & group == "Menhaden" & ingredient == "Fish oil"~
+                                        forage_allocation_factors |> 
+                                        filter(grepl("enhaden", common_name) & ingredient == "Fish oil") |> 
+                                        pull(this_allocation_column) |> mean(),
+                                      
+                                      #for all other species assign a global mean
+                            
+                                       is.na(forage_allocation_factor) & ingredient == "Fishmeal"~
+                                        forage_allocation_factors |> 
+                                        filter(is.na(common_name) & ingredient == "Fishmeal") |> 
+                                        pull(this_allocation_column),
+                                      
+                                      is.na(forage_allocation_factor) & ingredient == "Fish oil"~
+                                        forage_allocation_factors |> 
+                                        filter(is.na(common_name) & ingredient == "Fish oil") |> 
+                                        pull(this_allocation_column),
+                        
+                                      TRUE ~ forage_allocation_factor)) |> 
+  
   # add the proportion of demand coming from forage fish from different FAO fishing areas
    left_join(fish_sourcing_areas |> select(fao_area_name, fao_area_code, min_fm_forage_prop, min_fo_forage_prop)) |>
+  
   #calculate the yield of FMFO for each cell
-     mutate(yield_mass = ReportedIND/mass_value,
-         yield_ge = ReportedIND/ge_value) |> 
+     mutate(yield = ReportedIND/forage_allocation_factor) |> 
     mutate(ingredient = gsub(" ", "_", tolower(ingredient))) |> 
     select(-c(IUUIND, DiscardsIND, ReportedNIND, IUUNIND, DiscardsNIND, ISSCAAPName, foragefish, OceanAreasqkm)) |> 
   #turn to wide format to reverse duplicate rows created from duplicate dataframe for FM and FO
-    pivot_wider(names_from = "ingredient", values_from = c("mass_value", "ge_value", "yield_mass", "yield_ge")) |>  
+    pivot_wider(names_from = "ingredient", values_from = c("forage_allocation_factor", "yield")) |>  
   #calculate the proportion each record represents for each FAO fishing area - this can be multiplied by demand under each diet
 filter(!across(everything(), is.infinite) %>% purrr::reduce(`|`)) |> #this drops one record of Euphausia superba where reported industrial catch was 0.2 tonnes
  group_by(fao_area_code) |> 
   nest() |>
-  mutate(prop_fm_mass = map(data, ~(.$yield_mass_fishmeal/sum(.$yield_mass_fishmeal))),
-         prop_fo_mass = map(data, ~(.$yield_mass_fish_oil/sum(.$yield_mass_fish_oil))),
-         prop_fm_ge = map(data, ~(.$yield_ge_fishmeal/sum(.$yield_ge_fishmeal))),
-         prop_fo_ge = map(data, ~(.$yield_ge_fish_oil/sum(.$yield_ge_fish_oil)))) |> 
-  unnest(cols = c(data, prop_fm_mass, prop_fo_mass, prop_fm_ge, prop_fo_ge)) |> 
+  mutate(prop_fm = map(data, ~(.$yield_fishmeal/sum(.$yield_fishmeal, na.rm = TRUE))),
+         prop_fo = map(data, ~(.$yield_fish_oil/sum(.$yield_fish_oil, na.rm = TRUE)))) |> 
+  unnest(cols = c(data, prop_fm, prop_fo)) |> 
   ungroup() |> 
   mutate(type="foragefish")) 
 
@@ -526,6 +527,8 @@ fwrite(x = forage_fmfo_yield, file =  here("data/large_data/embodied_fmfo_potent
 
 
 ```
+
+
 
 
 Find out how much fishmeal and oil is available globally from the species used in trimmings and using forage fish and distribute the demand for fmfo across cellsm, and convert back to embodied fish for calculations.
@@ -538,18 +541,15 @@ forage_fmfo_yield <- fread(here("data/large_data/embodied_fmfo_potential_from_fo
 
 
 #forage
-(total_fm_available_mass <- forage_fmfo_yield$yield_mass_fishmeal |> sum())
-(total_fo_available_mass <- forage_fmfo_yield$yield_mass_fish_oil |> sum())
+(total_fm_available<- forage_fmfo_yield$yield_fishmeal |> sum())
+(total_fo_available <- forage_fmfo_yield$yield_fish_oil |> sum())
 
-(total_fm_available_ge<- forage_fmfo_yield$yield_ge_fishmeal |> sum())
-(total_fo_available_ge <- forage_fmfo_yield$yield_ge_fish_oil |> sum())
+
 
 #trimmings
-(total_fm_available_mass_trim <- trim_fmfo_yield$yield_mass_fishmeal |> sum())
-(total_fo_available_mass_trim <- trim_fmfo_yield$yield_mass_fish_oil |> sum())
+(total_fm_available_trim <- trim_fmfo_yield$yield_fishmeal |> sum())
+(total_fo_available_trim <- trim_fmfo_yield$yield_fish_oil |> sum())
 
-(total_fm_available_ge_trim <- trim_fmfo_yield$yield_ge_fishmeal |> sum())
-(total_fo_available_ge_trim <- trim_fmfo_yield$yield_ge_fish_oil |> sum())
 
 #Forage fish 
 
@@ -564,23 +564,20 @@ forage_supply_demand_by_diet <-
              total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal") |> pull(ingredient_demand_tonnes),
              total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil") |> pull(ingredient_demand_tonnes),
              #distribute fishmeal and oil demand according to its distribution
-             distributed_fm_demand_mass = total_fm_needed_for_diet * prop_fm_mass,
-             distributed_fo_demand_mass = total_fo_needed_for_diet * prop_fo_mass,
-             distributed_fm_demand_ge = total_fm_needed_for_diet * prop_fm_ge,
-             distributed_fo_demand_ge = total_fo_needed_for_diet * prop_fo_ge,
+             distributed_fm_demand = total_fm_needed_for_diet * prop_fm,
+             distributed_fo_demand = total_fo_needed_for_diet * prop_fo,
             
              #calculate embodied demand
              #calculated the embodied fish from fm and fo
-             fm_embodied_fish_mass = distributed_fm_demand_mass * min_fm_forage_prop * mass_value_fishmeal ,
-             fo_embodied_fish_mass = distributed_fo_demand_mass * min_fo_forage_prop * mass_value_fish_oil,
-             fm_embodied_fish_ge = distributed_fm_demand_ge * min_fm_forage_prop * ge_value_fishmeal,
-             fo_embodied_fish_ge = distributed_fo_demand_ge * min_fo_forage_prop * ge_value_fish_oil,
+             fm_embodied_fish = distributed_fm_demand * min_fm_forage_prop * forage_allocation_factor_fishmeal ,
+             fo_embodied_fish = distributed_fo_demand * min_fo_forage_prop * forage_allocation_factor_fish_oil,
+             
              #calculate the total fmfo demand
-             total_fmfo_demand_mass = distributed_fm_demand_mass + distributed_fo_demand_mass,
-             total_fmfo_demand_ge = distributed_fm_demand_ge + distributed_fo_demand_ge,
+             total_fmfo_demand = distributed_fm_demand + distributed_fo_demand,
+             total_fmfo_demand = distributed_fm_demand + distributed_fo_demand,
+             
              #calculate the total embodied fish
-             total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge,
-             total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass
+             total_embodied_fish = fm_embodied_fish +fo_embodied_fish
              ) |> 
       relocate(diet, .before = fao_area_code) |> 
       as.data.frame()
@@ -598,18 +595,13 @@ embodied_foragefish_demand_by_diet_source <-
     
     return(tibble(diet = unique(this_df$diet), 
                   fao_area_code = unique(this_df$fao_area_code), 
-                  embodied_fish_demand_from_fm_ge = sum(this_df$fm_embodied_fish_ge),
-                  embodied_fish_demand_from_fo_ge = sum(this_df$fo_embodied_fish_ge),
-                  embodied_fish_demand_from_fm_mass = sum(this_df$fm_embodied_fish_mass),
-                  embodied_fish_demand_from_fo_mass = sum(this_df$fo_embodied_fish_mass),
-                  embodied_fish_demand_ge = sum(this_df$total_embodied_fish_ge),
-                  embodied_fish_demand_mass = sum(this_df$total_embodied_fish_mass)))
+                  embodied_fish_demand_from_fm = sum(this_df$fm_embodied_fish),
+                  embodied_fish_demand_from_fo = sum(this_df$fo_embodied_fish),
+                  embodied_fish_demand = sum(this_df$total_embodied_fish)))
     
   }) |> 
   pivot_longer(cols = -c(diet, fao_area_code), names_to = "demand_from", values_to = "embodied_foragefish" ) |> 
-  mutate(allocation = case_when(grepl("_ge", demand_from) ~ "Energetic allocation",
-                                TRUE ~ "Mass allocation"
-                                )) |> 
+  mutate(allocation = this_allocation_method) |> 
   mutate(demand_from = case_when(grepl("from_fm", demand_from) ~ "Fishmeal",
                                  grepl("from_fo", demand_from) ~ "Fish oil",
                                  TRUE ~ "Total")) |> arrange(diet, fao_area_code, allocation)
@@ -617,7 +609,6 @@ embodied_foragefish_demand_by_diet_source <-
 
 
 saveRDS(object = embodied_foragefish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_foragefish_demand_by_source_diet.rds"))
-
 
 
 #Trimmings
@@ -628,10 +619,10 @@ saveRDS(object = embodied_foragefish_demand_by_diet_source, file = here("data/ti
 trim_supply_demand_by_diet <- 
   map_df(.x =  c("marine_diet", "plant_diet"), .f = \(this_diet){
     
-    this_trimmings_df <- trim_fmfo_yield 
+    this_trimmings_df <- trim_fmfo_yield |> as_tibble()
     
     these_weight_sums <- 
-      map_df(this_demand_df |> 
+      map_df(this_trimmings_df |> 
       group_by(fao_area_code) |> 
       group_split(), \(this_df){
         
@@ -651,30 +642,25 @@ trim_supply_demand_by_diet <-
       as_tibble() |> 
       group_by(fao_area_code, group) |> 
       nest() |> 
-  mutate(prop_fm_mass = map(data, ~(.$yield_mass_fishmeal/sum(.$yield_mass_fishmeal))),
-         prop_fo_mass = map(data, ~(.$yield_mass_fish_oil/sum(.$yield_mass_fish_oil))),
-         prop_fm_ge = map(data, ~(.$yield_ge_fishmeal/sum(.$yield_ge_fishmeal))),
-         prop_fo_ge = map(data, ~(.$yield_ge_fish_oil/sum(.$yield_ge_fish_oil)))) |> 
-  unnest(cols = c(data, prop_fm_mass, prop_fo_mass, prop_fm_ge, prop_fo_ge)) |> 
+  mutate(prop_fm = map(data, ~(.$yield_fishmeal/sum(.$yield_fishmeal))),
+         prop_fo = map(data, ~(.$yield_fish_oil/sum(.$yield_fish_oil)))) |> 
+  unnest(cols = c(data, prop_fm, prop_fo)) |> 
       mutate(
         #distribute fishmeal and oil demand according to its distribution and the weight of that group in trimmings
-             distributed_fm_demand_mass =  weighted_fm_needed * prop_fm_mass,
-             distributed_fo_demand_mass = weighted_fo_needed * prop_fo_mass,
-             distributed_fm_demand_ge = weighted_fm_needed * prop_fm_ge,
-             distributed_fo_demand_ge = weighted_fo_needed * prop_fo_ge,
+             distributed_fm_demand =  weighted_fm_needed * prop_fm,
+             distributed_fo_demand = weighted_fo_needed * prop_fo,
             
              #calculate embodied demand
              #calculated the embodied fish from fm and fo
-             fm_embodied_fish_mass = distributed_fm_demand_mass * max_fm_trim_prop * mass_byproduct_cf_fishmeal,
-             fo_embodied_fish_mass = distributed_fo_demand_mass * max_fo_trim_prop * mass_byproduct_cf_fish_oil,
-             fm_embodied_fish_ge = distributed_fm_demand_ge * max_fm_trim_prop * ge_byproduct_cf_fishmeal,
-             fo_embodied_fish_ge = distributed_fo_demand_ge * max_fo_trim_prop * ge_byproduct_cf_fish_oil,
+             fm_embodied_fish = distributed_fm_demand * max_fm_trim_prop * byproduct_allocation_factor_fishmeal,
+             fo_embodied_fish = distributed_fo_demand * max_fo_trim_prop * byproduct_allocation_factor_fish_oil,
+        
              #calculate the total fmfo demand
-             total_fmfo_demand_mass = distributed_fm_demand_mass + distributed_fo_demand_mass,
-             total_fmfo_demand_ge = distributed_fm_demand_ge + distributed_fo_demand_ge,
+             total_fmfo_demand = distributed_fm_demand + distributed_fo_demand,
+   
              #calculate the total embodied fish
-             total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge,
-             total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass
+             total_embodied_fish = fm_embodied_fish + fo_embodied_fish,
+
              ) |> 
       relocate(diet, .before = fao_area_code)
       
@@ -685,6 +671,7 @@ trim_supply_demand_by_diet <-
 fwrite(trim_supply_demand_by_diet, file = here("data/large_data/embodied_fishfromtrimmings_per_cell.csv"))
 
 
+
 #Create a total embodied fish demand by diet and source
 embodied_trimingsfish_demand_by_diet_source <- 
   trim_supply_demand_by_diet |> 
@@ -693,18 +680,13 @@ embodied_trimingsfish_demand_by_diet_source <-
     
     return(tibble(diet = unique(this_df$diet), 
                   fao_area_code = unique(this_df$fao_area_code), 
-                  embodied_fish_demand_from_fm_ge = sum(this_df$fm_embodied_fish_ge),
-                  embodied_fish_demand_from_fo_ge = sum(this_df$fo_embodied_fish_ge),
-                  embodied_fish_demand_from_fm_mass = sum(this_df$fm_embodied_fish_mass),
-                  embodied_fish_demand_from_fo_mass = sum(this_df$fo_embodied_fish_mass),
-                  embodied_fish_demand_ge = sum(this_df$total_embodied_fish_ge),
-                  embodied_fish_demand_mass = sum(this_df$total_embodied_fish_mass)))
+                  embodied_fish_demand_from_fm = sum(this_df$fm_embodied_fish),
+                  embodied_fish_demand_from_fo = sum(this_df$fo_embodied_fish),
+                  embodied_fish_demand = sum(this_df$total_embodied_fish)))
     
   }) |> 
   pivot_longer(cols = -c(diet, fao_area_code), names_to = "demand_from", values_to = "embodied_fish" ) |> 
-  mutate(allocation = case_when(grepl("_ge", demand_from) ~ "Energetic allocation",
-                                TRUE ~ "Mass allocation"
-                                )) |> 
+  mutate(allocation = this_allocation_method) |> 
   mutate(demand_from = case_when(grepl("from_fm", demand_from) ~ "Fishmeal",
                                  grepl("from_fo", demand_from) ~ "Fish oil",
                                  TRUE ~ "Total")) |> arrange(diet, fao_area_code, allocation)
@@ -722,12 +704,7 @@ readRDS(here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet
 
 
 
-```{r}
-
-data.table::fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> pull(fao_area_code) |> unique()
-data.table::fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> pull(fao_area_code) |> unique()
-
-```
+#MOVE THESE 
 
 Supplementary plots
 
