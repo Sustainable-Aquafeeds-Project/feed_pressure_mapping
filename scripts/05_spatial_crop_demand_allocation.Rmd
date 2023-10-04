@@ -61,7 +61,7 @@ sort(unique(all_crop_pressures$impact))
 sort(unique(all_crop_pressures$raw_material))
 
 #filter for the pressures of interest
-crop_main_pressures <- all_crop_pressures |> filter(impact %in% c("Global warming", "Climate change", "Climate change - Land use and LU change", "Climate change - Fossil", "Climate change - Biogenic", "Water use",  "Water consumption", "Eutrophication, freshwater", "Eutrophication, marine", "Land use", "Freshwater eutrophication", "Marine eutrophication"))
+crop_main_pressures <- all_crop_pressures |> filter(impact %in% c("Global warming", "Water use",  "Water consumption", "Land use", "Freshwater eutrophication", "Marine eutrophication"))
 
 #check that five facets are available across all materials (i.e. GWP, FW eutrophication, marine eutrophication, land use, water use). 
 crop_main_pressures |> 
@@ -102,18 +102,12 @@ plausible_crops_w_impact |>
   group_by(raw_material, impact, allocation) |> 
   count()  # accounts for two allocation methods
 
-#for each raw material and country  - add impact category values as an indicator of total footprint variability among countries to get at the large differences, then get the min, median and max
 
-#first get guar cumulative score to add later down (the one value causing problems in if_else statement)
-guar_seed_cum_value <- 
-  plausible_crops_w_impact |> 
-  filter(raw_material == "Guar bean") |> 
-  group_by(raw_material, FAOSTAT_name, iso3c, allocation) |> 
-  summarise(cum_value = sum(value)) |> pull(cum_value) |> unique()
 
 #these countries for each crop create the greatest range of midpoint impacts across sources
 crop_sourcing_countries <- 
     plausible_crops_w_impact |>
+   filter(allocation == this_allocation_method) |> 
     ungroup() |> 
     #filter(raw_material != "Guar bean") |>
     group_by(raw_material, FAOSTAT_name, iso3c, allocation) |> 
@@ -129,8 +123,6 @@ crop_sourcing_countries <-
   group_split()
 
 map(crop_sourcing_countries, \(this_df){
-  
-  this_allocation_method <- if_else(this_df$allocation |> unique() == "Energetic allocation", true = "ge_allocation", false = "mass_allocation")
   
   saveRDS(object = this_df, file = sprintf(here("data/tidy_data/demand/crop_sourcing_countries_plausible_w_cum_impacts_%s.rds"), this_allocation_method))
   
@@ -156,8 +148,7 @@ Now we can use the countries which can plausibly support salmon feed demands and
 
 ```{r}
 #import sourcing countries data and crop demand data if only running this chunk
-crop_sourcing_countries_ge <- readRDS(file = here("data/tidy_data/demand/crop_sourcing_countries_plausible_w_cum_impacts_ge_allocation.rds"))
-crop_sourcing_countries_mass <- readRDS(file = here("data/tidy_data/demand/crop_sourcing_countries_plausible_w_cum_impacts_mass_allocation.rds"))
+crop_sourcing_countries<- readRDS(file = sprintf(here("data/tidy_data/demand/crop_sourcing_countries_plausible_w_cum_impacts_%s.rds"), this_allocation_method))
 
 
 crop_demand_production_compare <- readRDS(here("data/tidy_data/demand/crop_demand_production_compare.rds"))
@@ -191,12 +182,11 @@ ingredient_per_country_per_diet <-
               this_raw_material == "Wheat" ~ c("RUS", "UKR", "AUS", "DEU", "FRA"))
 
   
-  filter_df <-  this_raw_material_source|> filter(source_iso3c %in% these_sources) |> 
-    rename(ge_allocation = total_crop_demand_ge, mass_allocation = total_crop_demand_ms) |> 
-    pivot_longer(cols = c(ge_allocation, mass_allocation), names_to = "allocation_method", values_to = "total_crop_demand")
+  filter_df <-  this_raw_material_source|> filter(iso3c %in% these_sources) |> 
+    mutate(allocation = this_allocation_method)
   
 }) |> 
-  group_split(diet, ingredients, FAOSTAT_name, source_iso3c, allocation_method)
+  group_split(diet, ingredients, FAOSTAT_name, iso3c)
 
 
 saveRDS(bind_rows(ingredient_per_country_per_diet), file = here("data/tidy_data/demand/sourcing_countries_crops.rds"))
@@ -211,13 +201,11 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
   #parameters within diet-ingredient-source demand data
   this_diet <- unique(this_ingredient_source$diet)
   
-  this_country <- unique(this_ingredient_source$source_iso3c)
+  this_country <- unique(this_ingredient_source$iso3c)
   
   this_ingredient <- unique(this_ingredient_source$ingredients)
   
   this_mapspam_code <- unique(this_ingredient_source$map_spam_code)
-  
-  this_allocation_method <- unique(this_ingredient_source$allocation_method)
   
   #the file_name of interest for this diet, ingredient, and country
   this_demand_raster_filename <- here(sprintf("data/spatial/%s/production/%s_AllTech_%s_%s.tif", this_diet, this_ingredient, this_allocation_method, this_country))
@@ -229,13 +217,13 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
     
     #spatial adjustments of production rasters by current production and applying demand for each diet
     
-    if(this_allocation_method == "ge_allocation"){
+  
       
       this_demand_quantity <- unique(this_ingredient_source$total_crop_demand)
       
       this_country_production <- unique(this_ingredient_source$national_production)
       
-      this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio_ge)
+      this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio)
       
       this_country_raster <- rast(here(sprintf("data/spatial/country-rasters/%s.tif", this_country)))
       
@@ -248,34 +236,13 @@ AllocateSpatialCropDemand <- \(this_ingredient_source){
       this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
       
       terra::writeRaster(x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
-      
-    } else {
-      
-      this_demand_quantity <- unique(this_ingredient_source$total_crop_demand)
-      
-      this_country_production <- unique(this_ingredient_source$national_production)
-      
-      this_demand_production_ratio <- unique(this_ingredient_source$demand_production_ratio_ms)
-      
-      this_country_raster <- rast(here(sprintf("data/spatial/country-rasters/%s.tif", this_country)))
-      
-      this_global_production_raster <- rast(list.files(here("data/spatial/crop-layers-reprojected"), pattern = sprintf("_P_%s_A", toupper(this_mapspam_code)), full.names = TRUE))
-      
-      this_country_production_raster <- this_global_production_raster*this_country_raster
-      
-      this_updated_country_production_raster <-  this_country_production_raster* this_country_production/sum(c(terra::values(this_country_production_raster, na.rm=TRUE)))
-      
-      this_demand_raster <- this_updated_country_production_raster*this_demand_production_ratio
-      
-      terra::writeRaster(x=this_demand_raster, filename =  this_demand_raster_filename, overwrite=TRUE)
-      
       
     }
     
     
     
   }
-}
+
 
 
 map(.x = ingredient_per_country_per_diet, .f = AllocateSpatialCropDemand)
