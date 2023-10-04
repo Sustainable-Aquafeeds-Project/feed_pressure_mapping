@@ -37,6 +37,11 @@ source(here("src/spatial.R"))
 
 select <- dplyr::select
 
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
 #uncomment depending if using one drive
 #rdsi_dir <- rdsi_backup_dir
 
@@ -318,6 +323,8 @@ map(.x = production_sector_list, .f = function(this_element){
 
 #bring in all LCA files from RDSI (prepped in Teams) and save in this project
 
+
+
 list.files(file.path(rdsi_raw_data_dir, "LCA/Crops - ReCiPe 2016 Midpoint"), pattern = ".csv", full.names =TRUE) |> 
   map(\(each_file){
     
@@ -328,23 +335,23 @@ list.files(file.path(rdsi_raw_data_dir, "LCA/Crops - ReCiPe 2016 Midpoint"), pat
     write_csv(this_file, file = sprintf(here("data/raw_data/LCA/%s"), saveName))
   })
 
-each_file <- list.files(here("data/raw_data/LCA"), pattern = "allocation", full.names = TRUE)[[1]]
+each_file <- list.files(here("data/raw_data/LCA"), pattern = "allocation", full.names = TRUE)[[2]]
 
 lca_all_crops <- 
   list.files(here("data/raw_data/LCA"), pattern = "allocation", full.names = TRUE) |> 
   map_df(\(each_file){
     
     message("Processing", each_file)
-  
-    this_allocation_method <- case_when(grepl("ge_allocation", each_file) ~ "Energetic allocation",
-                                      TRUE ~ "Mass allocation")
     
     
     this_file <- read_csv(each_file) #|> rename_at(vars(1:3), make_clean_names)
+    
+    this_files_allocation <- str_extract(each_file, pattern = "ge_allocation|mass_allocation|econ_allocation")
+    
     this_long_file <- this_file |> 
       pivot_longer(names_to = "iso2c", values_to = "value" , cols = -c(raw_material, impact, unit)) |> 
       mutate(iso3c = countrycode(sourcevar = iso2c, origin = "iso2c", destination = "iso3c", warn = TRUE)) |> 
-      mutate(allocation = this_allocation_method)
+      mutate(allocation = this_files_allocation)
       # mutate(iso3c = case_when(iso2c == "UK" ~ "GBR",
       #                          grepl("US-", iso2c) ~ "USA",
       #                          TRUE ~ iso3c))
@@ -355,7 +362,6 @@ lca_all_crops <-
                                   raw_material == "Peas" ~ "Peas, dry",
                                   raw_material == "Wheat grain" ~ "Wheat",
                                   TRUE ~ raw_material))
-  
   
 
 saveRDS(object = lca_all_crops, file = here("data/tidy_data/LCA/crop_lca.rds"))

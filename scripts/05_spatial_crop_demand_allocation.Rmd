@@ -16,6 +16,14 @@ source(here("src/spatial.R"))
 base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
 select <- dplyr::select
+
+
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
+crop_production
 ```
 
 
@@ -24,27 +32,21 @@ We're  interested from where the different crop ingredients could be sourced acr
 ```{r}
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
-#check that demand for each raw material on each country in the various diets does not outsrtip national production (if so we need to adjust AllocateSpatialCropDemand function to be more defensive).
+crop_production <- readRDS(here("data/tidy_data/production-data/top_crop_producers.rds")) |> rename(national_production = mean_value) |> 
+
+#Check that demand for each raw material on each country in the various diets does not outstrip national production - all possible
 
 (crop_demand_production_compare <- 
   crop_demand |> 
-    mutate(demand_production_ratio_ms = total_crop_demand_ms/mean_value,
-           demand_production_ratio_ge = total_crop_demand_ge/mean_value,
-           check_ms = demand_production_ratio_ms>1,
-           check_ge = demand_production_ratio_ge>1) |> 
-    rename(national_production = mean_value)
+    left_join(crop_production, by = c("FAOSTAT_name" = "item")) |> 
+    mutate(demand_production_ratio = total_crop_demand/national_production,
+           check = demand_production_ratio>1)
     )
 
-# Broad beans demand exceeds supply for Morocco
-
-crop_demand_production_compare |> 
-  group_by(ingredients, diet) |> 
-  #mutate(producer_order = 1:10) |> 
-  filter(check_ms != TRUE,
-         check_ge != TRUE)
 
 
-saveRDS(object = crop_demand_production_compare, file = "/mnt/rdsi/github/feed_pressure_mapping/test.rds") #("data/tidy_data/demand/crop_demand_production_compare.rds"))
+
+saveRDS(object = crop_demand_production_compare, file = here("data/tidy_data/demand/crop_demand_production_compare.rds"))
 
 
 ```
@@ -72,12 +74,12 @@ crop_main_pressures |>
 
 #match up country-specific pressure data with country production/demand data. Want to constrain the countries used for LCA variability by those that can plausibly source demand
 
-(plausible_crop_sourcing_list <- crop_demand_production_compare |> select(ingredients, diet, FAOSTAT_name, source_iso3c, total_crop_demand_ge, total_crop_demand_ms, national_production, demand_production_ratio_ge, demand_production_ratio_ms, check_ge, check_ms) |>  filter((check_ge == FALSE | check_ms == FALSE) & (total_crop_demand_ms>0 | total_crop_demand_ge>0)) |> group_split(ingredients))
+(plausible_crop_sourcing_list <- crop_demand_production_compare |>  group_split(ingredients))
 
 which_crop_countries <- \(this_df){
   
   this_raw_material <- this_df|> pull(FAOSTAT_name) |> unique()
-  these_countries <- this_df  |> pull(source_iso3c) |> unique()
+  these_countries <- this_df  |> pull(iso3c) |> unique()
   this_return_df <- bind_cols(FAOSTAT_name = this_raw_material, iso3c = these_countries, plausible = TRUE)
   
 }
@@ -94,14 +96,11 @@ plausible_crops_w_impact <- crop_main_pressures |> filter(raw_material != "Lupin
 saveRDS(plausible_crops_w_impact, file = here("data/tidy_data/demand/crop_sourcing_countries_plausible_impacts_all_allocation_methods.rds"))
 
 
-
-
 #are at least 5 countries available where they can plausibly source demand and with which we have impacts?
 #No - guar has only 1 (India)
 plausible_crops_w_impact |> 
-  group_by(raw_material, impact) |> 
-  count() |> 
-  mutate(n = n/2) # accounts for two allocation methods
+  group_by(raw_material, impact, allocation) |> 
+  count()  # accounts for two allocation methods
 
 #for each raw material and country  - add impact category values as an indicator of total footprint variability among countries to get at the large differences, then get the min, median and max
 
