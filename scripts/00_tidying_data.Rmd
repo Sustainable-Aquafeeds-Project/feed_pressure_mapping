@@ -24,23 +24,18 @@ library(parallel)
 library(janitor)
 library(here)
 library(countrycode)
-library(rredlist)
 library(terra)
 library(data.table)
 library(dtplyr)
 library(future)
 library(furrr)
+library(readxl)
 #install.packages("/Users/rsc2/Downloads/ncdf4_1.21.tgz", repos = NULL)
 
 source(here("src/directories.R"))
-source(here("src/spatial.R"))
+#source(here("src/spatial.R"))
 
 select <- dplyr::select
-
-#allocation method (un-comment preference)
-this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
 
 #uncomment depending if using one drive
 #rdsi_dir <- rdsi_backup_dir
@@ -368,6 +363,59 @@ saveRDS(object = lca_all_crops, file = here("data/tidy_data/LCA/crop_lca.rds"))
 
 
 unique(lca_all_crops$FAOSTAT_name)
+
+
+#Tidying the processing LCA files
+
+#test the function below
+#this_ingredient_excel <- list.files(file.path(rdsi_raw_data_dir, "LCA/Processing_MidPoint/"), full.names = TRUE)[[1]]
+
+processing_pressures <- 
+  list.files(file.path(rdsi_raw_data_dir, "LCA/Processing_MidPoint"), full.names = TRUE) |> 
+  map_df(.f = \(this_ingredient_excel){
+    
+    this_ingredient <- tools::file_path_sans_ext(basename(this_ingredient_excel))
+    
+    this_excel <- read_excel(this_ingredient_excel) 
+    
+    this_economic_excel <- this_excel |> 
+      select(1,2, contains("Economic")) |> 
+      rename_at(vars(-c(1,2)), ~str_extract(.x,"(?<=\\{).+?(?=\\})")) |> 
+      mutate(ingredient = this_ingredient,
+             allocation = "econ_allocation") |> 
+      rename(impact = 1,
+             unit =2) |> 
+      pivot_longer(names_to = "iso2c", values_to = "value", cols =  -c(ingredient, allocation, impact, unit))
+    
+    this_energy_excel <- this_excel |> 
+      select(1,2, contains("Energy")) |> 
+       rename_at(vars(-c(1,2)), ~str_extract(.x,"(?<=\\{).+?(?=\\})")) |> 
+      mutate(ingredient = this_ingredient,
+             allocation = "ge_allocation") |>
+      rename(impact = 1,
+             unit =2)|> 
+      pivot_longer(names_to = "iso2c", values_to = "value", cols =  -c(ingredient, allocation, impact, unit))
+    
+    this_mass_excel <- this_excel |> 
+      select(1,2, contains("Mass")) |> 
+       rename_at(vars(-c(1,2)), ~str_extract(.x,"(?<=\\{).+?(?=\\})")) |> 
+      mutate(ingredient = this_ingredient,
+             allocation = "mass_allocation") |> 
+      rename(impact = 1,
+             unit =2)|> 
+      pivot_longer(names_to = "iso2c", values_to = "value", cols =  -c(ingredient, allocation, impact, unit))
+    
+    
+  bind_rows(this_economic_excel, this_energy_excel, this_mass_excel) |> 
+    mutate(iso3c = countrycode(sourcevar = iso2c, origin = "iso2c", destination = "iso3c", warn=TRUE)) |> 
+    relocate(ingredient, .before = impact)
+    
+    
+  })
+
+saveRDS(object = processing_pressures, file = here("data/tidy_data/LCA/processing_LCA.rds"))
+
+
 ```
 
 # FISHERIES DATA
