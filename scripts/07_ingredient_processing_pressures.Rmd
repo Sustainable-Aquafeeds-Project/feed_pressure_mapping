@@ -22,7 +22,63 @@ this_allocation_method <- "econ_allocation"
 
 ```
 
+
+Bring in the LCA data for processing pressures for each ingredient and filter for pressures of interest
+
 ```{r}
+# We are interested in the same processing pressures as those used in the crops data and we want data based on our chosen allocation factor
+
+processing_main_pressures <- readRDS(here("data/tidy_data/LCA/processing_LCA.rds")) |> 
+  filter(impact %in% c("Global warming", "Water consumption", "Land use", "Freshwater eutrophication", "Marine eutrophication")) |> 
+  filter(allocation == this_allocation_method)
+
 
 ```
+
+
+Bring in processing locations and assign pressures based on ingredient demand per diet
+
+```{r}
+
+ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
+
+
+
+#marine diet
+
+diets <- c("marine_diet", "plant_diet")
+
+
+this_diet <- "marine_diet"
+
+map(.x = diets, .f = \(this_diet){
+    
+  this_dietary_demand <- ingredient_demand |> 
+    filter(diet == this_diet & total_ingredient_demand>0) |> 
+    mutate(ingredients = gsub("-wild", "", ingredients))
+  
+  these_dietary_processing_files <- list.files(path = sprintf(here("data/spatial/%s/processing"), this_diet), full.names = TRUE)
+  
+  these_ingredients <- this_dietary_demand$ingredients |> unique()
+  
+  map(these_ingredients, .f = \(this_ingredient){
+    
+    these_ingredient_files <- these_dietary_processing_files[grep(paste0(this_ingredient, "_"), these_dietary_processing_files)]
+    
+    
+    
+    
+  })
+  
+    
+    
+    
+    
+  })
+
+
+
+
+```
+
 
