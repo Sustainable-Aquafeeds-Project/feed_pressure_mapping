@@ -55,7 +55,7 @@ fao_areas_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?servic
 
 
 #test function
-#this_area <- fao_areas_shp[[3]]
+this_area <- fao_areas_shp[[3]]
 
 #get the number of ports in each fishing area
 port_number <- map_df(fao_areas_shp, \(this_area){
@@ -64,7 +64,10 @@ port_number <- map_df(fao_areas_shp, \(this_area){
   
   this_fao_area <-  this_area |> pull(F_AREA) |> unique()
   
-  these_ports <- st_intersection(wpi, this_area) |> mutate(fao_area = this_fao_area)
+  these_ports <- st_intersection(wpi, this_area) |> 
+    mutate(iso3c = countrycode::countrycode(COUNTRY, origin = "iso2c", destination = "iso3c", warn =TRUE),
+                                                           fao_area = this_fao_area) |> 
+    drop_na(iso3c)
   
   write_sf(these_ports, sprintf(here("data/spatial/ports/fishing_area_ports/ports_fao_%s.shp"), this_fao_area))
   

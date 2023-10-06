@@ -11,6 +11,7 @@ output: html_document
 library(tidyverse)
 library(here)
 library(terra)
+library(countrycode)
 
 select <- dplyr::select
 
@@ -30,8 +31,9 @@ Bring in the LCA data for processing pressures for each ingredient and filter fo
 
 processing_main_pressures <- readRDS(here("data/tidy_data/LCA/processing_LCA.rds")) |> 
   filter(impact %in% c("Global warming", "Water consumption", "Land use", "Freshwater eutrophication", "Marine eutrophication")) |> 
-  filter(allocation == this_allocation_method)
-
+  filter(allocation == this_allocation_method) |> 
+  mutate(value_tonne = value*1000) |>  #changes value per kg to per metric tonne
+  mutate(continent = countrycode(iso3c, origin = "iso3c", destination = "continent", warn = TRUE))
 
 ```
 
@@ -51,6 +53,8 @@ diets <- c("marine_diet", "plant_diet")
 
 this_diet <- "marine_diet"
 
+this_ingredient_source <- these_ingredient_files[[1]]
+
 map(.x = diets, .f = \(this_diet){
     
   this_dietary_demand <- ingredient_demand |> 
@@ -64,6 +68,44 @@ map(.x = diets, .f = \(this_diet){
   map(these_ingredients, .f = \(this_ingredient){
     
     these_ingredient_files <- these_dietary_processing_files[grep(paste0(this_ingredient, "_"), these_dietary_processing_files)]
+    
+    map(these_ingredient_files, \(this_ingredient_source){
+      
+      basename_no_ext <- tools::file_path_sans_ext(basename(this_ingredient_source))
+      
+      this_source <- str_sub(basename_no_ext,  start = nchar(basename_no_ext)-2, end = nchar(basename_no_ext))
+      
+      this_continent <- countrycode(this_source, "iso3c", "continent")
+      
+      this_ingredient_source_raster <- rast(this_ingredient_source)
+      
+      this_ingredient_pressures <- processing_main_pressures |> filter(ingredient == this_ingredient)
+      
+      this_ingredients_unique_processing_countries <- this_ingredient_pressures |> pull(iso3c) |> unique()
+      
+      this_ghg_value <- if_else(this_source %in% this_ingredients_unique_processing_countries,
+              true = this_ingredient_pressures |> filter(impact == "Global warming" & iso3c == this_source) |> pull(value_tonne),
+              false = if_else(this_continent %in% c(this_ingredient_pressures |> pull(continent) |> unique()),
+                              true = sample(x = this_ingredient_pressures |>
+                                              filter(impact == "Global warming" & continent == this_continent) |> 
+                                              pull(value_tonne) |> 
+                                              unique(), 
+                                            size=1),
+                              false = sample(x = this_ingredient_pressures |>
+                                              filter(impact == "Global warming") |> 
+                                              pull(value_tonne) |> 
+                                              unique(), 
+                                            size=1)))
+                
+                
+                this_ingredient_pressures |> filter(impact == "Global warming" & th))
+      
+      this_dist_value <- 
+      
+      
+    })
+    
+    this_processing_quantity_raster <-  
     
     
     
