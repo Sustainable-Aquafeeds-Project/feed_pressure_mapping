@@ -49,8 +49,6 @@ Bring in processing locations and assign pressures based on ingredient demand pe
 
 ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
 
-
-
 #marine diet
 
 diets <- c("marine_diet", "plant_diet")
@@ -60,6 +58,8 @@ this_diet <- "marine_diet"
 
 # this_ingredient_source <- these_ingredient_files[[1]]
 
+
+#loop through the diets
 map(.x = diets, .f = \(this_diet){
   
   this_dietary_demand <- ingredient_demand |> 
@@ -70,10 +70,13 @@ map(.x = diets, .f = \(this_diet){
   
   these_ingredients <- this_dietary_demand$ingredients |> unique()
   
+  #loop through the ingredients of this diet
   map(these_ingredients, .f = \(this_ingredient){
     
     these_ingredient_files <- these_dietary_processing_files[grep(paste0(this_ingredient, "_"), these_dietary_processing_files)]
     
+    
+    #loop through the files for this ingredient
     map(these_ingredient_files, \(this_ingredient_source){
       
       basename_no_ext <- tools::file_path_sans_ext(basename(this_ingredient_source))
@@ -84,7 +87,6 @@ map(.x = diets, .f = \(this_diet){
       
       message("Processing ", this_ingredient, ", ", this_diet, ", ", this_source)
       
-      
       this_continent <- countrycode(this_source, "iso3c", "continent")
       
       this_ingredient_source_raster <- rast(this_ingredient_source)
@@ -94,6 +96,7 @@ map(.x = diets, .f = \(this_diet){
       this_ingredients_unique_processing_countries <- this_ingredient_pressures |> pull(iso3c) |> unique()
       
       #we will do separate processes for fishmeal and oil so we can select the ports with country codes
+      
       
       if(!this_ingredient %in% c("fishmeal", "fish oil")){
         
@@ -111,7 +114,7 @@ map(.x = diets, .f = \(this_diet){
                                                                  unique())))
         
         this_ghg_value_rast <- this_ghg_value * this_ingredient_source_raster
-        this_ghg_value_km2_rast <- this_ghg_value_rast/cellSize(this_ghg_value_rast)
+        this_ghg_value_km2_rast <- this_ghg_value_rast/cellSize(this_ghg_value_rast, unit = "km")
         
         
         writeRaster(this_ghg_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_ghg_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
@@ -131,7 +134,7 @@ map(.x = diets, .f = \(this_diet){
         
         
         this_dist_value_rast <- this_dist_value * this_ingredient_source_raster
-        this_dist_value_km2_rast <- this_dist_value_rast/cellSize(this_dist_value_rast)
+        this_dist_value_km2_rast <- this_dist_value_rast/cellSize(this_dist_value_rast, unit = "km")
         
         writeRaster(this_dist_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_disturbance_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
         
@@ -150,7 +153,7 @@ map(.x = diets, .f = \(this_diet){
                                                                           unique())))
         
         this_N_value_rast <- this_N_value * this_ingredient_source_raster
-        this_N_value_km2_rast <- this_N_value_rast/cellSize(this_N_value_rast)         
+        this_N_value_km2_rast <- this_N_value_rast/cellSize(this_N_value_rast, unit = "km")         
         
         writeRaster(this_N_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_N_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
         
@@ -169,7 +172,7 @@ map(.x = diets, .f = \(this_diet){
                                                                     unique())))
         
         this_P_value_rast <- this_P_value * this_ingredient_source_raster
-        this_P_value_km2_rast <- this_P_value_rast/cellSize(this_P_value_rast)
+        this_P_value_km2_rast <- this_P_value_rast/cellSize(this_P_value_rast, unit = "km")
         
         writeRaster(this_P_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_P_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
         
@@ -187,7 +190,7 @@ map(.x = diets, .f = \(this_diet){
                                                                  unique())))
         
         this_h2o_value_rast <- this_h2o_value * this_ingredient_source_raster
-        this_h2o_value_km2_rast <- this_h2o_value_rast/cellSize(this_h2o_value_rast)
+        this_h2o_value_km2_rast <- this_h2o_value_rast/cellSize(this_h2o_value_rast, unit = "km")
         
         writeRaster(this_h2o_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_water_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
         
@@ -205,7 +208,7 @@ map(.x = diets, .f = \(this_diet){
         this_ghg_shp <- ports_nations_w_impact |> filter(impact == "Global warming")
         
         this_ghg_value_rast <-  rasterize(x=vect(st_as_sf(this_ghg_shp)), y = rast(res=0.5), field = this_ghg_shp$value_tonne, fun = max)
-        this_ghg_value_km2_rast <- this_ghg_value_rast/cellSize(this_ghg_value_rast)
+        this_ghg_value_km2_rast <- this_ghg_value_rast/cellSize(this_ghg_value_rast, unit = "km")
         
         
         writeRaster(this_ghg_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_ghg_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
@@ -214,7 +217,7 @@ map(.x = diets, .f = \(this_diet){
         this_dist_shp <- ports_nations_w_impact |> filter(impact == "Land use")
         
         this_dist_value_rast <-  rasterize(x=vect(st_as_sf(this_dist_shp)), y = rast(res=0.5), field = this_dist_shp$value_tonne, fun = max)
-        this_dist_value_km2_rast <- this_dist_value_rast/cellSize(this_dist_value_rast)
+        this_dist_value_km2_rast <- this_dist_value_rast/cellSize(this_dist_value_rast, unit = "km")
         
         writeRaster(this_dist_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_disturbance_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
         
@@ -222,20 +225,18 @@ map(.x = diets, .f = \(this_diet){
         this_N_shp <- ports_nations_w_impact |> filter(impact == "Marine eutrophication")
         
         this_N_value_rast <-  rasterize(x=vect(st_as_sf(this_N_shp)), y = rast(res=0.5), field = this_N_shp$value_tonne, fun = max)
-        this_N_value_km2_rast <- this_N_value_rast/cellSize(this_N_value_rast)         
+        this_N_value_km2_rast <- this_N_value_rast/cellSize(this_N_value_rast, unit = "km")         
         
         writeRaster(this_N_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_N_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
-        
         
         
         #P raster
         this_P_shp <- ports_nations_w_impact |> filter(impact == "Freshwater eutrophication")
         
         this_P_value_rast <-  rasterize(x=vect(st_as_sf(this_P_shp)), y = rast(res=0.5), field = this_P_shp$value_tonne, fun = max)
-        this_P_value_km2_rast <- this_P_value_rast/cellSize(this_P_value_rast)
+        this_P_value_km2_rast <- this_P_value_rast/cellSize(this_P_value_rast, unit = "km")
         
         writeRaster(this_P_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_P_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
-        
         
         
         
@@ -243,7 +244,7 @@ map(.x = diets, .f = \(this_diet){
         this_h2o_shp <- ports_nations_w_impact |> filter(impact == "Water consumption")
         
         this_h2o_value_rast <-  rasterize(x=vect(st_as_sf(this_h2o_shp)), y = rast(res=0.5), field = this_h2o_shp$value_tonne, fun = max)
-        this_h2o_value_km2_rast <- this_h2o_value_rast/cellSize(this_h2o_value_rast)
+        this_h2o_value_km2_rast <- this_h2o_value_rast/cellSize(this_h2o_value_rast, unit = "km")
         
         writeRaster(this_h2o_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_water_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
         
