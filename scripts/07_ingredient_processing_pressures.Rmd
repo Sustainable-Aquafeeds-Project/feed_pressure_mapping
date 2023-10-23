@@ -12,6 +12,7 @@ library(tidyverse)
 library(here)
 library(terra)
 library(countrycode)
+library(gdata)
 
 select <- dplyr::select
 
@@ -33,6 +34,10 @@ processing_main_pressures <- readRDS(here("data/tidy_data/LCA/processing_LCA.rds
   filter(impact %in% c("Global warming", "Water consumption", "Land use", "Freshwater eutrophication", "Marine eutrophication")) |> 
   filter(allocation == this_allocation_method) |> 
   mutate(value_tonne = value*1000) |>  #changes value per kg to per metric tonne
+  mutate(value_tonne = case_when(impact == "Land use" ~ value_tonne*1e-6,
+                                 TRUE ~ value_tonne)) |>
+  mutate(unit = case_when(impact == "Land use" ~ "km2 eq",
+                          TRUE ~ unit)) |> 
   mutate(continent = countrycode(iso3c, origin = "iso3c", destination = "continent", warn = TRUE))
 
 ```
@@ -49,14 +54,14 @@ ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand
 #marine diet
 
 diets <- c("marine_diet", "plant_diet")
-
-
+# 
+# 
 this_diet <- "marine_diet"
 
-this_ingredient_source <- these_ingredient_files[[1]]
+# this_ingredient_source <- these_ingredient_files[[1]]
 
 map(.x = diets, .f = \(this_diet){
-    
+  
   this_dietary_demand <- ingredient_demand |> 
     filter(diet == this_diet & total_ingredient_demand>0) |> 
     mutate(ingredients = gsub("-wild", "", ingredients))
@@ -73,7 +78,12 @@ map(.x = diets, .f = \(this_diet){
       
       basename_no_ext <- tools::file_path_sans_ext(basename(this_ingredient_source))
       
-      this_source <- str_sub(basename_no_ext,  start = nchar(basename_no_ext)-2, end = nchar(basename_no_ext))
+      this_source <- if_else(!this_ingredient %in% c("fishmeal", "fish oil"),
+                             true = str_sub(basename_no_ext,  start = nchar(basename_no_ext)-2, end = nchar(basename_no_ext)),
+                             false = str_sub(basename_no_ext,  start = nchar(basename_no_ext)-1, end = nchar(basename_no_ext)))
+      
+      message("Processing ", this_ingredient, ", ", this_diet, ", ", this_source)
+      
       
       this_continent <- countrycode(this_source, "iso3c", "continent")
       
@@ -83,40 +93,166 @@ map(.x = diets, .f = \(this_diet){
       
       this_ingredients_unique_processing_countries <- this_ingredient_pressures |> pull(iso3c) |> unique()
       
-      this_ghg_value <- if_else(this_source %in% this_ingredients_unique_processing_countries,
-              true = this_ingredient_pressures |> filter(impact == "Global warming" & iso3c == this_source) |> pull(value_tonne),
-              false = if_else(this_continent %in% c(this_ingredient_pressures |> pull(continent) |> unique()),
-                              true = sample(x = this_ingredient_pressures |>
-                                              filter(impact == "Global warming" & continent == this_continent) |> 
-                                              pull(value_tonne) |> 
-                                              unique(), 
-                                            size=1),
-                              false = sample(x = this_ingredient_pressures |>
-                                              filter(impact == "Global warming") |> 
-                                              pull(value_tonne) |> 
-                                              unique(), 
-                                            size=1)))
-                
-                
-                this_ingredient_pressures |> filter(impact == "Global warming" & th))
+      #we will do separate processes for fishmeal and oil so we can select the ports with country codes
       
-      this_dist_value <- 
+      if(!this_ingredient %in% c("fishmeal", "fish oil")){
+        
+        #ghg raster
+        this_ghg_value <- if_else(this_source %in% this_ingredients_unique_processing_countries,
+                                  true = this_ingredient_pressures |> filter(impact == "Global warming" & iso3c == this_source) |> pull(value_tonne),
+                                  false = if_else(this_continent %in% c(this_ingredient_pressures |> pull(continent) |> unique()),
+                                                  true = mean(this_ingredient_pressures |>
+                                                                filter(impact == "Global warming" & continent == this_continent) |> 
+                                                                pull(value_tonne) |> 
+                                                                unique()),
+                                                  false = mean(x = this_ingredient_pressures |>
+                                                                 filter(impact == "Global warming") |> 
+                                                                 pull(value_tonne) |> 
+                                                                 unique())))
+        
+        this_ghg_value_rast <- this_ghg_value * this_ingredient_source_raster
+        this_ghg_value_km2_rast <- this_ghg_value_rast/cellSize(this_ghg_value_rast)
+        
+        
+        writeRaster(this_ghg_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_ghg_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        #disturbance raster
+        this_dist_value <-  if_else(this_source %in% this_ingredients_unique_processing_countries,
+                                    true = this_ingredient_pressures |> filter(impact == "Land use" & iso3c == this_source) |> pull(value_tonne),
+                                    false = if_else(this_continent %in% c(this_ingredient_pressures |> pull(continent) |> unique()),
+                                                    true = mean(this_ingredient_pressures |>
+                                                                  filter(impact == "Land use" & continent == this_continent) |> 
+                                                                  pull(value_tonne) |> 
+                                                                  unique()),
+                                                    false = mean(x = this_ingredient_pressures |>
+                                                                   filter(impact == "Land use") |> 
+                                                                   pull(value_tonne) |> 
+                                                                   unique())))
+        
+        
+        this_dist_value_rast <- this_dist_value * this_ingredient_source_raster
+        this_dist_value_km2_rast <- this_dist_value_rast/cellSize(this_dist_value_rast)
+        
+        writeRaster(this_dist_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_disturbance_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        
+        #N raster
+        this_N_value <- if_else(this_source %in% this_ingredients_unique_processing_countries,
+                                true = this_ingredient_pressures |> filter(impact == "Marine eutrophication" & iso3c == this_source) |> pull(value_tonne),
+                                false = if_else(this_continent %in% c(this_ingredient_pressures |> pull(continent) |> unique()),
+                                                true = mean(this_ingredient_pressures |>
+                                                                  filter(impact == "Marine eutrophication" & continent == this_continent) |> 
+                                                                  pull(value_tonne) |> 
+                                                                  unique()),
+                                                false = mean(x = this_ingredient_pressures |>
+                                                                          filter(impact == "Marine eutrophication") |> 
+                                                                          pull(value_tonne) |> 
+                                                                          unique())))
+        
+        this_N_value_rast <- this_N_value * this_ingredient_source_raster
+        this_N_value_km2_rast <- this_N_value_rast/cellSize(this_N_value_rast)         
+        
+        writeRaster(this_N_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_N_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        
+        # P raster
+        this_P_value <-  if_else(this_source %in% this_ingredients_unique_processing_countries,
+                                 true = this_ingredient_pressures |> filter(impact == "Freshwater eutrophication" & iso3c == this_source) |> pull(value_tonne),
+                                 false = if_else(this_continent %in% c(this_ingredient_pressures |> pull(continent) |> unique()),
+                                                 true = mean(this_ingredient_pressures |>
+                                                                   filter(impact == "Freshwater eutrophication" & continent == this_continent) |> 
+                                                                   pull(value_tonne) |> 
+                                                                   unique()),
+                                                 false = mean(x = this_ingredient_pressures |>
+                                                                    filter(impact == "Freshwater eutrophication") |> 
+                                                                    pull(value_tonne) |> 
+                                                                    unique())))
+        
+        this_P_value_rast <- this_P_value * this_ingredient_source_raster
+        this_P_value_km2_rast <- this_P_value_rast/cellSize(this_P_value_rast)
+        
+        writeRaster(this_P_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_P_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        # h2o raster
+        this_h2o_value <- if_else(this_source %in% this_ingredients_unique_processing_countries,
+                                  true = this_ingredient_pressures |> filter(impact == "Water consumption" & iso3c == this_source) |> pull(value_tonne),
+                                  false = if_else(this_continent %in% c(this_ingredient_pressures |> pull(continent) |> unique()),
+                                                  true = mean(this_ingredient_pressures |>
+                                                                filter(impact == "Water consumption" & continent == this_continent) |> 
+                                                                pull(value_tonne) |> 
+                                                                unique()),
+                                                  false = mean(x = this_ingredient_pressures |>
+                                                                 filter(impact == "Water consumption") |> 
+                                                                 pull(value_tonne) |> 
+                                                                 unique())))
+        
+        this_h2o_value_rast <- this_h2o_value * this_ingredient_source_raster
+        this_h2o_value_km2_rast <- this_h2o_value_rast/cellSize(this_h2o_value_rast)
+        
+        writeRaster(this_h2o_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_water_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        
+      } else { #now do fishmeal and oil pulling in the ports shapefile
+        
+        
+        these_fao_area_ports <- list.files(here("data/spatial/ports/fishing_area_ports"), pattern= ".shp", full.names = TRUE) |> 
+          map_df(read_sf) |> filter(fao_area == this_source)
+        
+        ports_nations_w_impact <- these_fao_area_ports |> left_join(this_ingredient_pressures) |> drop_na(impact)
+        
+        
+        #GHG raster
+        this_ghg_shp <- ports_nations_w_impact |> filter(impact == "Global warming")
+        
+        this_ghg_value_rast <-  rasterize(x=vect(st_as_sf(this_ghg_shp)), y = rast(res=0.5), field = this_ghg_shp$value_tonne, fun = max)
+        this_ghg_value_km2_rast <- this_ghg_value_rast/cellSize(this_ghg_value_rast)
+        
+        
+        writeRaster(this_ghg_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_ghg_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        #disturbance raster
+        this_dist_shp <- ports_nations_w_impact |> filter(impact == "Land use")
+        
+        this_dist_value_rast <-  rasterize(x=vect(st_as_sf(this_dist_shp)), y = rast(res=0.5), field = this_dist_shp$value_tonne, fun = max)
+        this_dist_value_km2_rast <- this_dist_value_rast/cellSize(this_dist_value_rast)
+        
+        writeRaster(this_dist_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_disturbance_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        #N raster
+        this_N_shp <- ports_nations_w_impact |> filter(impact == "Marine eutrophication")
+        
+        this_N_value_rast <-  rasterize(x=vect(st_as_sf(this_N_shp)), y = rast(res=0.5), field = this_N_shp$value_tonne, fun = max)
+        this_N_value_km2_rast <- this_N_value_rast/cellSize(this_N_value_rast)         
+        
+        writeRaster(this_N_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_N_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        
+        
+        #P raster
+        this_P_shp <- ports_nations_w_impact |> filter(impact == "Freshwater eutrophication")
+        
+        this_P_value_rast <-  rasterize(x=vect(st_as_sf(this_P_shp)), y = rast(res=0.5), field = this_P_shp$value_tonne, fun = max)
+        this_P_value_km2_rast <- this_P_value_rast/cellSize(this_P_value_rast)
+        
+        writeRaster(this_P_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_P_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+        
+        
+        
+        # h2o raster 
+        this_h2o_shp <- ports_nations_w_impact |> filter(impact == "Water consumption")
+        
+        this_h2o_value_rast <-  rasterize(x=vect(st_as_sf(this_h2o_shp)), y = rast(res=0.5), field = this_h2o_shp$value_tonne, fun = max)
+        this_h2o_value_km2_rast <- this_h2o_value_rast/cellSize(this_h2o_value_rast)
+        
+        writeRaster(this_h2o_value_km2_rast, filename = sprintf(here("data/spatial/%s/int/%s_processing_water_km2_%s.tif"), this_diet, this_ingredient, this_allocation_method), overwrite = TRUE)
+        
+      } #end of else statement
       
-      
-    })
+    }) #end of mapping across this ingredient's file list
     
-    this_processing_quantity_raster <-  
-    
-    
-    
-    
-  })
-  
-    
-    
-    
-    
-  })
+  }) #end of mapping across this diet's ingredients list
+}) #end of mapping across the diet list
 
 
 
