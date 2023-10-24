@@ -18,6 +18,12 @@ select <- dplyr::select
 source(here("src/spatial.R"))
 source(here("src/directories.R"))
 
+
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
 ```
 
 # Nitrogen pollution - marine eutrophication
@@ -26,12 +32,9 @@ Marine diets
 
 ```{r}
 
-md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = "AllTech", full.names = TRUE)
-md_crop_r_list <- md_crop_r_list[grepl("allocation", md_crop_r_list)]
+md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = paste0("AllTech_", this_allocation_method), full.names = TRUE)
 
-
-this_file <- md_crop_r_list[[48]]
-
+this_file <- md_crop_r_list[[4]]
 
 #multiply production demand rasters by the N value for production from each country
 
@@ -43,10 +46,6 @@ map(md_crop_r_list, \(this_file){
   
   this_filename <- tools::file_path_sans_ext(basename(this_file))
   
-  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
-  
-  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
-  
   this_diet <- "marine_diet"
   
   this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
@@ -57,7 +56,8 @@ map(md_crop_r_list, \(this_file){
     
     message("processing... ", basename(this_file))
     
-    this_N_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Marine eutrophication") & allocation == this_allocation_method_for_df) |> pull(value)   
+    this_N_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Marine eutrophication") & allocation == this_allocation_method) |> pull(value)   
+    
     this_N_value_tonne <- this_N_value_kg*1000
     
     this_rast <- rast(this_file)
@@ -78,8 +78,7 @@ Plant diets
 
 ```{r}
 
-pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
-pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
+pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = paste0("AllTech_", this_allocation_method), full.names = TRUE)
 
 this_file <- pd_crop_r_list[[1]]
 
@@ -95,10 +94,6 @@ map(pd_crop_r_list, \(this_file){
   
   this_diet <- "plant_diet"
   
-  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
-  
-  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
-  
   this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
   
   saveName <- sprintf(here("data/spatial/%s/int/%s_N_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
@@ -107,7 +102,7 @@ map(pd_crop_r_list, \(this_file){
     
     message("processing... ", basename(this_file))
     
-    this_N_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Marine eutrophication") & allocation == this_allocation_method_for_df) |> pull(value)   
+    this_N_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Marine eutrophication") & allocation == this_allocation_method) |> pull(value)   
     
     this_N_value_tonne <- this_N_value_kg*1000
     
@@ -133,8 +128,8 @@ Marine diets
 
 ```{r}
 
-md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = "AllTech", full.names = TRUE)
-md_crop_r_list <- md_crop_r_list[grepl("allocation", md_crop_r_list)]
+md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = paste0("AllTech_", this_allocation_method), full.names = TRUE)
+
 
 this_file <- md_crop_r_list[[1]]
 
@@ -153,17 +148,13 @@ map(md_crop_r_list, \(this_file){
   
   this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
   
-  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
-  
-   this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
-  
   saveName <- sprintf(here("data/spatial/%s/int/%s_P_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
   
   if(!file.exists(saveName)){
     
     message("processing... ", basename(this_file))
     
-    this_P_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Freshwater eutrophication", "Eutrophication, freshwater") & allocation == this_allocation_method_for_df) |> pull(value) 
+    this_P_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Freshwater eutrophication") & allocation == this_allocation_method) |> pull(value) 
     
     this_P_value_tonne <- this_P_value_kg*1000
     
@@ -184,8 +175,8 @@ map(md_crop_r_list, \(this_file){
 Plant diets
 
 ```{r}
-pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
-pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
+pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = paste0("AllTech_", this_allocation_method), full.names = TRUE)
+
 
 this_file <- pd_crop_r_list[[1]]
 
@@ -202,9 +193,7 @@ map(pd_crop_r_list, \(this_file){
   
   this_diet <- "plant_diet"
   
-  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
   
-  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
   
   this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
   
@@ -214,7 +203,7 @@ map(pd_crop_r_list, \(this_file){
     
     message("processing... ", basename(this_file))
     
-    this_P_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Freshwater eutrophication", "Eutrophication, freshwater") & allocation == this_allocation_method_for_df) |> pull(value) 
+    this_P_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Freshwater eutrophication") & allocation == this_allocation_method) |> pull(value) 
     
     this_P_value_tonne <- this_P_value_kg*1000
     
