@@ -464,14 +464,14 @@ Some supplementary plots of the fish embodied by zone
 
 #Fishmeal - Mass allocation
 
-fm_mass_stack <- list.files(here("data/spatial/marine_diet/int"), pattern = "fishmeal_disturbance_km2_mass", full=TRUE) |> rast()
+fm_stack <- list.files(here("data/spatial/marine_diet/int"), pattern = paste0("fishmeal_disturbance_km2_", this_allocation_method), full=TRUE) |> rast()
 
-fm_mass_all <- app(fm_mass_stack, sum, na.rm=TRUE)
+fm_all <- app(fm_stack, sum, na.rm=TRUE)
 
 
 
 ggplot()+
-  geom_tile(data = fm_mass_all |> 
+  geom_tile(data = fm_all |> 
               terra::as.data.frame(xy=TRUE) |> filter(sum>0), aes(x=x, y=y, fill=(sum+1)))+
   geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
   scale_fill_gradientn(colours = brewer.pal(n=8, "BuPu"),
@@ -482,6 +482,14 @@ ggplot()+
 ggsave(file = here("figures/presos/fishmeal_forage_mass_disturbance.jpg"), height = 4, width=7)
 
 
+
+```
+
+
+#Clear environment
+
+```{r}
+rm(list = ls())
 
 ```
 
