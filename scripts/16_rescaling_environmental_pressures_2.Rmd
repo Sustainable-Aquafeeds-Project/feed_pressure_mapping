@@ -7,6 +7,8 @@ This file is used to rescale all rasters' values for each pressure so that value
 
 ```{r}
 
+message("STEP 16 - RESCALING ENVIRONMENTAL PRESSURES")
+
 library(tidyverse)
 library(terra)
 library(here)
@@ -55,20 +57,20 @@ cellSize(moll_rast, unit="km", transform = FALSE)
 
 # Check the reprojection doesn't appreciably change the values when density is multiplied by cell area
 
-marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "wheat_disturbance_km2_econ_allocation_UKR", full.names = TRUE)
-
-test <- rast(marine_diet_disturbance)
-(test1 <- test*cellSize(test, unit="km"))
-
-test_rp <- project(test, moll_rast)
-(test_rp1 <- test_rp*cellSize(test_rp, unit="km"))
-
-test_rs <- terra::resample(test, moll_rast)
-(test_rs1 <- test_rs*cellSize(test_rs, unit="km"))
-
-test1 |> values() |> sum(na.rm = TRUE)
-test_rs1 |> values()  |> sum(na.rm = TRUE)
-test_rp1 |> values() |> sum(na.rm = TRUE)
+# marine_diet_disturbance <- list.files(here("data/spatial/marine_diet/int"), pattern = "wheat_disturbance_km2_econ_allocation_UKR", full.names = TRUE)
+# 
+# test <- rast(marine_diet_disturbance)
+# (test1 <- test*cellSize(test, unit="km"))
+# 
+# test_rp <- project(test, moll_rast)
+# (test_rp1 <- test_rp*cellSize(test_rp, unit="km"))
+# 
+# test_rs <- terra::resample(test, moll_rast)
+# (test_rs1 <- test_rs*cellSize(test_rs, unit="km"))
+# 
+# test1 |> values() |> sum(na.rm = TRUE)
+# test_rs1 |> values()  |> sum(na.rm = TRUE)
+# test_rp1 |> values() |> sum(na.rm = TRUE)
 
 
 ```
@@ -77,7 +79,7 @@ test_rp1 |> values() |> sum(na.rm = TRUE)
 
 ## Disturbance
 
-Bring in  forage fish and crop layers for disturbance for both diets. Reproject onto the equal area gall-peters projection and calcute the sum of disturbance for each diet.
+Bring in  forage fish and crop layers for disturbance for both diets. Reproject onto the equal area mollweide projection and calculate the sum of disturbance for each diet.
 
 ```{r}
 
@@ -100,11 +102,9 @@ md_reprojected_rasters <-
                             true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
                             false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
-    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
-    
     this_ingredient <- str_extract(base, "[^_]+")
     
-    saveName <- sprintf(here("data/spatial/marine_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    saveName <- gsub("km2", "moll",this_file)
     
     if(!file.exists(saveName)){
       
@@ -112,11 +112,7 @@ md_reprojected_rasters <-
       
       this_rast <- rast(this_file)
       
-      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size.
-
-      this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
-
-      this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
+      this_reprojected_rast <-  project(this_rast, moll_rast)
       
       this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
       names(this_adj_reprojected_rast) <- "km2"
@@ -132,8 +128,7 @@ md_reprojected_rasters <-
 
 
 #plant diets
-plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), pattern = "disturbance_km2", full.names = TRUE)
-plant_diet_disturbance <- plant_diet_disturbance[!grepl("forage_fish|_gp", plant_diet_disturbance) & grepl("allocation", plant_diet_disturbance)]
+plant_diet_disturbance <- list.files(here("data/spatial/plant_diet/int"), pattern = paste0("disturbance_km2_", this_allocation_method), full.names = TRUE)
 
 
 this_file <- plant_diet_disturbance[[50]]
@@ -148,23 +143,17 @@ pd_reprojected_rasters <-
                             true = str_sub(base, start = nchar(base)-1, end = nchar(base)) , 
                             false = str_sub(base, start = nchar(base)-2, end = nchar(base)))
     
-    this_allocation_method <- str_extract(base, "ge_allocation|mass_allocation")
-    
     this_ingredient <- str_extract(base, "[^_]+")
     
-    saveName <- sprintf(here("data/spatial/plant_diet/int/%s_disturbance_gp_%s_%s.tif"), this_ingredient, this_allocation_method, this_country)
+    saveName <- gsub("km2", "moll",this_file)
     
    if(!file.exists(saveName)){
       
       message("processing ", basename(saveName))
       
       this_rast <- rast(this_file)
-      
-      # normalise by cell size to get proportion of cell before reprojecting otherwise reprojection screws up to be larger than cell size.
-
-      this_prop_r <- this_rast/cellSize(this_rast, unit = "km")
-
-      this_reprojected_rast <-  project(this_prop_r, eq_area_rast)
+    
+      this_reprojected_rast <-  project(this_rast, moll_rast)
       
       this_adj_reprojected_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit = "km", transform = FALSE)
       names(this_adj_reprojected_rast) <- "km2"
@@ -181,12 +170,12 @@ pd_reprojected_rasters <-
 
 #First need to find maximum scores each ingredient (i.e. which origin yields the greatest)
 
-md_reprojected_rasters <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "disturbance_gp", full=TRUE)
+md_reprojected_rasters <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "disturbance_moll", full.names =TRUE)
 
 md_ingredients_list <- 
   readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> mutate(ingredients = sub(pattern="-wild", replacement="", ingredients)) |> arrange(ingredients) |> group_by(ingredients) |> group_split()
 
-this_df <- md_ingredients_list[[1]]
+this_df <- md_ingredients_list[[5]]
 
 maximum_disturbance_scores_md <-  
   
@@ -194,25 +183,22 @@ maximum_disturbance_scores_md <-
   
   this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
   
-  these_ingredient_rasters_ge <- md_reprojected_rasters[grepl(this_ingredient, md_reprojected_rasters) & grepl("ge_allocation", md_reprojected_rasters)]
+  these_ingredient_rasters <- md_reprojected_rasters[grepl(this_ingredient, md_reprojected_rasters) & grepl(this_allocation_method, md_reprojected_rasters)]
   
-  these_ingredient_rasters_mass <- md_reprojected_rasters[grepl(this_ingredient, md_reprojected_rasters) & grepl("mass_allocation", md_reprojected_rasters)]
+  max_disturbance <- these_ingredient_rasters |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
   
-  max_disturbance_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
-  max_disturbance_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
   
-  this_adj_df <- bind_cols(this_df, max_disturbance_ge = max_disturbance_ge, max_disturbance_mass= max_disturbance_mass)
+  this_adj_df <- bind_cols(this_df, max_disturbance = max_disturbance)
   
   
 })
 
-#get maximum disturbance scores for each allocation method
-max_md_disturbance_ge <- maximum_disturbance_scores_md |> pull(max_disturbance_ge) |> sum()
-max_md_disturbance_mass <- maximum_disturbance_scores_md |> pull(max_disturbance_mass) |> sum()
+#get maximum disturbance scores 
+max_md_disturbance <- maximum_disturbance_scores_md |> pull(max_disturbance) |> sum()
 
 
-
-pd_reprojected_rasters <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "disturbance_gp", full=TRUE)
+#PLANT DIETS 
+pd_reprojected_rasters <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "disturbance_moll", full=TRUE)
 
 
 pd_ingredients_list <- 
@@ -226,14 +212,11 @@ maximum_disturbance_scores_pd <-
   
   this_ingredient <- paste0(this_df$ingredients |> unique(),"_")
   
-  these_ingredient_rasters_ge <- pd_reprojected_rasters[grepl(this_ingredient, pd_reprojected_rasters) & grepl("ge_allocation", pd_reprojected_rasters)]
+  these_ingredient_rasters <- pd_reprojected_rasters[grepl(this_ingredient, pd_reprojected_rasters) & grepl(this_allocation_method, pd_reprojected_rasters)]
   
-  these_ingredient_rasters_mass <- pd_reprojected_rasters[grepl(this_ingredient, pd_reprojected_rasters) & grepl("mass_allocation", pd_reprojected_rasters)]
+  max_disturbance <- these_ingredient_rasters |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
   
-  max_disturbance_ge <- these_ingredient_rasters_ge |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
-  max_disturbance_mass <- these_ingredient_rasters_mass |> map(rast) |> map(no_na_values) |> map(sum) |> unlist() |> max()
-  
-  this_adj_df <- bind_cols(this_df, max_disturbance_ge = max_disturbance_ge, max_disturbance_mass= max_disturbance_mass)
+  this_adj_df <- bind_cols(this_df, max_disturbance = max_disturbance)
   
   
 })
@@ -242,12 +225,10 @@ maximum_disturbance_scores_pd <-
 
 
 #get maximum disturbance scores for each allocation method
-max_pd_disturbance_ge <- maximum_disturbance_scores_pd |> pull(max_disturbance_ge) |> sum()
-max_pd_disturbance_mass <- maximum_disturbance_scores_pd |> pull(max_disturbance_mass) |> sum()
+max_pd_disturbance <- maximum_disturbance_scores_pd |> pull(max_disturbance) |> sum()
 
 
-max_total_disturbance_ge <- max(max_md_disturbance_ge,max_pd_disturbance_ge)
-max_total_disturbance_mass <- max(max_md_disturbance_mass,max_pd_disturbance_mass)
+max_total_disturbance <- max(max_md_disturbance,max_pd_disturbance)
 
 
 
@@ -304,9 +285,7 @@ rescaled_marine_disturbance_rasters <-
     
     this_rast <- rast(this_file)
     
-    this_basename <- str_replace(basename(this_file), pattern = "_km2_gp", replacement = "")
-    
-    this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+    this_basename <- str_replace(basename(this_file), pattern = "_moll", replacement = "")
     
     saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
     
@@ -314,33 +293,15 @@ rescaled_marine_disturbance_rasters <-
       
       message("Processing ", "'", this_basename, "'") 
       
-      if(this_allocation_method=="ge_allocation"){
-        
         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
-          if_else(this_cell>0, true = this_cell/max_total_disturbance_ge, false = 0)})
+          if_else(this_cell>0, true = this_cell/max_total_disturbance, false = 0)})
         
         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
       
         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
       
         return(this_rescaled_rast)
-        
-        
-      } else { 
-        
-         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
-          if_else(this_cell>0, true = this_cell/max_total_disturbance_mass, false = 0)})
-        
-        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
-      
-        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
-      
-        return(this_rescaled_rast)
-        
-        
-        
         }
-    }
   })
 
 
@@ -355,40 +316,23 @@ rescaled_plant_disturbance_rasters <-
   
   this_rast <- rast(this_file)
   
-  this_basename <- str_replace(basename(this_file), pattern = "_km2_gp", replacement = "")
-  
-  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  this_basename <- str_replace(basename(this_file), pattern = "_moll", replacement = "")
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
   if(!file.exists(saveName)){
     
    message("Processing ", "'", this_basename, "'")
-    
-    if(this_allocation_method=="ge_allocation"){
         
         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
-          if_else(this_cell>0, true = this_cell/max_total_disturbance_ge, false = 0)})
+          if_else(this_cell>0, true = this_cell/max_total_disturbance, false = 0)})
         
         names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
       
         writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
       
         return(this_rescaled_rast)
-        
-        
-      } else { 
-        
-         this_rescaled_rast <-  app(x = this_rast, fun = \(this_cell){
-          if_else(this_cell>0, true = this_cell/max_total_disturbance_mass, false = 0)})
-        
-        names(this_rescaled_rast) <- tools::file_path_sans_ext(this_basename)
-      
-        writeRaster(x = this_rescaled_rast, filename = saveName, overwrite=TRUE)
-      
-        return(this_rescaled_rast)
-        
-        }
+     
   }
 })
 
