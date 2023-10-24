@@ -17,9 +17,17 @@ source(here("src/directories.R"))
 select <- dplyr::select
 
 
+
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
+
+
 ```
 
-For each diet and source import the rasters from ghg and make all values zero - then rexport into "int" folder with nutrient file names - for both nitrogen and phosphorus
+For each diet and source import the rasters from ghg and make all values zero - then re-export into "int" folder with nutrient file names - for both nitrogen and phosphorus
 
 # Nitrogen pollution
 
@@ -27,8 +35,8 @@ Fishmeal
 
 ```{r}
 
-fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg_raw", full.names = TRUE)
-fm_template_files <- fm_template_files[grepl("allocation", fm_template_files)]
+fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg_km2", full.names = TRUE)
+fm_template_files <- fm_template_files[grepl(this_allocation_method, fm_template_files)]
 
 this_file <- fm_template_files[[3]]
 
@@ -37,8 +45,6 @@ map(.x = fm_template_files, .f = \(this_file){
   filename <- tools::file_path_sans_ext(this_file)
   
   this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
-  
-  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
   saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_N_km2_%s_%s.tif"), this_allocation_method, this_source)
   saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_N_km2_%s_%s.tif"), this_allocation_method, this_source)
@@ -64,7 +70,7 @@ Fish oil
 ```{r}
 
 fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg", full.names = TRUE)
-fo_template_files <- fo_template_files[grepl("allocation", fo_template_files)]
+fo_template_files <- fo_template_files[grepl(this_allocation_method, fo_template_files)]
 
 
 this_file <- fo_template_files[[3]]
@@ -75,8 +81,6 @@ map(.x = fo_template_files, .f = \(this_file){
   filename <- tools::file_path_sans_ext(this_file)
   
    this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
-  
-  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
   saveName_N_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_N_km2_%s_%s.tif"), this_allocation_method, this_source)
   saveName_N_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_N_km2_%s_%s.tif"), this_allocation_method, this_source)
@@ -104,8 +108,8 @@ map(.x = fo_template_files, .f = \(this_file){
 Fishmeal
 
 ```{r}
-fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg", full.names = TRUE)
-fm_template_files <- fm_template_files[grepl("allocation", fm_template_files)]
+fm_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_ghg_km2", full.names = TRUE)
+fm_template_files <- fm_template_files[grepl(this_allocation_method, fm_template_files)]
 
 this_file <- fm_template_files[[3]]
 
@@ -114,9 +118,7 @@ map(.x = fm_template_files, .f = \(this_file){
   
   filename <- tools::file_path_sans_ext(this_file)
   
-   this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
-  
-  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
+  this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
   
   saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_P_km2_%s_%s.tif"), this_allocation_method, this_source)
   saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fishmeal_P_km2_%s_%s.tif"), this_allocation_method, this_source)
@@ -142,7 +144,7 @@ Fish oil
 
 ```{r}
 fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg", full.names = TRUE)
-fo_template_files <- fo_template_files[grepl("allocation", fo_template_files)]
+fo_template_files <- fo_template_files[grepl(this_allocation_method, fo_template_files)]
 
 
 this_file <- fo_template_files[[3]]
@@ -153,8 +155,6 @@ map(.x = fo_template_files, .f = \(this_file){
   filename <- tools::file_path_sans_ext(this_file)
   
   this_source <- str_sub(filename, start = nchar(filename)-1, end = nchar(filename))
-  
-  this_allocation_method <- str_extract(this_file, "ge_allocation|mass_allocation")
   
   saveName_P_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_P_km2_%s_%s.tif"), this_allocation_method, this_source)
   saveName_P_pd <- sprintf(here("data/spatial/plant_diet/int/fish oil_P_km2_%s_%s.tif"), this_allocation_method, this_source)
