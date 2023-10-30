@@ -38,7 +38,6 @@ final_palette <- c(light_gray, continuous_pal, red)
 source(here("src/fxns.R"))
 
 #spatial products
-moll_crs <- "ESRI:53009"
 gp_crs <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
 
@@ -47,6 +46,13 @@ bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physica
 coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = gp_crs)
 select <- dplyr::select
 values <- terra::values
+
+
+#allocation method (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
 ```
 
 Bring in the origin-ingredient combinations within each diet.  
@@ -89,12 +95,11 @@ source = "source_1"
 
 #mass allocation 
 marine_source_file_list <- list()
+
 for(source in sources){
     
     marine_diet_files <- 
       map(.x = marine_source_ingredient, .f = \(this_df){
-        
-        this_allocation_method <- "mass_allocation"
         
         this_ingredient <- this_df$ingredient
         
@@ -107,25 +112,25 @@ for(source in sources){
         this_source_ingredient <- this_df |> pull(source)
         
         #disturbance
-        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
+        this_disturbance_production_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) &!grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+         this_disturbance_processing_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
         
         #ghg
-        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
+        this_ghg_production_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_ghg_processing_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        
         
         #nutrients
-        this_nutrient_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files)][[this_source_ingredient]]
-        
-        # #nitrogen
-        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
-        # 
-        # #phosphorus
-        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
-        
+        this_nutrient_production_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_nutrient_processing_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files) &grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+      
         #water
-        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
+        this_h2o_production_file <- these_ingredient_files[grepl("water", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_h2o_processing_file <- these_ingredient_files[grepl("water", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
+        these_diet_pressures <- c(this_disturbance_production_file,this_disturbance_processing_file, this_ghg_production_file, this_ghg_processing_file, this_nutrient_production_file, this_nutrient_processing_file, this_h2o_production_file, this_h2o_processing_file)
+        
         return(these_diet_pressures)
         
       }) |> 

@@ -227,20 +227,23 @@ Combine N and P pressures
 
 #isolate the ingredients of interest for each diet
 
-(marine_diet_ingredients <- readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> 
-  filter( prop >0) |> 
-  mutate(ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> pull(ingredients)
+(marine_diet_ingredients <- 
+  readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> 
+  filter( prop > 0 & !grepl("fishmeal|fish oil", ingredients)) |> 
+  pull(ingredients)
 )
 
 (plant_diet_ingredients <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> 
-  filter( prop >0) |> 
-  mutate(ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> pull(ingredients)
+  filter( prop > 0) |> 
+filter( prop > 0 & !grepl("fishmeal|fish oil", ingredients)) |> 
+  pull(ingredients)
 )
 
 
-#pull in marine diet nutrient layers
+#pull in marine diet nutrient layers for production
 
-(marine_np_layers <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_N_km2|_P_km2", full.names = TRUE))
+marine_np_layers <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_N_km2|_P_km2", full.names = TRUE)
+marine_np_layers <- marine_np_layers[!grepl("processing", marine_np_layers) & grepl(this_allocation_method, marine_np_layers) & !grepl("fishmeal|fish oil", marine_np_layers)]
 
 #for testing function
 #this_ingredient <- marine_diet_ingredients[[1]]
@@ -249,7 +252,7 @@ map(.x = marine_diet_ingredients, .f = \(this_ingredient){
   
   message("Processing ", this_ingredient, "- fish-dominant diet")
   
-  these_np_layers <- marine_np_layers[grepl(this_ingredient, marine_np_layers)]
+  these_np_layers <- marine_np_layers[grepl(paste0(this_ingredient, "_"), marine_np_layers)]
   
   these_n_layers <- these_np_layers[grepl("_N_", these_np_layers)] 
   
@@ -271,18 +274,19 @@ map(.x = marine_diet_ingredients, .f = \(this_ingredient){
 
 
 
-#pull in marine diet nutrient layers
+#pull in plant diet nutrient layers
 
-(plant_np_layers <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_N_km2|_P_km2", full.names = TRUE))
+plant_np_layers <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_N_km2|_P_km2", full.names = TRUE)
+(plant_np_layers <- plant_np_layers[!grepl("processing", plant_np_layers) & grepl(this_allocation_method, plant_np_layers) & !grepl("fishmeal|fish oil", plant_np_layers)])
 
 #for testing function
-this_ingredient <- plant_diet_ingredients[[3]]
+this_ingredient <- plant_diet_ingredients[[1]]
 
 map(.x = plant_diet_ingredients, .f = \(this_ingredient){
   
   message("Processing ", this_ingredient, "- plant-dominant diet")
   
-  these_np_layers <- plant_np_layers[grepl(this_ingredient, plant_np_layers)]
+  these_np_layers <- plant_np_layers[grepl(paste0(this_ingredient, "_"), plant_np_layers)]
   
   these_n_layers <- these_np_layers[grepl("_N_", these_np_layers)] 
   

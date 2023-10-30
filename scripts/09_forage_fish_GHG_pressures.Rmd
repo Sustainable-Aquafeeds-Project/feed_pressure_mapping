@@ -141,7 +141,7 @@ ghg_raw_r_list_fm <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_km2_%s_%s.tif"), this_diet, this_allocation_method, this_source)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_xy <- this_df |> select(LonCentre, LatCentre, total_kgCO2_fm)
     
@@ -156,7 +156,7 @@ ghg_raw_r_list_fm <-
 })
 
 #check the rasters
-plot(rast(ghg_raw_r_list_fm))
+#plot(rast(ghg_raw_r_list_fm))
 
 ```
 
@@ -186,7 +186,7 @@ ghg_raw_r_list_fo <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_km2_%s_%s.tif"), this_diet, this_allocation_method, this_source)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     this_xy <- this_df |> select(LonCentre, LatCentre, total_kgCO2_fo)
     
@@ -201,7 +201,7 @@ ghg_raw_r_list_fo <-
 })
 
 #check the rasters
-plot(rast(ghg_raw_r_list_fo))
+#plot(rast(ghg_raw_r_list_fo))
 
 
 #clear the environment

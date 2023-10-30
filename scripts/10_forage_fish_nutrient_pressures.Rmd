@@ -183,7 +183,9 @@ Fishmeal first
 
 ```{r}
 fm_N_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_N", full.names = TRUE)
+fm_N_files <- fm_N_files[grepl(this_allocation_method, fm_N_files)]
 fm_P_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fishmeal_P", full.names = TRUE)
+fm_P_files <- fm_P_files[grepl(this_allocation_method, fm_P_files)]
 
 this_N_file <- fm_N_files[[1]]
 this_P_file <- fm_P_files[[1]]
@@ -194,8 +196,6 @@ map2(.x = fm_N_files, .y = fm_P_files, .f=\(this_N_file, this_P_file){
   filename_P <- tools::file_path_sans_ext(this_P_file)
   
   this_source <- c(str_sub(filename_N, start = nchar(filename_N)-1, end= nchar(filename_N)), str_sub(filename_P, start = nchar(filename_P)-1, end= nchar(filename_P))) |> unique()
-  
-  this_allocation_method <- c(str_extract(this_N_file, "ge_allocation|mass_allocation"), str_extract(this_P_file, "ge_allocation|mass_allocation")) |> unique()
   
   #because these are zero - save to both marine and plant
   saveName_nutrient_md <- sprintf(here("data/spatial/marine_diet/int/fishmeal_nutrient_km2_%s_%s.tif"), this_allocation_method, this_source)
@@ -221,8 +221,11 @@ Now fish oil
 
 ```{r}
 fo_N_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_N", full.names = TRUE)
+fo_N_files <- fo_N_files[grepl(this_allocation_method, fo_N_files)]
 fo_P_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_P", full.names = TRUE)
+fo_P_files <- fo_P_files[grepl(this_allocation_method, fo_P_files)]
 
+#test function
 this_N_file <- fo_N_files[[1]]
 this_P_file <- fo_P_files[[1]]
 
@@ -232,8 +235,6 @@ map2(.x = fo_N_files, .y = fo_P_files, .f=\(this_N_file, this_P_file){
   filename_P <- tools::file_path_sans_ext(this_P_file)
   
   this_source <- c(str_sub(filename_N, start = nchar(filename_N)-1, end= nchar(filename_N)), str_sub(filename_P, start = nchar(filename_P)-1, end= nchar(filename_P))) |> unique()
-  
-  this_allocation_method <- c(str_extract(this_N_file, "ge_allocation|mass_allocation"), str_extract(this_P_file, "ge_allocation|mass_allocation")) |> unique()
   
   #because these are zero - save to both marine and plant
   saveName_nutrient_md <- sprintf(here("data/spatial/marine_diet/int/fish oil_nutrient_km2_%s_%s.tif"), this_allocation_method, this_source)

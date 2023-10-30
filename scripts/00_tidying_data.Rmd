@@ -270,12 +270,6 @@ map(.x = these_crop_area_files, .f = \(this_file){
 
 ```
 
- Unzip FAOSTAT Production data
-
-```{r}
-unzip(list.files(path=file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"), pattern = "Production_Crops", full.names = TRUE), exdir = file.path(rdsi_dir, "raw_data/fao/FAOSTAT_2022"))
-
-```
 
 Tidy FAOSTAT Production data
 
@@ -356,7 +350,8 @@ lca_all_crops <-
                                   raw_material == "Lupins" ~ "Pulses nes - Lupins",
                                   raw_material == "Peas" ~ "Peas, dry",
                                   raw_material == "Wheat grain" ~ "Wheat",
-                                  TRUE ~ raw_material))
+                                  TRUE ~ raw_material)) |> 
+  mutate(value_tonne = value*1000)
   
 
 saveRDS(object = lca_all_crops, file = here("data/tidy_data/LCA/crop_lca.rds"))
@@ -408,7 +403,8 @@ processing_pressures <-
     
   bind_rows(this_economic_excel, this_energy_excel, this_mass_excel) |> 
     mutate(iso3c = countrycode(sourcevar = iso2c, origin = "iso2c", destination = "iso3c", warn=TRUE)) |> 
-    relocate(ingredient, .before = impact)
+    relocate(ingredient, .before = impact) |> 
+    mutate(value_tonne = value*1000)
     
     
   })
