@@ -1,5 +1,5 @@
 ---
-title: "19 CPI by ingredient (energetic allocation)"
+title: "CPI Permutation"
 author: "Rich Cottrell"
 date: "14/02/2023"
 output: html_document
@@ -17,39 +17,19 @@ library(terra)
 library(rnaturalearth)
 #library(rnaturalearthdata)
 library(RColorBrewer)
-library(gameofthrones)
 library(parallel)
 library(ggdist)
 library(data.table)
 library(dtplyr)
 
-
-# taking cumulative impoact palette from Halpern et al 
-red <- "#B90000"
-d_brown <- "#515256"
-m_brown <- "#B27B54"
-l_brown <- "#BC995F"
-green <- "#A8B072"
-yellow<- "#EFCE71"
-l_yellow <- "#F7F6C1"
-light_gray <- "#F8F9FA"
-discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick")
-continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
-final_palette <- c(light_gray, continuous_pal, red)
-
-#source files
-source(here("src/fxns.R"))
-
-#spatial products
-moll_crs <- "ESRI:53009"
-gp_crs <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-
-
-countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
-bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = moll_crs)
-coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
 select <- dplyr::select
 values <- terra::values
+
+
+#ALLOCATION METHOD (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
 ```
 
 
@@ -80,9 +60,12 @@ marine_source_ingredient <-
 sources <- bind_rows(marine_source_ingredient) |> select(-c("ingredient", "row")) |>  names()  
 
 marine_source_file_list <- list()
+
 # Test data for loop
-# this_df <- marine_source_ingredient[[1]]
-# source <- sources[[1]]
+this_df <- marine_source_ingredient[[1]]
+source <- sources[[1]]
+
+
 #Now list the files for all ingredients and sources
 for(source in sources){
     
@@ -91,171 +74,154 @@ for(source in sources){
         
         this_ingredient <- this_df$ingredient
         
-        message("processing...", this_ingredient, "...", source)
+        message("Isolating pressure files for each ingredient-source combination - ", this_ingredient, "...", source)
         
         these_ingredient_files <- list.files(here("data/spatial/marine_diet/pressures"), pattern = paste0(this_ingredient, "_"), full.names = TRUE)
         
-         these_ingredient_files <- these_ingredient_files[grepl("ge_allocation", these_ingredient_files)]
+         these_ingredient_files <- these_ingredient_files[grepl(this_allocation_method, these_ingredient_files)]
         #sources
         this_source_ingredient <- this_df |> pull(source)
         
+        
+        #ISOLATE THE FILES FOR EACH INGREDIENT AND STAGE IN VALUE CHAIN
+        
         #disturbance
-        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
+        this_disturbance_production_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_disturbance_processing_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) & grepl("processing",these_ingredient_files)][[this_source_ingredient]]
         
         #ghg
-        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
+        this_ghg_production_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_ghg_processing_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
         
         #nutrients
-        this_nutrient_file <- these_ingredient_files[grepl("_nutrient_", these_ingredient_files)][[this_source_ingredient]]
-        
-        # #nitrogen
-        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
-        # 
-        # #phosphorus
-        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        this_nutrient_production_file <- these_ingredient_files[grepl("_nutrient_", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_nutrient_processing_file <- these_ingredient_files[grepl("_nutrient_", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
         
         #water
-        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
+        this_h2o_production_file <- these_ingredient_files[grepl("water", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_h2o_processing_file <- these_ingredient_files[grepl("water", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
+        #concatenate and return files needed for this ingredient
+        these_diet_pressures <- c(this_disturbance_production_file,this_disturbance_processing_file, #disturbance 
+                                  this_ghg_production_file, this_ghg_processing_file,  #ghg 
+                                  this_nutrient_production_file, this_nutrient_processing_file, #nutrients
+                                  this_h2o_production_file, this_h2o_processing_file) #water
+        
         return(these_diet_pressures)
         
       }) |> 
       unlist()
     
-    marine_source_file_list[[source]] <- marine_diet_files
+    marine_source_file_list[[source]] <- marine_diet_files #add these files to list
     
   }
   
-#stack and sum by individual pressures for each ingredient source combination
-marine_ingredients <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
-  filter(diet=="marine_diet" & total_ingredient_demand>0) |> 
-  mutate(ingredients = gsub(pattern = "-wild", replacement = "", x = ingredients)) |> pull(ingredients)
+#stack and sum by individual pressures for each ingredient source combination and stage in the value chain
+
+marine_ingredients <- 
+  readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> 
+  filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> pull(ingredients)
+
+stages <- c("production", "processing")
 
 this_ingredient_pressure_df_list <- list()
 
 all_ingredients_pressures_df_list <- list()
 
+
 for(source in sources){
   
-  message("processing.....", source)
+  message("Stacking pressure files - marine diet ", source)
   
-  this_combination_all_pressures_list <- marine_source_file_list[[source]]
   
-  for(ingredient in marine_ingredients){
+  
+  #isolate the production stage
+  
+  for(stage in stages){
     
-    this_ingredient_pressure_list <- this_combination_all_pressures_list[grepl(ingredient, this_combination_all_pressures_list)]
+    this_stage_pressures_list <- this_combination_all_pressures_list[grepl(stage, this_combination_all_pressures_list)]
     
-    #########Separate GHG files, read rasters into a list, stack all GHG layers
-  
-  message("stacking ghg layers for...", source, " ", ingredient)
-  
-  this_combination_ghg_list <- this_ingredient_pressure_list[grep("ghg", this_ingredient_pressure_list)]
-  
-  these_ghg_rasters <- map(.x = this_combination_ghg_list, .f = \(this_file){
-    
-    this_rast <- rast(this_file)
-    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-    
-    return(this_rast)
-  })
-  
-  this_ghg_df <- global(app(rast(these_ghg_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "GHG", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  
-  
-  
-  ##########Separate water files, read rasters into a list, stack all water layers
-  
-  message("stacking water layers for...", source, " ", ingredient)
-  
-  this_combination_water_list <- this_ingredient_pressure_list[grep("water", this_ingredient_pressure_list)]
-  
-  these_water_rasters <- map(.x = this_combination_water_list, .f = \(this_file){
-    
-    this_rast <- rast(this_file)
-    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-    
-    return(this_rast)
-  })
-  
-  this_water_df <- global(app(rast(these_water_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Water", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  
-  
-  #########Separate nutrient files, read rasters into a list, stack all nutrient layers
-  
-  message("stacking nutrient layers for...", source, " ", ingredient)
-  
-  this_combination_nutrient_list <-  this_ingredient_pressure_list[grep("_nutrient_", this_ingredient_pressure_list)]
-  
-  these_nutrient_rasters <- map(.x = this_combination_nutrient_list, .f = \(this_file){
-    
-    this_rast <- rast(this_file)
-    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-    
-    return(this_rast)
-  })
-  
-  this_nutrient_df <- global(app(rast(these_nutrient_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nutrients", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  
-  # #########Separate N files, read rasters into a list, stack all N layers
-  # 
-  # message("stacking N layers for...", source, " ", ingredient)
-  # 
-  # this_combination_N_list <-  this_ingredient_pressure_list[grep("_N_", this_ingredient_pressure_list)]
-  # 
-  # these_N_rasters <- map(.x = this_combination_N_list, .f = \(this_file){
-  #   
-  #   this_rast <- rast(this_file)
-  #   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-  #   
-  #   return(this_rast)
-  # })
-  # 
-  # this_N_df <- global(app(rast(these_N_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nitrogen", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  # 
-  # 
-  # #########Separate P files, read rasters into a list, stack all P layers
-  # 
-  # message("stacking P layers for...", source, " ", ingredient)
-  # 
-  # this_combination_P_list <-  this_ingredient_pressure_list[grep("_P_", this_ingredient_pressure_list)]
-  # 
-  # these_P_rasters <- map(.x = this_combination_P_list, .f = \(this_file){
-  #   
-  #   this_rast <- rast(this_file)
-  #   this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-  #   
-  #   return(this_rast)
-  # })
-  # 
-  # this_P_df <- global(app(rast(these_P_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Phosphorus", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  # 
-  
-  #########Separate disturbance files, read rasters into a list, stack all disturbance layers
-  
-  message("stacking disturbance layers for...", source, " ", ingredient)
-  
-  this_combination_disturbance_list <-  this_ingredient_pressure_list[grep("disturbance", this_ingredient_pressure_list)]
-  
-  these_disturbance_rasters <- map(.x = this_combination_disturbance_list, .f = \(this_file){
-    
-    this_rast <- rast(this_file)
-    this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
-    
-    return(this_rast)
-  })
-  
-  this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
-  
-  
-  this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_nutrient_df, this_disturbance_df)
-  
-    
+    for(ingredient in marine_ingredients){
+      
+      this_ingredient_pressure_list <- this_combination_all_pressures_list[grepl(ingredient, this_combination_all_pressures_list)]
+      
+      #########Separate GHG files, read rasters into a list, stack all GHG layers
+      
+      message("stacking ghg layers for...", source, " ", ingredient)
+      
+      this_combination_ghg_list <- this_ingredient_pressure_list[grep("ghg", this_ingredient_pressure_list)]
+      
+      these_ghg_rasters <- map(.x = this_combination_ghg_list, .f = \(this_file){
+        
+        this_rast <- rast(this_file)
+        this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+        
+        return(this_rast)
+      })
+      
+      this_ghg_df <- global(app(rast(these_ghg_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "GHG", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+      
+      
+      
+      ##########Separate water files, read rasters into a list, stack all water layers
+      
+      message("stacking water layers for...", source, " ", ingredient)
+      
+      this_combination_water_list <- this_ingredient_pressure_list[grep("water", this_ingredient_pressure_list)]
+      
+      these_water_rasters <- map(.x = this_combination_water_list, .f = \(this_file){
+        
+        this_rast <- rast(this_file)
+        this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+        
+        return(this_rast)
+      })
+      
+      this_water_df <- global(app(rast(these_water_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Water", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+      
+      
+      #########Separate nutrient files, read rasters into a list, stack all nutrient layers
+      
+      message("stacking nutrient layers for...", source, " ", ingredient)
+      
+      this_combination_nutrient_list <-  this_ingredient_pressure_list[grep("_nutrient_", this_ingredient_pressure_list)]
+      
+      these_nutrient_rasters <- map(.x = this_combination_nutrient_list, .f = \(this_file){
+        
+        this_rast <- rast(this_file)
+        this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+        
+        return(this_rast)
+      })
+      
+      this_nutrient_df <- global(app(rast(these_nutrient_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Nutrients", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+      
+      
+      #########Separate disturbance files, read rasters into a list, stack all disturbance layers
+      
+      message("stacking disturbance layers for...", source, " ", ingredient)
+      
+      this_combination_disturbance_list <-  this_ingredient_pressure_list[grep("disturbance", this_ingredient_pressure_list)]
+      
+      these_disturbance_rasters <- map(.x = this_combination_disturbance_list, .f = \(this_file){
+        
+        this_rast <- rast(this_file)
+        this_source <- tools::file_path_sans_ext(basename(sources(this_rast)))
+        
+        return(this_rast)
+      })
+      
+      this_disturbance_df <- global(app(rast(these_disturbance_rasters), sum, na.rm=TRUE), sum, na.rm=TRUE) |> mutate(pressure = "Disturbance", source = source, ingredient = gsub(pattern = "_", replacement = "", ingredient), .before = sum)
+      
+      
+      this_ingredient_pressure_df_list[[ingredient]] <- bind_rows(this_ghg_df, this_water_df, this_nutrient_df, this_disturbance_df)
+      
+      
+      
+    }
     
   }
-  
-  
   all_ingredients_pressures_df_list[[source]] <- bind_rows(this_ingredient_pressure_df_list)
   
 }

@@ -1,5 +1,5 @@
 ---
-title: "18 CPI permutation (energetic allocation)"
+title: "CPI permutation"
 author: "Rich Cottrell"
 date: "14/02/2023"
 output: html_document
@@ -23,32 +23,15 @@ library(data.table)
 library(dtplyr)
 
 
-# taking cumulative impoact palette from Halpern et al 
-red <- "#B90000"
-d_brown <- "#515256"
-m_brown <- "#B27B54"
-l_brown <- "#BC995F"
-green <- "#A8B072"
-yellow<- "#EFCE71"
-l_yellow <- "#F7F6C1"
-light_gray <- "#F8F9FA"
-discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick")
-continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
-final_palette <- c(light_gray, continuous_pal, red)
 
-#source files - not sure why this isn't working
-#source(here("src/fxns.R"))
-
-#spatial products
-moll_crs <- "ESRI:53009"
-gp_crs <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-
-
-countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = moll_crs)
-bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = moll_crs)
-coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = moll_crs)
 select <- dplyr::select
 values <- terra::values
+
+
+#ALLOCATION METHOD (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
 ```
 
 
