@@ -30,6 +30,9 @@ values <- terra::values
 this_allocation_method <- "econ_allocation"
 # this_allocation_method <- "ge_allocation"
 # this_allocation_method <- "mass_allocation"
+
+
+
 ```
 
 
@@ -123,7 +126,7 @@ marine_ingredients <-
   readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> 
   filter(diet=="marine_diet" & ingredient_demand_tonnes>0) |> pull(ingredients)
 
-stages <- c("production", "processing")
+
 
 this_ingredient_pressure_df_list <- list()
 
@@ -133,7 +136,6 @@ all_ingredients_pressures_df_list <- list()
 for(source in sources){
   
   message("Stacking pressure files - marine diet ", source)
-  
   
   
   #isolate the production stage
