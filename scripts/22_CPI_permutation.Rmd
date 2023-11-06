@@ -5,8 +5,8 @@ date: "14/02/2023"
 output: html_document
 ---
 
-
 Set up
+
 ```{r}
 library(tidyverse)
 library(ggpubr)
@@ -35,19 +35,16 @@ this_allocation_method <- "econ_allocation"
 
 ```
 
-
-Bring in the origin-ingredient combinations within each diet.  
+Bring in the origin-ingredient combinations within each diet.
 
 ```{r}
 marine_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds")) 
 plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds")) 
 ```
 
-
 #Disaggregation by pressure and ingredient
 
-
-Disaggregate by ingredients and pressures -  Marine diets
+Disaggregate by ingredients and pressures - Marine diets
 
 ```{r}
 marine_source_ingredient <- 
@@ -59,8 +56,12 @@ marine_source_ingredient <-
                                            TRUE ~ .)) |> 
   group_split(row)
 
-
+#create vector for the sources
 sources <- bind_rows(marine_source_ingredient) |> select(-c("ingredient", "row")) |>  names()  
+#create vector for the value chain stage
+stages <- c("production", "processing")
+
+
 
 marine_source_file_list <- list()
 
@@ -132,8 +133,7 @@ marine_ingredients <-
 
 
 
-#create vector for the value chain stage
-stages <- c("production", "processing")
+
 
 this_ingredient_pressure_df_list <- list()
 
@@ -146,7 +146,7 @@ for(source in sources){
   
   this_combination_all_pressures_list <- marine_source_file_list[[source]]
   
-  #isolate the production stage
+  #isolate the value chain stage
   
   for(stage in stages){
     
@@ -230,17 +230,19 @@ for(source in sources){
       
       
     }
-    
+    all_ingredients_pressures_df_list[[paste("source", source, "stage", stage)]] <- do.call(bind_rows, this_ingredient_pressure_df_list)
   }
-  all_ingredients_pressures_df_list[[source]] <- bind_rows(this_ingredient_pressure_df_list)
+  
   
 }
 
 marine_diet_pressures_by_ingredient_df <- bind_rows(all_ingredients_pressures_df_list) |> mutate(diet = "marine diet")
 saveRDS(marine_diet_pressures_by_ingredient_df, file = sprintf(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
+
+marine_diet_pressures_by_ingredient_df |> pull(source) |> unique()
 ```
 
-Disaggreagte by ingredients and pressures -  Plant diets
+Disaggreagte by ingredients and pressures - Plant diets
 
 ```{r}
 plant_source_ingredient <- 
@@ -252,7 +254,10 @@ plant_source_ingredient <-
                                            TRUE ~ .)) |> 
   group_split(row)
 
-sources <- bind_rows(plant_source_ingredient) |> select(-c("ingredient", "row")) |>  names()   
+#Create vector for the sources
+sources <- bind_rows(plant_source_ingredient) |> select(-c("ingredient", "row")) |>  names() 
+#create vector for the value chain stage
+stages <- c("production", "processing")
 
 plant_source_file_list <- list()
 
@@ -294,7 +299,7 @@ for(source in sources){
         this_nutrient_processing_file <- these_ingredient_files[grepl("_nutrient_", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
         
         #water
-        this_h2o_production_file <- these_ingredient_files[grepl("water", these_ingredient_files)] & grepl("production", these_ingredient_files)][[this_source_ingredient]]
+        this_h2o_production_file <- these_ingredient_files[grepl("water", these_ingredient_files) & grepl("production", these_ingredient_files)][[this_source_ingredient]]
         this_h2o_processing_file <- these_ingredient_files[grepl("water", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
         
         
@@ -315,8 +320,8 @@ for(source in sources){
 
 
   
-plant_ingredients <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds")) |> 
-  filter(diet=="plant_diet" & total_ingredient_demand>0) |> 
+plant_ingredients <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> 
+  filter(diet=="plant_diet" & ingredient_demand_tonnes>0) |> 
   pull(ingredients)
 
 #initiate lists 
@@ -415,10 +420,13 @@ for(source in sources){
       
       
     }
+  
+  
+     all_ingredients_pressures_df_list[[paste("source", source, "stage", stage)]] <- do.call(bind_rows, this_ingredient_pressure_df_list)
+
   }
   
-  all_ingredients_pressures_df_list[[source]] <- bind_rows(this_ingredient_pressure_df_list)
-  
+ 
 }
 
 
@@ -437,7 +445,6 @@ marine_plant_pressure_ingredient_disagg_combined_df <- bind_rows(marine_diet_pre
 
 saveRDS(object = marine_plant_pressure_ingredient_disagg_combined_df, file = sprintf(here("data/tidy_data/pressures/marine_plant_disaggregated_pressures_by_ingredient_combined_df_%s.rds"),this_allocation_method))
 ```
-
 
 Visualise the disaggregation by pressure and ingredient
 
@@ -646,9 +653,8 @@ ggsave(here("figures/supplementary/plant_disaggreation_by_ingredient_pressure_pr
 ggsave(here("figures/supplementary/disaggregation_of_pressure_by_ingredient_prop_ge_allocation.jpg"), dpi = 600, width = 18, height =13, units="cm")
 ```
 
-
 #clear the environment
+
 ```{r}
 rm(list = ls(all.names = TRUE))
 ```
-
