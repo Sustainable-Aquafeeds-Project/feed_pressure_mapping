@@ -382,9 +382,6 @@ forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |>
 forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
   pull(area_fo)  |> sum() / (27600*0.6)
 
-
-
-
 ```
 
 

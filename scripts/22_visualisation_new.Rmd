@@ -1,0 +1,128 @@
+---
+title: "Visualisation of results"
+author: "Rich Cottrell"
+date: '2023-11-06'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(here)
+library(patchwork)
+library(rcartocolor)
+library(RColorBrewer)
+
+select <- dplyr::select
+values <- terra::values
+
+
+#ALLOCATION METHOD (un-comment preference)
+this_allocation_method <- "econ_allocation"
+# this_allocation_method <- "ge_allocation"
+# this_allocation_method <- "mass_allocation"
+
+
+
+```
+
+
+Pull in permuted data
+
+```{r}
+
+
+all_data <- readRDS(file = sprintf(here("data/tidy_data/pressures/marine_plant_disaggregated_pressures_by_ingredient_combined_df_%s.rds"),this_allocation_method))
+
+
+
+```
+
+Summarise and plot by CPI total
+```{r}
+
+cpi_total <- all_data |> 
+  group_by(source, diet) |> 
+  summarise(cpi = sum(sum, na.rm=TRUE)) |> 
+  arrange(source)
+
+my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
+
+
+both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nfeed"), 
+                          mean_CPI = c(cpi_total |> filter(diet == "marine diet") |> pull(cpi) |> mean(), 
+                                       cpi_total |> filter(diet == "plant diet") |> pull(cpi) |> mean()))
+
+
+(both_diets_agg_p <- 
+    ggplot(data = cpi_total |> mutate(diet = case_when(diet == "plant diet" ~ "Plant-\ndominant\nfeed",
+                                                         diet == "marine diet" ~ "Fish-\ndominant\nfeed"),
+                                        diet = factor(diet, levels = c("Plant-\ndominant\nfeed", "Fish-\ndominant\nfeed"))))+
+  aes(x = cpi, y = diet, colour = diet)+
+    geom_jitter(shape =20, size = 1.8, alpha = 0.1, height = 0.4
+  )+
+  # ggdist::stat_gradientinterval(
+  #   width = .3, color = "black", fill_type = "gradient"
+  # )+
+  scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
+  scale_x_continuous(limits = c(0.5,3))+
+  theme_pubr()+
+  geom_boxplot(notch = TRUE, colour = "grey40", width = 0.2, alpha = 0, linewidth=0.5)+
+  geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1, alpha = 0.7, shape = 0)+
+  labs(y = "Diet", x = "Cumulative pressure index (CPI)")+
+  theme(text = element_text(size=8),
+        axis.text = element_text(size=8),
+        axis.title = element_text(size=8),
+        axis.title.y = element_blank()))
+
+
+ggsave(filename = sprintf(here("figures/diet_permutation_comparisons_%s.jpg"), this_allocation_method), device = "jpg", dpi = 600, width = 8.9, height = 5, units="cm")
+
+```
+
+Visualise the CPI by pressure across diets
+
+```{r}
+cpi_by_pressure <- 
+  all_data |> 
+  group_by(diet, source, pressure) |> 
+  summarise(cpi_cont = sum(sum, na.rm=TRUE)) |> 
+  mutate(pressure = factor(pressure, levels = rev(c("GHG", "Disturbance", "Nutrients", "Water"))))
+
+
+my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
+
+
+ggplot(data = cpi_by_pressure |> 
+                              mutate(diet = case_when(diet == "plant diet" ~ "Plant-dominant\nfeed",
+                                                      diet == "marine diet" ~ "Fish-dominant\nfeed"),
+                                                      diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed"))))+
+  aes(x = cpi_cont, y = pressure, fill = diet)+
+  geom_point(pch = 21, position = position_jitterdodge(jitter.width = 0.5), alpha = 0.1)+
+  geom_boxplot(notch = TRUE, colour = "grey35", alpha = 0.4, linewidth=0.5, outlier.alpha = 0)+
+  scale_fill_manual(values = (my_pal[c(4,2)]))+
+  scale_x_continuous(limits = c(0,1.2), breaks = c(0,0.25,0.5,0.75, 1))+
+  theme_pubr()+
+  theme(legend.position = c(0.87, 0.15),
+        legend.background = element_rect(fill="transparent"),
+        legend.title = element_blank(),
+        text = element_text(size=8),
+        axis.text = element_text(size=8),
+        axis.title = element_text(size=8),
+        axis.title.y = element_blank())+
+  labs(x = "CPI contribution")
+
+ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_%s.jpg"), this_allocation_method), width = 12, height=9, units = "cm", device = "jpg", dpi = 600)
+```
+
+Dig into why disturbance is so fragmented
+```{r}
+
+all_data |> filter(pressure == "GHG" &ingredient == "fishmeal") |> 
+  ggplot(aes(x = ingredient, y=(sum)))+
+  facet_wrap(~diet)+
+  geom_jitter()+
+  coord_flip()
+
+```
+
