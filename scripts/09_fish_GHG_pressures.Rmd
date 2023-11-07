@@ -111,6 +111,7 @@ embodied_fish_new_gear <-
 
 
 
+embodied_fish_forage_new_gear |> filter(VBDesc %in% c("purse seines")) |> pull(ei_kgco2_kgcatch) |> unique()
 ```
 
 

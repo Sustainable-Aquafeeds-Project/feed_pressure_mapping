@@ -118,10 +118,12 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_%s.jpg"), th
 Dig into why disturbance is so fragmented
 ```{r}
 
-all_data |> filter(pressure == "GHG" &ingredient == "fishmeal") |> 
-  ggplot(aes(x = ingredient, y=(sum)))+
-  facet_wrap(~diet)+
-  geom_jitter()+
+all_data |> filter(pressure == "Disturbance") |> 
+  group_by(stage, diet, ingredient) |> 
+  summarise(mean = mean(sum, na.rm=TRUE),
+            sd= sd(sum,na.rm = TRUE)) |> 
+  ggplot(aes(x = ingredient, y=(mean), fill = stage ))+
+  geom_bar(stat = "identity")+
   coord_flip()
 
 ```
