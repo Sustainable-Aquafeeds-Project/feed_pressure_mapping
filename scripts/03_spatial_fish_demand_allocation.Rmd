@@ -161,6 +161,7 @@ trimmings_spp_fao_area <-
 ```{r}
 forage_catch <- readRDS(here("data/large_data/spatial_forage_catch_2017.rds"))
 
+
 #plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
 forage_xyz <- forage_catch |> 
   group_by(LonCentre, LatCentre) |> 
@@ -236,7 +237,7 @@ fish_sourcing_areas <-
          min_fo_forage_prop = 1-max_fo_trim_prop) |> 
   filter(fao_area_code %in% c(27, 87, 31, 61, 67)) # this mix of FAO fishing areas are based off values in Aas et al 2022 and Biomar sustainability report
 
-saveRDS(object = fish_sourcing_areas, file = here("data/tidy_data/production-data/fao_regions_fish_production_potential.rds"))
+saveRDS(object = fish_sourcing_areas, file = sprintf(here("data/tidy_data/production-data/fao_regions_fish_production_potential_%s.rds"), this_allocation_method))
 
 
 
@@ -284,7 +285,10 @@ trimmings_spp_catch |>
                            grepl("Capelin", CommonName) ~ "Capelin",
                            grepl("Blue whiting", CommonName) ~ "Blue whiting")) |> 
   #add the conversion factors for trimmings
-  left_join(trimmings_allocation_factors, by = c("CommonName" = "common_name", "TaxonName" = "sci_name", "ingredient", "group")) |> 
+  left_join(trimmings_allocation_factors, by = c("CommonName" = "common_name", 
+                                                 "TaxonName" = "sci_name", 
+                                                 "ingredient", 
+                                                 "group")) |> 
   left_join(trimmings_wghts, by = "group") |> 
   rename(byproduct_allocation_factor = this_allocation_column) |> 
   #fill in NA values through species group values for mass and energetic allocation
@@ -427,77 +431,77 @@ forage_catch |>
                                       
                                       #For the Peruvian Anchoveta specify its own one 
                                       is.na(forage_allocation_factor) & TaxonName == "Engraulis ringens" & ingredient == "Fishmeal" ~ 
-                                        forage_allocation_factors |>
+                                        foragefish_allocation_factors |>
                                         filter(sci_name == "Engraulis ringens" & ingredient == "Fishmeal") |> 
                                         pull(this_allocation_column),
                                       is.na(forage_allocation_factor) & TaxonName == "Engraulis ringens" & ingredient == "Fish oil" ~  
-                                        forage_allocation_factors |>
+                                        foragefish_allocation_factors |>
                                         filter(sci_name == "Engraulis ringens" & ingredient == "Fish oil") |> 
                                         pull(this_allocation_column),
                                 
                                       
                                       #for other species in the herring group assign the mean from herring species
                                        is.na(forage_allocation_factor) & group == "Herrings" & ingredient == "Fishmeal"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("erring", common_name) & ingredient == "Fishmeal") |> 
                                         pull(this_allocation_column) |> mean(),
                                       is.na(forage_allocation_factor) & group == "Herrings" & ingredient == "Fish oil"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("erring", common_name) & ingredient == "Fish oil") |> 
                                         pull(this_allocation_column) |> mean(),
                                       
                                       
                                       #for other species in the mackerel group assign the mean from herring species
                                        is.na(forage_allocation_factor) & group == "Mackerels" & ingredient == "Fishmeal"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("ackerel", common_name) & ingredient == "Fishmeal") |> 
                                         pull(this_allocation_column) |> mean(),
                                       is.na(forage_allocation_factor) & group == "Mackerels" & ingredient == "Fish oil"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("ackerel", common_name) & ingredient == "Fish oil") |> 
                                         pull(this_allocation_column) |> mean(),
                                       
                                       #for other species in anchovy group assign mean from anchovy species
                                       is.na(forage_allocation_factor) & group == "Anchovies" & ingredient == "Fishmeal"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("anchovy|anchoita|Anchovies|nchoveta|nchovies", common_name) & ingredient == "Fishmeal") |> 
                                         pull(this_allocation_column) |> mean(),
                                       is.na(forage_allocation_factor) & group == "Anchovies" & ingredient == "Fish oil"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("anchovy|anchoita|Anchovies|nchoveta|nchovies", common_name) & ingredient == "Fish oil") |> 
                                         pull(this_allocation_column) |> mean(),
                                       
                                         #for other species in sardines group assign mean from sardine/sardinella species
                                       is.na(forage_allocation_factor) & group == "Sardines" & ingredient == "Fishmeal"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("sardinella|Sardinella|sardine|pilchard", common_name) & ingredient == "Fishmeal") |> 
                                         pull(this_allocation_column) |> mean(),
                                       
                                       is.na(forage_allocation_factor) & group == "Sardines" & ingredient == "Fish oil"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("sardinella|Sardinella|sardine|pilchard", common_name) & ingredient == "Fish oil") |> 
                                         pull(this_allocation_column) |> mean(),
                                       
                                       #for menhaden do the same
                                        is.na(forage_allocation_factor) & group == "Menhaden" & ingredient == "Fishmeal"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("enhaden", common_name) & ingredient == "Fishmeal") |> 
                                         pull(this_allocation_column) |> mean(),
                                       
                                       is.na(forage_allocation_factor) & group == "Menhaden" & ingredient == "Fish oil"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(grepl("enhaden", common_name) & ingredient == "Fish oil") |> 
                                         pull(this_allocation_column) |> mean(),
                                       
                                       #for all other species assign a global mean
                             
                                        is.na(forage_allocation_factor) & ingredient == "Fishmeal"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(is.na(common_name) & ingredient == "Fishmeal") |> 
                                         pull(this_allocation_column),
                                       
                                       is.na(forage_allocation_factor) & ingredient == "Fish oil"~
-                                        forage_allocation_factors |> 
+                                        foragefish_allocation_factors |> 
                                         filter(is.na(common_name) & ingredient == "Fish oil") |> 
                                         pull(this_allocation_column),
                         
@@ -541,12 +545,12 @@ forage_fmfo_yield <- fread(here("data/large_data/embodied_fmfo_potential_from_fo
 
 
 #forage
-(total_fm_available<- forage_fmfo_yield$yield_fishmeal |> sum())
+(total_fm_available<- forage_fmfo_yield  |>  pull(yield_fishmeal) |> sum())
 (total_fo_available <- forage_fmfo_yield$yield_fish_oil |> sum())
 
 
 
-#trimmings
+#trimmings - not meaningful as biomass divided by econ allocation become silly numbers. Because we attribute less to it doesn't mean there is physically more there
 (total_fm_available_trim <- trim_fmfo_yield$yield_fishmeal |> sum())
 (total_fo_available_trim <- trim_fmfo_yield$yield_fish_oil |> sum())
 
@@ -695,8 +699,6 @@ embodied_trimingsfish_demand_by_diet_source <-
 
 saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
 
-readRDS(here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds"))
-
 
 
 
@@ -710,8 +712,12 @@ Supplementary plots
 
 ```{r}
 
-trimmings_fm_mass <- fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
-  select(fao_area_code, LonCentre, LatCentre, fm_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fm_embodied_fish_mass = sum(fm_embodied_fish_mass, na.rm=TRUE)) 
+trimmings_fm <- 
+  fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> 
+  as_tibble() |>  
+  ungroup() |>  
+  select(fao_area_code, LonCentre, LatCentre, fm_embodied_fish) |> group_by(LonCentre, LatCentre) |> 
+  summarise(fm_embodied_fish = sum(fm_embodied_fish, na.rm=TRUE)) 
 
 
 ggplot()+

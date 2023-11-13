@@ -3,6 +3,8 @@ title: "17_mapping_cumulative_pressure_mass_allocation"
 author: "Rich Cottrell"
 date: "14/02/2023"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 Set up
 ```{r}
@@ -31,9 +33,9 @@ green <- "#A8B072"
 yellow<- "#EFCE71"
 l_yellow <- "#F7F6C1"
 light_gray <- "#F8F9FA"
-discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown,"firebrick")
-continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
-final_palette <- c(light_gray, continuous_pal, red)
+discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick")
+continuous_pal <-  c(light_gray, colorRampPalette(discrete_pal, space="Lab", bias = 6)(10000))
+final_palette <- c(light_gray, continuous_pal)
 
 
 
@@ -295,6 +297,8 @@ source_plant_3 <- round(sum_plant_value[[3]], digits = 2)
 
 # MARINE DIETS
 
+
+
 #source 1
 marine_diet1_df <- terra::as.data.frame(marine_diet_rasters[[1]], xy=TRUE)
 (marine_sourcing_p1 <- 
@@ -313,9 +317,9 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_rasters[[1]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(
-                      colours = final_palette, 
+                      colours = continuous_pal, 
                        limits = c(0, max_cum_value)
-                      # breaks = c(0, max_cum_value),
+                       #breaks = c(0,max_cum_value*0.25, max_cum_value/2, max_cum_value*.75, max_cum_value)
                       #  labels = c(">0","0.005", "0.010")
                        )+
     coord_sf(clip="off")+
@@ -324,7 +328,9 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_rasters[[1]], xy=TRUE)
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 1", angle = 90)+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_1, digits = 2), nsmall=2)))), size = 3)
   )
-  
+
+
+
 #source 2
 marine_diet2_df <- terra::as.data.frame(marine_diet_rasters[[2]], xy=TRUE)
 (marine_sourcing_p2 <- 
@@ -343,7 +349,7 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_rasters[[2]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = final_palette, 
+  scale_fill_gradientn(colours = continuous_pal,
                        limits = c(0, max_cum_value)#,
                       # breaks = c(0,0.005, 0.010),
                       #  labels = c(">0","0.005", "0.010")
@@ -353,6 +359,7 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_rasters[[2]], xy=TRUE)
     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_2, digits = 2), nsmall=2)))), size = 3)
   )
+
 
 #source 3
 marine_diet3_df <- terra::as.data.frame(marine_diet_rasters[[3]], xy=TRUE)
@@ -372,7 +379,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_rasters[[3]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = final_palette, 
+  scale_fill_gradientn(colours = continuous_pal, 
                        limits = c(0, max_cum_value)#,
                       # breaks = c(0,0.005, 0.010),
                       #  labels = c(">0","0.005", "0.010")
@@ -403,7 +410,7 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_rasters[[1]], xy=TRUE)
         legend.position = "bottom",
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
-  scale_fill_gradientn(colours = final_palette, 
+  scale_fill_gradientn(colours = continuous_pal, 
                        limits = c(0, max_cum_value)#,
                       # breaks = c(0,0.005, 0.010),
                       #  labels = c(">0","0.005", "0.010")
@@ -413,7 +420,9 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_rasters[[1]], xy=TRUE)
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_1, digits = 2), nsmall=2)))), size = 3)
   )
-  
+
+
+
 #source 2
 plant_diet2_df <- terra::as.data.frame(plant_diet_rasters[[2]], xy=TRUE)
 (plant_sourcing_p2 <- 
@@ -432,7 +441,7 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_rasters[[2]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = final_palette, 
+  scale_fill_gradientn(colours = continuous_pal, 
                        limits = c(0, max_cum_value)#,
                       # breaks = c(0,0.005, 0.010),
                       #  labels = c(">0","0.005", "0.010")
@@ -442,6 +451,7 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_rasters[[2]], xy=TRUE)
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_2, digits = 2), nsmall=2)))), size = 3)
   )
 
+  
 #source 3
 plant_diet3_df <- terra::as.data.frame(plant_diet_rasters[[3]], xy=TRUE)
 (plant_sourcing_p3 <- 
@@ -460,7 +470,7 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_rasters[[3]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = final_palette, 
+  scale_fill_gradientn(colours = continuous_pal, 
                        limits = c(0, max_cum_value)#,
                       # breaks = c(0,0.005, 0.010),
                       #  labels = c(">0","0.005", "0.010")
@@ -491,14 +501,14 @@ source_diet_map <-
   (marine_sourcing_p3|plant_sourcing_p1)+
   plot_layout(guides = "collect")+
   plot_annotation(tag_levels = "a", #surely there is a better way than below?
-                  title = "                     Fish-dominant feed                          Plant-dominant feed") & 
+                  title = "                     Fish-dominant feed                                Plant-dominant feed") & 
   theme(plot.tag = element_text(size=10), 
         plot.tag.position = c(0.1, 1),
         legend.position = "bottom")
           
 
           
-ggsave(plot = source_diet_map, filename = sprintf(here("figures/source_vs_diet_visualisation_map_%s.jpg"), this_allocation_method), device = "jpg", dpi = 600, width = 18, height = 19, units = "cm")
+ggsave(plot = source_diet_map, filename = sprintf(here("figures/source_vs_diet_visualisation_map_%s.jpg"), this_allocation_method), device = "jpg", dpi = 600, width = 18, height = 16, units = "cm")
 
 marine_diet1_df |> pull(x) |> min()
 ```

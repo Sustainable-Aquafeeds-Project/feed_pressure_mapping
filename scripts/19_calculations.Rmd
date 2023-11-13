@@ -16,15 +16,18 @@ library(terra)
 
 ```{r}
 
-crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> 
-  filter(total_crop_demand_ge >0 & total_crop_demand_ms >0) |> 
-  pivot_longer(cols = c(total_crop_demand_ge, total_crop_demand_ms), names_to = "allocation", values_to = "demand")|> 
-  mutate(allocation = if_else(allocation == "total_crop_demand_ge", true = "Energetic allocation", false = "Mass allocation")) |> 
-  rename(demand_from = ingredients) |> 
-  select(diet, demand_from, source_iso3c, demand, allocation)
+crop_demand <- 
+  readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> 
+  filter(total_crop_demand >0 ) |>
+  rename(demand_from = ingredients,
+         demand = total_crop_demand,
+         type=FAOSTAT_name) |> 
+  select(diet, demand_from, type, demand)
 
-fish_demand <- readRDS(here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds")) |> 
-  rename(demand = embodied_fish, source_iso3c = source_code) |> select(diet, demand_from, source_iso3c, demand, allocation)
+fish_demand <- 
+  bind_rows(readRDS(here("data/tidy_data/demand/embodied_trimmingsfish_demand_by_source_diet.rds")) |> mutate(type="Trimmings"),
+                         readRDS(here("data/tidy_data/demand/embodied_foragefish_demand_by_source_diet.rds")) |> mutate(type= "Wild-caught") |> rename(embodied_fish = embodied_foragefish)) |> 
+  rename(demand = embodied_fish) |> select(diet, demand_from, fao_area_code, type, demand)
 
 
 all_demand <- bind_rows(crop_demand, fish_demand)
@@ -39,13 +42,13 @@ Basic calculations of diet vs. allocation vs. marine/terrestrial
 summarised_demand <- 
   all_demand |> 
   filter(!demand_from %in% c("Total")) |> 
-  group_by(diet, allocation, demand_from) |> 
+  group_by(diet, demand_from) |> 
   summarise(mean_demand = mean(demand, na.rm=TRUE), 
             sd_demand = sd(demand, na.rm=TRUE),
             min_demand = min(demand, na.rm = TRUE),
             max_demand = max(demand, na.rm =TRUE)) |> 
   ungroup() |> 
-  arrange(allocation, diet, -mean_demand)
+  arrange(diet, -mean_demand)
 
 
 

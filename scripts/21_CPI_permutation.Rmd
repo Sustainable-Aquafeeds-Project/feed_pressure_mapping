@@ -44,7 +44,7 @@ plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations
 
 #Disaggregation by pressure and ingredient
 
-Disaggregate by ingredients and pressures - Marine diets
+Disaggregate by ingredients and pressures - Marine diets - takes ~ 1 hour
 
 ```{r}
 marine_source_ingredient <- 
@@ -242,7 +242,7 @@ saveRDS(marine_diet_pressures_by_ingredient_df, file = sprintf(here("data/tidy_d
 marine_diet_pressures_by_ingredient_df |> pull(source) |> unique()
 ```
 
-Disaggreagte by ingredients and pressures - Plant diets
+Disaggreagte by ingredients and pressures - Plant diets - takes ~1 hour
 
 ```{r}
 plant_source_ingredient <- 
