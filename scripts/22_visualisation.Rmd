@@ -216,8 +216,10 @@ ingredient_prop <-
   mutate(prop_CPI = sum/CPI)
 
 
-ggplot(data = ingredient_prop |> mutate(diet = case_when(diet == "marine diet" ~ "Fish-dominant diet",
-                                                           TRUE ~ "Plant-dominant diet")), 
+ggplot(data = ingredient_prop |> 
+         mutate(diet = case_when(diet == "marine diet" ~ "Fish-dominant diet",
+                                                           TRUE ~ "Plant-dominant diet"),
+                pressure = factor(pressure, levels = c("GHG", "Disturbance", "Nutrients", "Water"))), 
        aes(x = str_to_sentence(ingredient), y= prop_CPI, fill = diet))+
   facet_grid(cols = vars(pressure))+
   geom_point(pch = 21, size= 1, position = position_jitterdodge(jitter.width = 0.3), alpha = 0.1, stroke=0.1)+
