@@ -1,0 +1,322 @@
+---
+title: "Calculate embodied fish demand in feeds"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(countrycode)
+library(data.table)
+library(dtplyr)
+library(raster)
+library(terra)
+library(sf)
+library(jsonlite)
+library(ggnewscale)
+
+source(here("src/directories.R"))
+
+select <- dplyr::select
+values <- terra::values
+```
+
+
+#FORAGE FISH INGREDIENTS
+
+Now we need to work out how the ingredient demand converts to forage fish biomass. This will depend on species which depends on geographic region. So we need different conversions from different species. First bring in the demand data and the data from Kok et al re embodied fisg depending on species. This also requires the species list for forage fish.
+  
+
+```{r}
+#bring in total ingredient demand data and isolate fishmeal and oil demand
+
+total_ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
+
+fmfo_demand <- total_ingredient_demand |> filter(grepl("Marine", groups))
+
+rm(total_ingredient_demand)
+
+
+(embodied_fish_ratios <- read_csv(here("data/raw_data/allocation/embodied_fish_allocation_tidy.csv")) |> 
+  filter(common_name != "Gross energy") |> 
+  mutate(ecosystem_combined = case_when(grepl("IS|NWS|NS|BS", ecosystem) ~ "North Atlantic",
+                                        ecosystem == "HC" ~ "Humboldt",
+                                        ecosystem == "GM" ~ "Gulf of Mexico", 
+                                        ecosystem == "SO" ~ "Southern Ocean",   
+                                        ecosystem == "GA" ~ "Other")) |> 
+  select(common_name, sci_name, ecosystem_combined, ingredient, ge_value, mass_value) |> 
+  mutate(sci_name = case_when(sci_name == "Brevoorti patronus" ~ "Brevoortia patronus",
+                              TRUE ~ sci_name)) |> distinct())
+
+
+
+#global values for later
+globalav_embodiedfish_fm_mass <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(mass_value)
+globalav_embodiedfish_fm_ge <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fishmeal") |> pull(ge_value)
+
+globalav_embodiedfish_fo_mass <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(mass_value)
+globalav_embodiedfish_fo_ge <- embodied_fish_ratios |> filter(common_name == "Global average" & ingredient == "Fish oil") |> pull(ge_value)
+
+
+forage_catch <- readRDS(here("data/raw_data/fisheries/spatial_forage_catch_2017.rds")) |> filter(!grepl("krill", CommonName)) |> filter(total_ind >0)
+
+(forage_catch_summary <- forage_catch |> 
+  group_by(TaxonName, CommonName) |> 
+  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
+  arrange(-total_catch) |> 
+  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf_mass = mass_value, fishmeal_cf_ge = ge_value), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |> rename(fish_oil_cf_mass = mass_value, fish_oil_cf_ge = ge_value), by = c("TaxonName" = "sci_name", "common_name"))
+)
+
+
+
+
+
+#plot forage catch to identify main regions for production. The areas I'm interested in is the Humboldt system, the caribeban coast off latin america, the gulf of mexico, the north atlantic, west africa, the western INdian Ocean (India, Red Sea) the east asia regions
+forage_xyz <- forage_catch |> group_by(LonCentre, LatCentre) |> 
+  summarise(total_catch = sum(total_catch)) |> 
+  #select(LonCentre, LatCentre, total_catch) |> 
+  rename(x=LonCentre, y= LatCentre, z = total_catch) 
+
+total_forage_raster <- rast(forage_xyz, type="xyz")
+
+plot(log10(total_forage_raster+1))
+
+sum(values(total_forage_raster), na.rm = TRUE)
+
+#CROP THE FISHING REGIONS BY FAO AREA
+
+fao_areas <- c(77, 67, 87, 21, 31, 41, 27, 37, 34, 47, 51,57, 61, 71, 81) #these fao areas broadly correspond with the area of most interest above
+
+#read in the fao area shapefiles from the FAO json
+FAO_regions_shp <- read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+  mutate(F_AREA = as.numeric(F_AREA)) |> 
+  mutate(source_code = case_when(NAME_EN == "Atlantic, Northeast" ~ "NAT",
+                                 NAME_EN %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+                                                      TRUE ~ "OTH"))
+
+#check FAO shapefile appears correctly
+ggplot()+
+  geom_sf(data = FAO_regions_shp, 
+          aes(fill = F_AREA))
+
+
+#get the xyz file for each fao region sand create one data frame to join to the forage catch data by coordinates
+
+fao_xyz_of_interest <- 
+  
+  map_df(.x = fao_areas, .f = \(this_area){
+  
+  this_area_shp <- FAO_regions_shp |> filter(F_AREA == this_area)
+  
+  this_area_raster <- terra::rasterize(x = vect(this_area_shp), y = total_forage_raster, field = this_area_shp$F_AREA)
+  
+  this_area_xyz <- terra::as.data.frame(x = this_area_raster, xy = TRUE)  |> mutate(area_name = this_area_shp$NAME_EN)
+  
+  return(this_area_xyz)
+  
+})
+
+#check the regions
+fao_areas_of_interest <- unique(fao_xyz_of_interest$area_name)
+
+#plot the FAO regions used for a supplementary figure
+forage_regions_shp <- FAO_regions_shp |> filter(F_AREA %in% fao_areas)
+world_shp <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
+catch_raster <- total_forage_raster |> terra::as.data.frame(xy=TRUE)
+
+
+ggplot()+
+  geom_sf(data = forage_regions_shp |> mutate(f_area = factor(F_AREA)), aes(fill = NAME_EN), colour=NA)+
+  geom_sf(data = world_shp, size=NA, fill="grey60")+
+  labs(fill = "")+
+  scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(7, name = "Blues"))(length(fao_areas)))+
+   theme_void()+
+  theme(
+        panel.background = element_rect(fill= "white", colour = NA),
+        plot.background = element_rect(fill= "white", colour = NA),
+        axis.title = element_blank(),
+        legend.text = element_text(size=6),
+        legend.title = element_text(size=6),
+        legend.key.size = unit(0.3, "cm"))+
+  new_scale_fill()+
+  geom_tile(data = catch_raster, aes(x = x, y = y, fill=(z)))+
+  scale_fill_gradientn(colours = RColorBrewer::brewer.pal(9, name = "YlOrRd"))+
+  labs(fill = bquote(Catch~(tonnes)))+
+   theme_void()+
+  theme(
+        panel.background = element_rect(fill= "white", colour=NA),
+        plot.background = element_rect(fill= "white", colour = NA),
+        axis.title = element_blank(),
+        legend.text = element_text(size=4),
+        legend.title = element_text(size=4),
+        legend.key.size = unit(0.2, "cm"))
+  
+  
+ggsave(filename = here("figures/supplementary/fao_regions_catch.jpeg"), device = "jpg", dpi = 300, width = 13, height = 5, units = "cm")
+
+
+#join FAO area xyz of interest to catch data and  embodied fish factors to get the potential fmfo provisioning by each area
+fao_area_production_potential <- 
+  forage_catch |> 
+  left_join(fao_xyz_of_interest |> rename(fao_area_code = layer, fao_area_name = area_name), 
+            by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
+  drop_na(fao_area_name) |>
+  group_by(fao_area_name) |> 
+  summarise(total_catch = sum(total_catch, na.rm=TRUE)) |> 
+  mutate(all_catch = sum(total_catch)) |>  # from this Atlantic Northeast, Eastern Pacific (all regions), and "Other" seem like the best options
+  mutate(source_code = case_when(fao_area_name == "Atlantic, Northeast" ~ "NAT",
+                                 fao_area_name %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+                                                      TRUE ~ "OTH")) |> 
+  ungroup()
+
+
+saveRDS(object = fao_area_production_potential, file = here("data/tidy_data/production-data/fao_regions_forage_production_potential.rds"))
+
+
+
+#the new umbrella groups - these catch levels are relatively even as they can be
+source_production_potential <- 
+  fao_area_production_potential |> 
+  group_by(source_code, all_catch) |> 
+  summarise(total_catch = sum(total_catch))
+
+
+
+#now distribute fishmeal and oil demand by the proportion of catch the species make up in each source region
+forage_catch_w_prop_fmfo_supply <- 
+  forage_catch |> 
+  left_join(fao_xyz_of_interest |> rename(fao_area_code = layer, fao_area_name = area_name), 
+            by = c("LonCentre" = "x", "LatCentre" = "y")) |> 
+  drop_na(fao_area_name) |>
+  mutate(source_code = case_when(fao_area_name == "Atlantic, Northeast" ~ "NAT",
+                                 fao_area_name %in% c("Pacific, Northeast", "Pacific, Eastern Central", "Pacific, Southeast") ~ "EPC",
+                                                      TRUE ~ "OTH")) |> 
+  left_join(embodied_fish_ratios |> filter(ingredient == "Fishmeal") |> select(-c(ingredient, ecosystem_combined)) |> rename(fishmeal_cf_mass = mass_value, fishmeal_cf_ge = ge_value), by = c("TaxonName" = "sci_name")) |> 
+    left_join(embodied_fish_ratios |> filter(ingredient == "Fish oil") |> select(-c(ingredient, ecosystem_combined)) |>  rename(fish_oil_cf_mass = mass_value, fish_oil_cf_ge = ge_value), by = c("TaxonName" = "sci_name", "common_name")) |> 
+  mutate(fishmeal_cf_mass = case_when(is.na(common_name) ~ globalav_embodiedfish_fm_mass,
+                                 TRUE ~ fishmeal_cf_mass),
+         fishmeal_cf_ge = case_when(is.na(common_name) ~ globalav_embodiedfish_fm_ge,
+                                 TRUE ~ fishmeal_cf_ge),
+         fish_oil_cf_mass = case_when(is.na(common_name) ~ globalav_embodiedfish_fo_mass,
+                                 TRUE ~ fish_oil_cf_mass),
+         fish_oil_cf_ge = case_when(is.na(common_name) ~ globalav_embodiedfish_fo_ge,
+                                 TRUE ~ fish_oil_cf_ge),
+         fm_available_ge = total_ind/fishmeal_cf_ge,
+         fo_available_ge = total_ind/fish_oil_cf_ge,
+         fm_available_mass = total_ind/fishmeal_cf_mass,
+         fo_available_mass = total_ind/fish_oil_cf_mass) |> 
+  select(-common_name) |> 
+  group_by(source_code) |> 
+  nest() |> 
+  mutate(prop_available_fm_ge = map(data, ~(.$fm_available_ge/sum(.$fm_available_ge, na.rm=TRUE))),
+         prop_available_fm_mass = map(data, ~(.$fm_available_mass/sum(.$fm_available_mass, na.rm=TRUE))),
+         prop_available_fo_ge = map(data, ~(.$fo_available_ge/sum(.$fo_available_ge,  na.rm=TRUE))),
+         prop_available_fo_mass = map(data, ~(.$fo_available_mass/sum(.$fo_available_mass, na.rm=TRUE)))) |> 
+  unnest(cols = c(data, prop_available_fm_ge, prop_available_fm_mass, prop_available_fo_ge, prop_available_fo_mass)) |> 
+  ungroup() |> 
+  filter(TaxonName != "Euphausia superba")
+  
+
+#Find out how much fishmeal and oil is available globally
+ 
+(total_fm_available_ge <- forage_catch_w_prop_fmfo_supply$fm_available_ge |> sum())
+(total_fo_available_ge <- forage_catch_w_prop_fmfo_supply$fo_available_ge |> sum())
+
+(total_fm_available_mass <- forage_catch_w_prop_fmfo_supply$fm_available_mass |> sum())
+(total_fo_available_mass <- forage_catch_w_prop_fmfo_supply$fo_available_mass |> sum())
+
+
+fmfo_demand
+
+#use the proportions for each region to divide the demand up and work out how the spp_based demand converts to embodied fish
+
+forage_supply_demand_by_diet <- 
+  map_df(.x =  c("marine_diet", "plant_diet"), .f = \(this_diet){
+    
+    this_df <- forage_catch_w_prop_fmfo_supply |> 
+      mutate(diet = this_diet,
+             #extract total fmfo demand for each diet
+             total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal-wild") |> pull(total_ingredient_demand),
+             total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil-wild") |> pull(total_ingredient_demand),
+             #distribute fishmeal and oil demand according to its distribution
+             applied_fm_demand_ge = total_fm_needed_for_diet * prop_available_fm_ge,
+             applied_fo_demand_ge = total_fo_needed_for_diet * prop_available_fo_ge,
+             applied_fm_demand_mass = total_fm_needed_for_diet * prop_available_fm_mass,
+             applied_fo_demand_mass = total_fo_needed_for_diet * prop_available_fo_mass,
+             #calculate embodied demand
+             fm_embodied_fish_ge = applied_fm_demand_ge * fishmeal_cf_ge,
+             fo_embodied_fish_ge = applied_fo_demand_ge * fish_oil_cf_ge,
+             fm_embodied_fish_mass = applied_fm_demand_mass * fishmeal_cf_mass,
+             fo_embodied_fish_mass = applied_fo_demand_mass * fish_oil_cf_mass,
+             total_fmfo_demand_ge = applied_fm_demand_ge + applied_fo_demand_ge,
+             total_fmfo_demand_mass = applied_fm_demand_mass + applied_fo_demand_mass,
+             total_embodied_fish_ge = fm_embodied_fish_ge+fo_embodied_fish_ge,
+             total_embodied_fish_mass = fm_embodied_fish_mass+fo_embodied_fish_mass
+             ) |> 
+      mutate(demand_vs_supply_mass = total_embodied_fish_mass/total_ind) |>
+      mutate(demand_vs_supply_ge = total_embodied_fish_ge/total_ind) |>
+      relocate(diet, .before = source_code)
+    
+  })
+
+
+
+fwrite(forage_supply_demand_by_diet, file = here("data/tidy_data/demand/embodied_fish_per_cell.csv"))
+
+
+#Create a total embodied fish demand by diet and source
+embodied_fish_demand_by_diet_source <- 
+  forage_supply_demand_by_diet |> 
+  group_split(diet, source_code) |> 
+  map_df(\(this_df){
+    
+    return(tibble(diet = unique(this_df$diet), 
+                  source_code = unique(this_df$source_code), 
+                  embodied_fish_demand_from_fm_ge = sum(this_df$fm_embodied_fish_ge),
+                  embodied_fish_demand_from_fo_ge = sum(this_df$fo_embodied_fish_ge),
+                  embodied_fish_demand_from_fm_mass = sum(this_df$fm_embodied_fish_mass),
+                  embodied_fish_demand_from_fo_mass = sum(this_df$fo_embodied_fish_mass),
+                  embodied_fish_demand_ge = sum(this_df$total_embodied_fish_ge),
+                  embodied_fish_demand_mass = sum(this_df$total_embodied_fish_mass)))
+    
+  }) |> 
+  pivot_longer(cols = -c(diet, source_code), names_to = "demand_from", values_to = "embodied_fish" ) |> 
+  mutate(allocation = case_when(grepl("_ge", demand_from) ~ "Energetic allocation",
+                                TRUE ~ "Mass allocation"
+                                )) |> 
+  mutate(demand_from = case_when(grepl("from_fm", demand_from) ~ "Fishmeal",
+                                 grepl("from_fo", demand_from) ~ "Fish oil",
+                                 TRUE ~ "Total")) |> arrange(diet, source_code, allocation)
+
+
+
+saveRDS(object = embodied_fish_demand_by_diet_source, file = here("data/tidy_data/demand/embodied_fish_demand_by_source_diet.rds"))
+
+source_production_potential
+embodied_fish_demand_by_diet_source
+
+
+
+
+
+```
+
+
+Now do some checks on if demand and supply match up per record i.e. by per cell-species-gear combinations. 
+
+```{r}
+#check the demand vs supply match up - are there cells where supply is outstripped by demand? 
+forage_supply_demand_by_diet |> filter(demand_vs_supply_mass>1)  #in no cell is demand higher than the supply
+
+
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
+
+```
+
+
+

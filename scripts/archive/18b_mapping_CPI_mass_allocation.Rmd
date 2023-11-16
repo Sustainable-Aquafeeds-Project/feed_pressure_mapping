@@ -1,14 +1,11 @@
 ---
-title: "Mapping cumulative_pressures"
+title: "17_mapping_cumulative_pressure_mass_allocation"
 author: "Rich Cottrell"
 date: "14/02/2023"
 output: html_document
-editor_options: 
-  chunk_output_type: console
 ---
 Set up
 ```{r}
-#LIBRARIES
 library(tidyverse)
 library(ggpubr)
 library(patchwork)
@@ -24,7 +21,7 @@ library(data.table)
 library(dtplyr)
 
 
-# COLOURS
+# taking cumulative impoact palette from Halpern et al 
 red <- "#B90000"
 d_brown <- "#515256"
 m_brown <- "#B27B54"
@@ -34,48 +31,22 @@ yellow<- "#EFCE71"
 l_yellow <- "#F7F6C1"
 light_gray <- "#F8F9FA"
 discrete_pal <- c(l_yellow, yellow, green, l_brown, m_brown, d_brown, "firebrick")
-continuous_pal <-  c(light_gray, colorRampPalette(discrete_pal, space="Lab", bias = 6)(10000))
-final_palette <- c(light_gray, continuous_pal)
+continuous_pal <-  colorRampPalette(discrete_pal, space="Lab", bias = 3.5)(10000)
+final_palette <- c(light_gray, continuous_pal, red)
 
-
-
-#SOURCE FILES
+#source files
 source(here("src/fxns.R"))
 
-
-
-#SPATIAL INFO
-# Base raster wgs84
-base_rast <- rast(res=0.5)
-ext(base_rast) <- c(-180, 180, -90, 90)
-
-#Gall peters projection
+#spatial products
+moll_crs <- "ESRI:53009"
 gp_crs <- "+proj=cea +lon_0=0 +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-#raster template 
-eq_area_rast <- project(base_rast, gp_crs) 
-values(eq_area_rast) <- 1:ncell(eq_area_rast)
-cellSize(eq_area_rast, unit="km", transform = FALSE)
-
-#Mollweide projection
-moll_rast <- project(base_rast, "ESRI:54009")
-values(moll_rast) <- 1:ncell(moll_rast)
-cellSize(moll_rast, unit="km", transform = FALSE)
 
 
-
-#SHAPEFILES
-countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = crs(moll_rast))
-bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = crs(moll_rast))
-coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = crs(moll_rast))
+countries <-    ne_countries(scale = "medium", returnclass = "sf") |> st_transform(crs = gp_crs)
+bbox <- ne_download(scale = 50, type = "wgs84_bounding_box", category = "physical", returnclass = "sf") |> st_transform(crs = gp_crs)
+coastline <- ne_coastline(scale = 50, returnclass = "sf") |> st_transform(crs = gp_crs)
 select <- dplyr::select
 values <- terra::values
-
-
-#ALLOCATION METHOD (un-comment preference)
-this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
-
 ```
 
 Bring in the origin-ingredient combinations within each diet.  
@@ -118,11 +89,12 @@ source = "source_1"
 
 #mass allocation 
 marine_source_file_list <- list()
-
 for(source in sources){
     
     marine_diet_files <- 
       map(.x = marine_source_ingredient, .f = \(this_df){
+        
+        this_allocation_method <- "mass_allocation"
         
         this_ingredient <- this_df$ingredient
         
@@ -135,25 +107,25 @@ for(source in sources){
         this_source_ingredient <- this_df |> pull(source)
         
         #disturbance
-        this_disturbance_production_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) &!grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-         this_disturbance_processing_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
         
         #ghg
-        this_ghg_production_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        this_ghg_processing_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        
+        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
         
         #nutrients
-        this_nutrient_production_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        this_nutrient_processing_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files) &grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-      
+        this_nutrient_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files)][[this_source_ingredient]]
+        
+        # #nitrogen
+        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        # 
+        # #phosphorus
+        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        
         #water
-        this_h2o_production_file <- these_ingredient_files[grepl("water", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        this_h2o_processing_file <- these_ingredient_files[grepl("water", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_production_file,this_disturbance_processing_file, this_ghg_production_file, this_ghg_processing_file, this_nutrient_production_file, this_nutrient_processing_file, this_h2o_production_file, this_h2o_processing_file)
-        
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
         return(these_diet_pressures)
         
       }) |> 
@@ -215,7 +187,7 @@ for(source in sources){
     plant_diet_files <- 
       map(.x = plant_source_ingredient, .f = \(this_df){
         
-  
+        this_allocation_method <- "mass_allocation"
         
         this_ingredient <- this_df$ingredient
         
@@ -229,28 +201,26 @@ for(source in sources){
         #sources
         this_source_ingredient <- this_df |> pull(source)
         
-       #disturbance
-        this_disturbance_production_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) &!grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-         this_disturbance_processing_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        #disturbance
+        this_disturbance_file <- these_ingredient_files[grepl("disturbance", these_ingredient_files)][[this_source_ingredient]]
         
         #ghg
-        this_ghg_production_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        this_ghg_processing_file <- these_ingredient_files[grepl("ghg", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        
+        this_ghg_file <- these_ingredient_files[grepl("ghg", these_ingredient_files)][[this_source_ingredient]]
         
         #nutrients
-        this_nutrient_production_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        this_nutrient_processing_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files) &grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-      
+        this_nutrient_file <- these_ingredient_files[grepl("nutrient", these_ingredient_files)][[this_source_ingredient]]
+        
+        # #nitrogen
+        # this_N_file <- these_ingredient_files[grepl("_N_", these_ingredient_files)][[this_source_ingredient]]
+        # 
+        # #phosphorus
+        # this_P_file <- these_ingredient_files[grepl("_P_", these_ingredient_files)][[this_source_ingredient]]
+        
         #water
-        this_h2o_production_file <- these_ingredient_files[grepl("water", these_ingredient_files) & !grepl("processing", these_ingredient_files)][[this_source_ingredient]]
-        this_h2o_processing_file <- these_ingredient_files[grepl("water", these_ingredient_files) & grepl("processing", these_ingredient_files)][[this_source_ingredient]]
+        this_h2o_file <- these_ingredient_files[grepl("water", these_ingredient_files)][[this_source_ingredient]]
         
         
-        these_diet_pressures <- c(this_disturbance_production_file,this_disturbance_processing_file, this_ghg_production_file, this_ghg_processing_file, this_nutrient_production_file, this_nutrient_processing_file, this_h2o_production_file, this_h2o_processing_file)
-        
-        
-  
+        these_diet_pressures <- c(this_disturbance_file, this_ghg_file, this_nutrient_file, this_h2o_file)
         return(these_diet_pressures)
         
       }) |> 
@@ -297,13 +267,11 @@ source_plant_3 <- round(sum_plant_value[[3]], digits = 2)
 
 # MARINE DIETS
 
-
-
 #source 1
 marine_diet1_df <- terra::as.data.frame(marine_diet_rasters[[1]], xy=TRUE)
 (marine_sourcing_p1 <- 
   ggplot()+
-   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth = 0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
   geom_sf(data = countries, fill= "grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet1_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
@@ -317,25 +285,23 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_rasters[[1]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(
-                      colours = continuous_pal, 
-                       limits = c(0, max_cum_value)
-                       #breaks = c(0,max_cum_value*0.25, max_cum_value/2, max_cum_value*.75, max_cum_value)
-                      #  labels = c(">0","0.005", "0.010")
+                      colours = final_palette, 
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010")
                        )+
     coord_sf(clip="off")+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 1", angle = 90)+
+    annotate("text", x = -18000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 1", angle = 90)+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_1, digits = 2), nsmall=2)))), size = 3)
   )
-
-
-
+  
 #source 2
 marine_diet2_df <- terra::as.data.frame(marine_diet_rasters[[2]], xy=TRUE)
 (marine_sourcing_p2 <- 
   ggplot()+
-   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth = 0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
   geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet2_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
@@ -349,23 +315,21 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_rasters[[2]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = continuous_pal,
-                       limits = c(0, max_cum_value)#,
-                      # breaks = c(0,0.005, 0.010),
-                      #  labels = c(">0","0.005", "0.010")
-                      )+
+  scale_fill_gradientn(colours = final_palette, 
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-    annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)+
+    annotate("text", x = -18000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 2", angle = 90)+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_2, digits = 2), nsmall=2)))), size = 3)
   )
-
 
 #source 3
 marine_diet3_df <- terra::as.data.frame(marine_diet_rasters[[3]], xy=TRUE)
 (marine_sourcing_p3 <- 
   ggplot()+
-  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth = 0.15)+
+  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
   geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet3_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
@@ -379,14 +343,13 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_rasters[[3]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = continuous_pal, 
-                       limits = c(0, max_cum_value)#,
-                      # breaks = c(0,0.005, 0.010),
-                      #  labels = c(">0","0.005", "0.010")
-                      )+
+  scale_fill_gradientn(colours = final_palette, 
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
-     annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
+     annotate("text", x = -18000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_marine_3, digits = 2), nsmall=2)))), size = 3)
   )
 
@@ -397,7 +360,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_rasters[[3]], xy=TRUE)
 plant_diet1_df <- terra::as.data.frame(plant_diet_rasters[[1]], xy=TRUE)
 (plant_sourcing_p1 <- 
   ggplot()+
-  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth = 0.15)+
+  geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
   geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet1_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
@@ -410,24 +373,21 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_rasters[[1]], xy=TRUE)
         legend.position = "bottom",
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
-  scale_fill_gradientn(colours = continuous_pal, 
-                       limits = c(0, max_cum_value)#,
-                      # breaks = c(0,0.005, 0.010),
-                      #  labels = c(">0","0.005", "0.010")
-                      )+
+  scale_fill_gradientn(colours = final_palette, 
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     coord_sf(clip="off")+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_1, digits = 2), nsmall=2)))), size = 3)
   )
-
-
-
+  
 #source 2
 plant_diet2_df <- terra::as.data.frame(plant_diet_rasters[[2]], xy=TRUE)
 (plant_sourcing_p2 <- 
   ggplot()+
-   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth = 0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
   geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet2_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
@@ -441,22 +401,20 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_rasters[[2]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = continuous_pal, 
-                       limits = c(0, max_cum_value)#,
-                      # breaks = c(0,0.005, 0.010),
-                      #  labels = c(">0","0.005", "0.010")
-                      )+
+  scale_fill_gradientn(colours = final_palette, 
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                 barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_2, digits = 2), nsmall=2)))), size = 3)
   )
 
-  
 #source 3
 plant_diet3_df <- terra::as.data.frame(plant_diet_rasters[[3]], xy=TRUE)
 (plant_sourcing_p3 <- 
   ggplot()+
-   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth = 0.15)+
+   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
   geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet3_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
@@ -470,11 +428,10 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_rasters[[3]], xy=TRUE)
       legend.box.spacing = unit(-1, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
     coord_sf(clip="off")+
-  scale_fill_gradientn(colours = continuous_pal, 
-                       limits = c(0, max_cum_value)#,
-                      # breaks = c(0,0.005, 0.010),
-                      #  labels = c(">0","0.005", "0.010")
-                      )+
+  scale_fill_gradientn(colours = final_palette, 
+                       limits = c(0, max_cum_value),
+                      breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 10, barheight = 0.5, units = "cm"))+
     annotate("text", x = 17985650*0.6, y = -7298155*1.35, label = as.expression(bquote(Sigma~CPI==.(format(round(source_plant_3, digits=2), nsmall=2)))), size =3)
@@ -501,26 +458,24 @@ source_diet_map <-
   (marine_sourcing_p3|plant_sourcing_p1)+
   plot_layout(guides = "collect")+
   plot_annotation(tag_levels = "a", #surely there is a better way than below?
-                  title = "                      Fish-dominant feed                                 Plant-dominant feed") & 
+                  title = "                          Fish-dominant feed                          Plant-dominant feed") & 
   theme(plot.tag = element_text(size=10), 
-        plot.tag.position = c(0.1, 1),
+        plot.tag.position = c(0, 1),
         legend.position = "bottom")
           
 
           
-ggsave(plot = source_diet_map, filename = sprintf(here("figures/source_vs_diet_visualisation_map_%s.jpg"), this_allocation_method), device = "jpg", dpi = 600, width = 18, height = 16, units = "cm")
-
-marine_diet1_df |> pull(x) |> min()
+# ggsave(plot = source_diet_map, filename = here("figures/source_vs_diet_visualisation_map_mass_allocation.jpg"), device = "jpg", dpi = 600, width = 18, height = 19, units = "cm")
 ```
 
 Save one cumulative pressure map for conceptual plot
 ```{r}
     
-  (ggplot()+
-  geom_sf(data = bbox |> st_transform(crs = "ESRI:54009"), colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
-  geom_sf(data = countries |> st_transform(crs = "ESRI:54009"), fill="grey90", colour= "white", linewidth=0.15)+
+  ggplot()+
+  geom_sf(data = bbox |> st_transform(crs = moll_crs), colour="grey75", fill= "aliceblue", alpha=0.6, size = 0.3)+
+  geom_sf(data = countries |> st_transform(crs = moll_crs), fill="grey90", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet3_df, aes(x = x, y=y, fill=sum))+
-  geom_sf(data = coastline |> st_transform(crs = "ESRI:54009"), colour="grey45", linewidth= 0.15)+
+  geom_sf(data = coastline |> st_transform(crs = moll_crs), colour="grey45", linewidth= 0.15)+
   theme(panel.grid = element_line(linewidth=0.25, colour="grey75"),
         panel.background = element_rect(fill = "transparent"),
         axis.title = element_blank(),
@@ -532,10 +487,9 @@ Save one cumulative pressure map for conceptual plot
       legend.box.spacing = unit(-0.3, "cm"),
         plot.margin = margin(r=-0.5,l=-0.5))+
   scale_fill_gradientn(colours = final_palette, 
-                       limits = c(0, max_cum_value)
-                       # breaks = c(0,0.005, 0.010),
-                       # labels = c(">0","0.005", "0.010")
-                       )+
+                       limits = c(0, max_cum_value),
+                       breaks = c(0,0.005, 0.010),
+                       labels = c(">0","0.005", "0.010"))+
     guides(fill = guide_colorbar(direction = "horizontal", title.position = "top", title = "Cumulative pressure index", title.hjust = 0.5,
                                  barwidth = 12, barheight = 0.6, units = "cm"))
     #annotate("text", x = -22000000, y = sum(c(-9008064, 9009955))|> mean(), label = "Raw material origin\ncombination 3", angle = 90)+
@@ -545,6 +499,19 @@ Save one cumulative pressure map for conceptual plot
 ggsave(here("figures/single_CPI_map.jpeg"), device = "jpg", dpi = 600, width = 8.9, height =7, units = "cm")
 
 
+
+```
+
+Make map into robinson projection for website
+```{r}
+
+moll_rast <- rast(crs = moll_crs)
+values(moll_rast) <- 1:ncell(moll_rast)
+
+
+marine_rast <- rast(marine_diet3_df, type="xyz", crs = gp_crs)
+
+project(marine_rast, moll_rast)
 
 ```
 

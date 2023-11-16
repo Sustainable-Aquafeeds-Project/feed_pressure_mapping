@@ -348,7 +348,7 @@ map(.x = marine_diet_ghg, .f =  \(this_file){
   
   saveName <- gsub("km2", "moll",this_new_file)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing ", basename(saveName))
     
@@ -388,7 +388,7 @@ map(.x = plant_diet_ghg, .f = \(this_file){
   
   saveName <- gsub("km2", "moll",this_new_file)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("processing ", basename(saveName))
     
@@ -522,7 +522,7 @@ rescaled_marine_ghg_rasters <-
     
     saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("Processing ", "'", this_basename, "'") 
       
@@ -555,7 +555,7 @@ rescaled_plant_ghg_rasters <-
     
     saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
     
-    if(!file.exists(saveName)){
+    if(file.exists(saveName)){
       
       message("Processing ", "'", this_basename, "'")
       

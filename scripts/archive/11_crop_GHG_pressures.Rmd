@@ -1,0 +1,138 @@
+---
+title: "10_crop_GHG_pressures"
+author: "Rich Cottrell"
+date: "20/07/2022"
+output: html_document
+---
+
+This script combines the demand rasters for crop raw materials for each diet across sources
+
+```{r setup}
+
+library(tidyverse)
+library(terra)
+library(here)
+
+source(here("src/spatial.R"))
+source(here("src/directories.R"))
+
+select <- dplyr::select
+
+
+```
+
+
+Marine diets
+
+```{r}
+
+md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = "AllTech", full.names = TRUE)
+md_crop_r_list <- md_crop_r_list[grepl("allocation", md_crop_r_list)]
+
+
+this_file <- md_crop_r_list[[7]]
+
+
+#multiply production demand rasters by the ghg value for production from each country
+
+map(md_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+  
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_diet <- "marine_diet"
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+  this_allocation_method <- str_extract(this_filename,"ge_allocation|mass_allocation")
+  
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_ghg_km2_%s_%s.tif"), this_diet, this_ingredient,this_allocation_method, this_source)
+  
+  if(file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+    this_ghg_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact== "Global warming" & allocation == this_allocation_method_for_df) |> pull(value)
+    
+    this_ghg_value_tonne <- this_ghg_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_ghg_rast <- this_rast_km2*this_ghg_value_tonne
+    names(this_ghg_rast) <- "kgCO2eqkm2"
+    
+    writeRaster(x = this_ghg_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+
+readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(impact == "Global warming" & raw_material=="Soybeans")
+
+
+```
+
+Plant diets
+
+```{r}
+pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
+pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
+
+
+this_file <- pd_crop_r_list[[1]]
+
+
+#multiply production demand rasters by the ghg value for production from each country
+
+map(pd_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_diet <- "plant_diet"
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+  this_allocation_method <- str_extract(this_filename,"ge_allocation|mass_allocation")
+  
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_ghg_km2_%s_%s.tif"), this_diet, this_ingredient,this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+   this_ghg_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact== "Global warming" & allocation == this_allocation_method_for_df) |> pull(value)
+    
+    this_ghg_value_tonne <- this_ghg_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_ghg_rast <- this_rast_km2*this_ghg_value_tonne
+    names(this_ghg_rast) <- "kgCO2eqkm2"
+    
+    writeRaster(x = this_ghg_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+```
+
+
+```{r}
+#clear the environment
+rm(list = ls(all.names = TRUE))
+```
+
+

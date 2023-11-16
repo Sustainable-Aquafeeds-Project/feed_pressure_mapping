@@ -1,0 +1,324 @@
+---
+title: "10_crop_GHG_pressures"
+author: "Rich Cottrell"
+date: "29/06/2022"
+output: html_document
+---
+
+This script combines the demand rasters for crop raw materials for each diet across sources
+
+```{r setup}
+
+library(tidyverse)
+library(terra)
+library(here)
+
+select <- dplyr::select
+
+source(here("src/spatial.R"))
+source(here("src/directories.R"))
+
+```
+
+# Nitrogen pollution - marine eutrophication
+
+Marine diets
+
+```{r}
+
+md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = "AllTech", full.names = TRUE)
+md_crop_r_list <- md_crop_r_list[grepl("allocation", md_crop_r_list)]
+
+
+this_file <- md_crop_r_list[[48]]
+
+
+#multiply production demand rasters by the N value for production from each country
+
+map(md_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+  
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
+  
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
+  this_diet <- "marine_diet"
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_N_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+    this_N_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Marine eutrophication") & allocation == this_allocation_method_for_df) |> pull(value)   
+    this_N_value_tonne <- this_N_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_N_rast <- this_rast_km2*this_N_value_tonne
+    names(this_N_rast) <- "kgNeqkm2"
+    
+    writeRaster(x = this_N_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+
+```
+
+Plant diets
+
+```{r}
+
+pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
+pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
+
+this_file <- pd_crop_r_list[[1]]
+
+#multiply production demand rasters by the ghg value for production from each country
+
+map(pd_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+  
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_diet <- "plant_diet"
+  
+  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
+  
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_N_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+    this_N_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Marine eutrophication") & allocation == this_allocation_method_for_df) |> pull(value)   
+    
+    this_N_value_tonne <- this_N_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_N_rast <- this_rast_km2*this_N_value_tonne
+    names(this_N_rast) <- "kgNeqkm2"
+    
+    writeRaster(x = this_N_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+
+
+```
+
+
+# Phosphorous pollution - freshwater eutrophication.
+
+Marine diets 
+
+```{r}
+
+md_crop_r_list <- list.files(here("data/spatial/marine_diet/production"), pattern = "AllTech", full.names = TRUE)
+md_crop_r_list <- md_crop_r_list[grepl("allocation", md_crop_r_list)]
+
+this_file <- md_crop_r_list[[1]]
+
+
+#multiply production demand rasters by the ghg value for production from each country
+
+map(md_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+  
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_diet <- "marine_diet"
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
+  
+   this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_P_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+    this_P_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Freshwater eutrophication", "Eutrophication, freshwater") & allocation == this_allocation_method_for_df) |> pull(value) 
+    
+    this_P_value_tonne <- this_P_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_P_rast <- this_rast_km2*this_P_value_tonne
+    names(this_P_rast) <- "kgPeqkm2"
+    
+    writeRaster(x = this_P_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+
+```
+
+Plant diets
+
+```{r}
+pd_crop_r_list <- list.files(here("data/spatial/plant_diet/production"), pattern = "AllTech", full.names = TRUE)
+pd_crop_r_list <- pd_crop_r_list[grepl("allocation", pd_crop_r_list)]
+
+this_file <- pd_crop_r_list[[1]]
+
+
+#multiply production demand rasters by the ghg value for production from each country
+
+map(pd_crop_r_list, \(this_file){
+  
+  this_ingredient <- stringr::str_extract(basename(this_file), "[^_]+")
+  
+  this_raw_material <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> select(ingredients, FAOSTAT_name) |> distinct() |> filter(ingredients == this_ingredient) |> pull(FAOSTAT_name)
+  
+  this_filename <- tools::file_path_sans_ext(basename(this_file))
+  
+  this_diet <- "plant_diet"
+  
+  this_allocation_method <- str_extract(string = this_file, pattern = "ge_allocation|mass_allocation")
+  
+  this_allocation_method_for_df <- if_else(this_allocation_method == "ge_allocation", true = "Energetic allocation", false = "Mass allocation")
+  
+  this_source <- substr(x = this_filename, start = nchar(this_filename)-2, stop = nchar(this_filename))
+  
+  saveName <- sprintf(here("data/spatial/%s/int/%s_P_km2_%s_%s.tif"), this_diet, this_ingredient, this_allocation_method, this_source)
+  
+  if(!file.exists(saveName)){
+    
+    message("processing... ", basename(this_file))
+    
+    this_P_value_kg <- readRDS(here("data/tidy_data/LCA/crop_lca.rds")) |> filter(FAOSTAT_name == this_raw_material &iso3c == this_source & impact %in% c("Freshwater eutrophication", "Eutrophication, freshwater") & allocation == this_allocation_method_for_df) |> pull(value) 
+    
+    this_P_value_tonne <- this_P_value_kg*1000
+    
+    this_rast <- rast(this_file)
+    
+    this_rast_km2 <- this_rast/cellSize(this_rast, unit = "km")
+    
+    this_P_rast <- this_rast_km2*this_P_value_tonne
+    names(this_P_rast) <- "kgPeqkm2"
+    
+    writeRaster(x = this_P_rast, filename = saveName, overwrite=TRUE)
+    
+  }
+})
+
+```
+
+
+Combine N and P pressures
+```{r}
+
+#isolate the ingredients of interest for each diet
+
+(marine_diet_ingredients <- readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> 
+  filter( prop >0) |> 
+  mutate(ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> pull(ingredients)
+)
+
+(plant_diet_ingredients <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> 
+  filter( prop >0) |> 
+  mutate(ingredients = gsub(pattern = "-wild", replacement = "", ingredients)) |> pull(ingredients)
+)
+
+
+#pull in marine diet nutrient layers
+
+(marine_np_layers <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "_N_km2|_P_km2", full.names = TRUE))
+
+#for testing function
+#this_ingredient <- marine_diet_ingredients[[1]]
+
+map(.x = marine_diet_ingredients, .f = \(this_ingredient){
+  
+  message("Processing ", this_ingredient, "- fish-dominant diet")
+  
+  these_np_layers <- marine_np_layers[grepl(this_ingredient, marine_np_layers)]
+  
+  these_n_layers <- these_np_layers[grepl("_N_", these_np_layers)] 
+  
+  these_p_layers <- these_np_layers[grepl("_P_", these_np_layers)]
+
+  map2(these_n_layers, these_p_layers, \(this_ingredient_n, this_ingredient_p){
+    
+    nutrient_saveName <- gsub(pattern = "_N_", replacement = "_nutrient_", this_ingredient_n)
+    
+   nutrient_rast <- app(x = c(this_ingredient_n |> rast(), this_ingredient_p |> rast()), sum)
+   
+   writeRaster(nutrient_rast, filename = nutrient_saveName, overwrite = TRUE)
+    
+  })
+  
+})
+
+
+
+
+
+#pull in marine diet nutrient layers
+
+(plant_np_layers <- list.files(path = here("data/spatial/plant_diet/int"), pattern = "_N_km2|_P_km2", full.names = TRUE))
+
+#for testing function
+this_ingredient <- plant_diet_ingredients[[3]]
+
+map(.x = plant_diet_ingredients, .f = \(this_ingredient){
+  
+  message("Processing ", this_ingredient, "- plant-dominant diet")
+  
+  these_np_layers <- plant_np_layers[grepl(this_ingredient, plant_np_layers)]
+  
+  these_n_layers <- these_np_layers[grepl("_N_", these_np_layers)] 
+  
+  these_p_layers <- these_np_layers[grepl("_P_", these_np_layers)]
+
+  map2(these_n_layers, these_p_layers, \(this_ingredient_n, this_ingredient_p){
+    
+    nutrient_saveName <- gsub(pattern = "_N_", replacement = "_nutrient_", this_ingredient_n)
+    
+    nutrient_rast <- app(x = c(this_ingredient_n |> rast(), this_ingredient_p |> rast()), sum)
+    
+    writeRaster(nutrient_rast, filename = nutrient_saveName, overwrite = TRUE)
+    
+  })
+  
+})
+
+
+
+
+```
+
+
+```{r}
+#clear the environment
+rm(list = ls(all.names = TRUE))
+```
+

@@ -1,0 +1,119 @@
+---
+title: "15_combine_pressures"
+author: "Rich Cottrell"
+date: "31/07/2022"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(terra)
+
+select <- dplyr::select
+values <- terra::values
+
+```
+
+
+Bring in all ingredients by diet
+
+```{r}
+marine_diet <- readRDS(here("data/tidy_data/diet-scenarios/marine_diet.rds")) |> filter(prop>0) |> mutate(ingredients = gsub(pattern = "-wild", replacement = "", x = ingredients)) |> pull(ingredients)
+
+plant_diet <- readRDS(here("data/tidy_data/diet-scenarios/plant_diet.rds")) |> filter(prop>0) |> mutate(ingredients = gsub(pattern = "-wild", replacement = "", x = ingredients)) |> pull(ingredients)
+
+
+```
+
+Now iterate different versions of diet based on sources - the gtools::permutations function doesn't handle this well so have iterated based on random draws from three soures for each ingredient
+
+Doing this first for marine diets
+
+```{r}
+md_ingredient_source_list <- crossing(ingredient = marine_diet, source = 1:5) |> group_by(ingredient) |> group_split()
+
+set.seed(7)
+
+md_df_list <- vector(mode="list", length = 1000)
+
+#iterate a random pull from each ingredient source 2000 times and isolate non duplicates
+for(i in 1:1000){
+  
+  message(i, "/1000")
+  
+  this_diet_df <- 
+    map_df(md_ingredient_source_list, \(this_df){
+      
+    this_ingredient <- this_df |> pull(ingredient) |> unique()
+      
+    source_select <- sample(x=1:5, replace = FALSE, size=1)
+      
+    this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
+    
+    })
+    
+  md_df_list[[i]] <- this_diet_df
+}
+
+
+source_combinations_md <- bind_rows(md_df_list) |> pivot_wider(names_from = rep, values_from = source)
+source_combinations_md <- source_combinations_md[!duplicated(as.list(source_combinations_md))]
+
+
+```
+
+Now repeat the iteration for plant diets
+```{r}
+pd_ingredient_source_list <- crossing(ingredient = plant_diet, source = 1:5) |> group_split(ingredient)
+
+set.seed(7)
+
+pd_df_list <- vector(mode="list", length = 1000)
+
+#iterate a random pull from each ingredient source 1000 times and isolate non duplicates
+for(i in 1:1000){
+  
+  message("iteration ", i, "/1000")
+  
+  this_diet_df <- 
+    map_df(pd_ingredient_source_list, \(this_df){
+      
+    this_ingredient <- this_df |> pull(ingredient) |> unique()
+      
+    source_select <- sample(x=1:5, replace = FALSE, size=1)
+      
+      this_ingredient_source <- this_df |> slice(source_select) |> mutate(rep = i)
+    })
+    
+  pd_df_list[[i]] <- this_diet_df
+}
+
+#pivot wider and remove duplicate columns
+source_combinations_pd <- bind_rows(pd_df_list) |> pivot_wider(names_from = rep, values_from = source)
+source_combinations_pd <- source_combinations_pd[!duplicated(as.list(source_combinations_pd))]
+
+
+```
+
+Given the number of unique combinations varies from marine to plant diet - here I take the first 500 diets generated from each and save them for future use.
+
+```{r}
+
+source_combinations_md <- source_combinations_md |> select(1:501)
+
+source_combinations_pd <-  source_combinations_pd |> select(1:501)
+
+
+#save marine and plant diet combinations for reuse during calculations
+saveRDS(object = source_combinations_md, file = here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds"))
+
+saveRDS(object = source_combinations_pd, file = here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds"))
+
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
+
+```
+
