@@ -36,18 +36,78 @@ fish_demand <-
   rename(demand = embodied_fish) |> select(diet, demand_from, fao_area_code, type, demand)
 
 
-all_demand <- bind_rows(crop_demand, fish_demand)
-
 ```
 
 
 
-Basic calculations of diet vs. allocation vs. marine/terrestrial
+Basic calculations of diet vs.marine/terrestrial
 ```{r}
 
-summarised_demand <- 
-  all_demand |> 
+
+raw_material_iteration <- 
+  map_df(.x = unique(fish_demand$fao_area_code), .f = \(this_area){
+  
+  return(bind_rows(fish_demand |> 
+  filter(fao_area_code == this_area) |> 
+  group_by(demand_from, fao_area_code, diet) |> 
+  summarise(demand = sum(demand, na.rm=TRUE)) |> 
+  ungroup() |> 
+  filter(demand_from!="Total") |>
+  rename(type = demand_from),
+  
+crop_demand |> 
+  group_by(diet, type) |> 
+  summarise(demand = sum(demand, na.rm=TRUE)) |>
+  mutate(fao_area_code = this_area))|> 
+    arrange(diet, fao_area_code, type)) 
+  
+})
+  
+
+raw_material_totals <- 
+  raw_material_iteration |> 
+  group_by(diet, fao_area_code) |>
+  summarise(total_biomass = sum(demand)) |> 
+  ungroup() |> 
+  group_by(diet) |> 
+  summarise(mean_biomass = mean(total_biomass, na.rm=TRUE),
+            sd_biomass = sd(total_biomass, na.rm=TRUE))
+
+saveRDS(raw_material_totals, file = sprintf(here("data/tidy_data/demand/total_raw_material_demand_%s.rds"), this_allocation_method))
+  
+
+
+
+raw_material_totals_by_origin <- 
+  raw_material_iteration |> 
+  mutate(origin = case_when(type %in% c("Fishmeal", "Fish oil") ~ "Marine",
+                            TRUE ~ "Terrestrial")) |> 
+  group_by(diet, origin, fao_area_code) |>
+  summarise(total_biomass_by_origin = sum(demand)) |> 
+  ungroup() |> 
+  group_by(diet, origin) |> 
+  summarise(mean_biomass_by_origin = mean(total_biomass_by_origin, na.rm=TRUE),
+            sd_biomass_by_origin = sd(total_biomass_by_origin, na.rm=TRUE))
+
+
+saveRDS(raw_material_totals_by_origin, file = sprintf(here("data/tidy_data/demand/total_raw_material_demand_by_origin_%s.rds"), this_allocation_method))
+
+  
+```
+
+
+```{r}
+all_demand |> 
   filter(!demand_from %in% c("Total")) |> 
+  group_by(type) |> 
+  summarise(demand = sum(demand,na.rm=TRUE))
+
+
+
+
+
+
+|> 
   group_by(diet, demand_from) |> 
   summarise(mean_demand = mean(demand, na.rm=TRUE), 
             sd_demand = sd(demand, na.rm=TRUE),
