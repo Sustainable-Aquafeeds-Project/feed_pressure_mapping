@@ -239,6 +239,69 @@ ggplot(data = ingredient_prop |>
   labs(y="Proportion of CPI")
 
 ggsave(filename = sprintf(here("figures/disaggregation_of_CPI_proportion_by_ingredient_%s.jpg"), this_allocation_method) , dpi = 600, device = "jpeg", width = 18, height = 12, units = "cm")
+
+
+#Normalised pressure per tonne per ingredient - so essentially presenting the information at the level of the LCA (but using normalised units)
+
+ingredient_prop <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> 
+  select(diet, ingredients, prop, ingredient_demand_tonnes) |> distinct()
+
+
+
+  ingredient_prop_tonne <- 
+  all_data |> 
+  group_by(diet, ingredient, pressure, source) |> 
+  summarise(sum = sum(sum, na.rm = TRUE)) |> 
+  ungroup() |> 
+  group_by(source) |> 
+  nest() |> 
+  mutate(CPI = map(data, ~(sum(.$sum)))) |> 
+  unnest(cols = c(data, CPI)) |> 
+  ungroup() |> 
+  mutate(prop_CPI = sum/CPI) |> 
+  left_join(ingredient_prop |> mutate(diet = gsub("_", " ", diet)), by = c("diet", "ingredient" = "ingredients")) |> 
+  mutate(pressure_tonne = sum/ingredient_demand_tonnes)
+
+
+
+
+ggplot(data = ingredient_prop_tonne |> 
+         mutate(diet = case_when(diet == "marine diet" ~ "Fish-dominant diet",
+                                                           TRUE ~ "Plant-dominant diet"),
+                pressure = factor(pressure, levels = c("GHG", "Disturbance", "Nutrients", "Water"))), 
+       aes(x = str_to_sentence(ingredient), y= pressure_tonne, fill = diet))+
+  facet_grid(cols = vars(pressure))+
+  geom_point(pch = 21, size= 1, position = position_jitterdodge(jitter.width = 0.3), alpha = 0.1, stroke=0.1)+
+  geom_boxplot(colour = "grey35", alpha = 0.4, linewidth=0.2, outlier.alpha = 0, width = 0.8)+
+  scale_fill_manual(values = rev(my_pal[c(4,2)]))+
+  theme_bw()+
+  theme(legend.position = "bottom",
+        legend.background = element_rect(fill="transparent"),
+        legend.title = element_blank(),
+        panel.grid = element_blank(),
+        text = element_text(size=8),
+        panel.border = element_rect(colour = "black", linewidth = 0.5),
+        axis.text = element_text(size=8),
+        axis.title = element_text(size=8),
+        axis.title.y = element_blank())+
+  coord_flip()+
+  labs(y="Normalised pressure per tonne")
+
+
+ggsave(filename = sprintf(here("figures/normalised_pressure_per_tonne_per_ingredient_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 18, height =12, units = "cm")
+
+```
+
+# Ingredient case studies
+
+
+
+```{r}
+
+
+
+
+
 ```
 
 
