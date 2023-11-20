@@ -13,6 +13,7 @@ library(patchwork)
 library(rcartocolor)
 library(RColorBrewer)
 library(ggpubr)
+library(ggpattern)
 
 select <- dplyr::select
 values <- terra::values
@@ -292,11 +293,350 @@ ggsave(filename = sprintf(here("figures/normalised_pressure_per_tonne_per_ingred
 
 ```
 
+Break down of ingredient and stage
+```{r}
+cpi_by_ingredient_pressure_stage <- 
+  all_data |> 
+  group_by(diet, ingredient, source, stage, pressure) |> 
+  summarise(cpi_cont = sum(sum, na.rm=TRUE)) |> 
+  mutate(pressure = factor(pressure, levels = rev(c("GHG", "Disturbance", "Nutrients", "Water"))))
+
+
+
+ggplot(data = cpi_by_ingredient_pressure_stage |> 
+                              mutate(diet = case_when(diet == "plant diet" ~ "Plant-dominant\nfeed",
+                                                      diet == "marine diet" ~ "Fish-dominant\nfeed"),
+                                                      diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed")),
+                                     stage = factor(stage, levels = c("production", "processing"))))+
+  aes(x = cpi_cont, y = pressure, fill = diet)+
+  geom_point(pch = 21, position = position_jitterdodge(jitter.width = 0.5), alpha = 0.1)+
+  geom_boxplot(notch = FALSE, colour = "grey35", alpha = 0.4, linewidth=0.5, outlier.alpha = 0)+
+  facet_grid(rows = vars(ingredient), cols = vars(stage))+
+  scale_fill_manual(values = (my_pal[c(4,2)]))+
+  scale_x_continuous(limits = c(0,1.01), breaks = c(0,0.25,0.5,0.75, 1))+
+  theme_bw()+
+  theme(legend.position = c(0.8, 0.1),
+        legend.background = element_rect(fill="transparent"),
+        legend.title = element_blank(),
+        panel.grid = element_blank(),
+        text = element_text(size=8),
+        panel.border = element_rect(colour = "black", linewidth = 0.5),
+        axis.text = element_text(size=8),
+        axis.title = element_text(size=8),
+        axis.title.y = element_blank())+
+  labs(x = "CPI contribution")
+
+ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_ingredients_and_stage_%s.jpg"), this_allocation_method), width = 18, height=30, units = "cm", device = "jpg", dpi = 600)
+
+
+```
+
+
+
 # Ingredient case studies
 
-
-
 ```{r}
+
+# FISH OIL - DISTURBANCE
+
+marine_fo_dist <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "fish oil_production_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_fo_dist <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "fish oil_production_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Plant-dominant"))
+  })
+  
+
+fo_disturbance_df <- bind_rows(marine_fo_dist, plant_fo_dist) |> 
+  mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
+                          area == 31 ~ "Western-central Atlantic",
+                          area == 61 ~ "Northwest Pacific",
+                          area == 67 ~ "Northeast Pacific",
+                          area == 87 ~ "Southeast Pacific"))
+
+
+
+fo_dist_plot <- 
+  ggplot(data = fo_disturbance_df, aes(x = diet, y = sum, fill = area_name))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
+  theme_pubr()+
+  theme(legend.position = c(0.75,0.82),
+        text = element_text(size=8),
+         legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.4, "cm"),
+        legend.background = element_rect(fill = "transparent"))+
+  labs(fill = "FAO fishing area", y = bquote(Fishing~disturbance~(km^2~eq.)), x = "Feed scenario")+
+  guides(fill = "none")
+
+ggsave(filename = sprintf(here("explore/fish_oil_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+
+# FISH OIL - GHG
+
+marine_fo_GHG <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "fish oil_production_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_fo_GHG <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "fish oil_production_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Plant-dominant"))
+  })
+  
+
+fo_GHG_df <- bind_rows(marine_fo_GHG, plant_fo_GHG) |> 
+  mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
+                          area == 31 ~ "Western-central Atlantic",
+                          area == 61 ~ "Northwest Pacific",
+                          area == 67 ~ "Northeast Pacific",
+                          area == 87 ~ "Southeast Pacific"))
+
+
+
+fo_ghg_plot <- 
+  ggplot(data = fo_GHG_df, aes(x = diet, y = sum/1000, fill = area_name))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
+  theme_pubr()+
+  #scale_y_continuous(limits = c(0,150000))+
+  theme(legend.position = c(0.82,0.82),
+        text = element_text(size=8),
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.4, "cm"),
+        legend.background = element_rect(fill = "transparent"))+
+  labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "Feed scenario")
+
+ggsave(filename = sprintf(here("explore/fish_oil_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+
+
+#SBM/SPC - DISTURBANCE
+
+#marine diet
+
+marine_SBM_dist <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "soybean meal_production_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_SPC_dist <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "soy protein concentrate_production_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Plant-dominant"))
+  })
+  
+
+soy_disturbance_df <- bind_rows(marine_SBM_dist, plant_SPC_dist) |> 
+  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
+
+
+
+soy_dist_plot <- 
+  ggplot(data = soy_disturbance_df, aes(x = diet, y = sum, fill = area_name))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
+  theme_pubr()+
+  scale_y_continuous(limits = c(0,220))+
+  theme(legend.position = c(0.15,0.82),
+        text = element_text(size=8),
+         legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.4, "cm"),
+        legend.background = element_rect(fill = "transparent"))+
+  coord_cartesian(clip="off")+
+  labs(fill = "Soy producer", y = bquote(Disturbance~(km^2~eq.)), x = "Feed scenario")
+
+ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+
+
+#SBM/SPC - GHG
+
+#marine diet
+
+marine_SBM_GHG <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "soybean meal_production_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_SPC_GHG <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "soy protein concentrate_production_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Plant-dominant"))
+  })
+  
+
+soy_ghg_df <- bind_rows(marine_SBM_GHG, plant_SPC_GHG) |> 
+  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
+
+
+soy_ghg_plot <- 
+  ggplot(data = soy_ghg_df, aes(x = diet, y = sum/1000, fill = area_name))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
+  theme_pubr()+
+  scale_y_continuous(limits = c(0,180000))+
+  theme(legend.position = c(0.85,0.82),
+        text = element_text(size=8),
+         legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.4, "cm"),
+        legend.background = element_rect(fill = "transparent"))+
+  labs(fill = "Soy producer", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "Feed scenario")
+
+ggsave(filename = sprintf(here("explore/soy_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+#WHEAT GLUTEN - NUTRIENTS
+
+
+#marine diet
+
+marine_WG_nutr <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_WG_nutr <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "soy protein concentrate_production_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             diet = "Plant-dominant"))
+  })
+
+
+
+
+
+#SOY PROETIN CONCENTRATE - WATER 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# first row for marine ingredients
+marine_vs_plant_ghg <- (fo_ghg_plot|soy_ghg_plot)
+  
+ggsave(filename = sprintf(here("explore/ghg_marine_vs_plant_%s.jpg"), this_allocation_method), dp = 600, height = 7, width=18, unit = "cm")
+
+
+
 
 
 
