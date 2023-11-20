@@ -341,14 +341,17 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_ingredients_
 marine_fo_dist <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "fish oil_production_disturbance_moll", full.names = TRUE) |>
+                        pattern = "fish oil_production_disturbance_moll|fish oil_processing_disturbance_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
     
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
     return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
       select(sum) |> 
       mutate(area = this_area,
+             stage = this_stage,
              diet = "Fish-dominant"))
   })
 
@@ -356,14 +359,17 @@ marine_fo_dist <-
 plant_fo_dist <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "fish oil_production_disturbance_moll", full.names = TRUE) |>
+                        pattern = "fish oil_production_disturbance_moll|fish oil_processing_disturbance_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+   
+     this_stage <- str_extract(pattern = "production|processing", string = this_file)
     
     return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
       select(sum) |> 
       mutate(area = this_area,
+             stage = this_stage,
              diet = "Plant-dominant"))
   })
   
@@ -378,9 +384,10 @@ fo_disturbance_df <- bind_rows(marine_fo_dist, plant_fo_dist) |>
 
 
 fo_dist_plot <- 
-  ggplot(data = fo_disturbance_df, aes(x = diet, y = sum, fill = area_name))+
-  geom_bar(stat = "identity", position = "dodge")+
+  ggplot(data = fo_disturbance_df, aes(x = diet, y = sum, fill = area_name, pattern = stage))+
+  geom_col_pattern(stat = "identity", position = "dodge")+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
+  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
   theme_pubr()+
   theme(legend.position = c(0.75,0.82),
         text = element_text(size=8),
@@ -388,11 +395,9 @@ fo_dist_plot <-
         legend.text = element_text(size=6),
         legend.key.size = unit(0.4, "cm"),
         legend.background = element_rect(fill = "transparent"))+
-  labs(fill = "FAO fishing area", y = bquote(Fishing~disturbance~(km^2~eq.)), x = "Feed scenario")+
-  guides(fill = "none")
+  labs(fill = "FAO fishing area", y = bquote(Disturbance~(km^2~eq.)), x = "Feed scenario")
 
 ggsave(filename = sprintf(here("explore/fish_oil_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
-
 
 
 # FISH OIL - GHG
@@ -400,14 +405,17 @@ ggsave(filename = sprintf(here("explore/fish_oil_disturbance_%s.jpeg"), this_all
 marine_fo_GHG <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "fish oil_production_ghg_moll", full.names = TRUE) |>
+                        pattern = "fish oil_production_ghg_moll|fish oil_processing_ghg_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
     
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
     return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
       select(sum) |> 
       mutate(area = this_area,
+             stage = this_stage,
              diet = "Fish-dominant"))
   })
 
@@ -415,14 +423,17 @@ marine_fo_GHG <-
 plant_fo_GHG <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "fish oil_production_ghg_moll", full.names = TRUE) |>
+                        pattern = "fish oil_production_ghg_moll|fish oil_processing_ghg_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
     
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
     return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
       select(sum) |> 
       mutate(area = this_area,
+             stage = this_stage,
              diet = "Plant-dominant"))
   })
   
@@ -437,8 +448,8 @@ fo_GHG_df <- bind_rows(marine_fo_GHG, plant_fo_GHG) |>
 
 
 fo_ghg_plot <- 
-  ggplot(data = fo_GHG_df, aes(x = diet, y = sum/1000, fill = area_name))+
-  geom_bar(stat = "identity", position = "dodge")+
+  ggplot(data = fo_GHG_df, aes(x = diet, y = sum/1000, fill = area_name, alpha = stage))+
+  geom_bar(stat = "identity", position = position_dodge(preserve = "total"))+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
   theme_pubr()+
   #scale_y_continuous(limits = c(0,150000))+
@@ -467,10 +478,13 @@ marine_SBM_dist <-
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
     
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
     return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
       select(sum) |> 
       mutate(area = this_area,
-             diet = "Fish-dominant"))
+             stage = this_stage,
+             diet = "Plant-dominant"))
   })
 
 
@@ -482,9 +496,12 @@ plant_SPC_dist <-
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
     
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
     return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
       select(sum) |> 
       mutate(area = this_area,
+             stage = this_stage,
              diet = "Plant-dominant"))
   })
   
@@ -626,11 +643,12 @@ WG_nutr_df <- bind_rows(marine_WG_nutr, plant_WG_nutr) |>
     pattern_fill="grey40",   # removes gray parts you see between pattern lines
     pattern_angle = 45,
     pattern_colour = "grey40", 
-    linewidth=0.1) +
+    linewidth=0.08) +
   facet_grid(~diet, switch = "x")+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
-  scale_y_continuous(limits = c(0,125))+
+  scale_y_continuous(expand=c(0.02,0.02))+
+  scale_x_discrete(expand=expansion(mult=0.3))+
   labs(fill = "Wheat producer", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
   guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
          pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
@@ -643,13 +661,16 @@ WG_nutr_df <- bind_rows(marine_WG_nutr, plant_WG_nutr) |>
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.78,0.8),
+        legend.position = c(0.75,0.8),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.4, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,0, unit="cm"))
+        legend.margin = margin(-0.2,0,0,0, unit="cm"))+
+    coord_cartesian(ylim = c(0, 125), clip="off") +
+  #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
+    annotate("segment", x = 3, xend = 3, y=-5, yend = -2.2)
   
 ggsave(filename = sprintf(here("explore/wheat_gluten_stage_comparisons_nurients_%s.jpg"), this_allocation_method), dpi = 600, width = 8.9, height=7, unit="cm")
 
