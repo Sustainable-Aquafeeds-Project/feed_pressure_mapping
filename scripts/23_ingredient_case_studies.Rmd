@@ -82,7 +82,7 @@ Fish oil - disturbance
 
 ```{r}
 
-fish_oil_files_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "fish oil_disturbance_gp_mass_allocation", full=TRUE)
+fish_oil_files_md <- list.files(here("data/spatial/marine_diet/int"), pattern = "fish oil_production_disturbance_moll", full=TRUE)
 fish_oil_files_pd <- list.files(here("data/spatial/plant_diet/int"), pattern = "fish oil_disturbance_gp_mass_allocation", full=TRUE) 
 
 fish_oil_regions <- str_sub(tools::file_path_sans_ext(fish_oil_files_md), start = nchar(tools::file_path_sans_ext(fish_oil_files_md))-2, end = nchar(tools::file_path_sans_ext(fish_oil_files_md)))

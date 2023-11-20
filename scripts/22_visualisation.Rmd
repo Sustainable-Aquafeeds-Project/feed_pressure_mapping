@@ -336,7 +336,6 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_ingredients_
 # Ingredient case studies
 
 ```{r}
-
 # FISH OIL - DISTURBANCE
 
 marine_fo_dist <- 
@@ -596,17 +595,74 @@ marine_WG_nutr <-
 plant_WG_nutr <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "soy protein concentrate_production_ghg_moll", full.names = TRUE) |>
+                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
     
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
     return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
       select(sum) |> 
       mutate(area = this_area,
+             stage = this_stage,
              diet = "Plant-dominant"))
-  })
+ })
 
+WG_nutr_df <- bind_rows(marine_WG_nutr, plant_WG_nutr) |> 
+  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
+
+
+
+
+
+  ggplot(data = WG_nutr_df, aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage))+
+  geom_col_pattern(
+    position="stack",
+    pattern_type = "stripe",
+    pattern_size = 0.08,
+    pattern_spacing = 0.02, 
+    pattern_frequency = 3,
+    pattern_fill="grey40",   # removes gray parts you see between pattern lines
+    pattern_angle = 45,
+    pattern_colour = "grey40", 
+    linewidth=0.1) +
+  facet_grid(~diet, switch = "x")+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
+  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
+  scale_y_continuous(limits = c(0,125))+
+  labs(fill = "Wheat producer", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(size=8),
+        panel.background = element_blank(),
+        axis.line = element_line(),
+        panel.spacing = unit(0, 'pt'),
+        text=element_text(size=8),
+        legend.position = c(0.78,0.8),
+        legend.box = "horizontal",
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.4, "cm"),
+        legend.background = element_rect(fill = "transparent"),
+        legend.margin = margin(-0.2,0,0,0, unit="cm"))
+  
+ggsave(filename = sprintf(here("explore/wheat_gluten_stage_comparisons_nurients_%s.jpg"), this_allocation_method), dpi = 600, width = 8.9, height=7, unit="cm")
+
+```
+
+
+```{r}
+geom_bar_pattern(color = "black", 
+                   pattern_fill = "black",
+                   pattern_angle = 45,
+                   pattern_density = 0.1,
+                   pattern_spacing = 0.025,
+                   pattern_key_scale_factor = 0.6)
 
 
 
