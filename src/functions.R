@@ -31,6 +31,15 @@ write_country_raster <- \(this_country){
 
 
 
+#for placing pngs in facets
+
+annotation_custom2 <- 
+  function (grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, data){ layer(data = data, stat = StatIdentity, position = PositionIdentity, 
+                                                                                 geom = ggplot2:::GeomCustomAnn,
+                                                                                 inherit.aes = TRUE, params = list(grob = grob, 
+                                                                                                                   xmin = xmin, xmax = xmax, 
+                                                                                                                   ymin = ymin, ymax = ymax))}
+
 
 # api_file <- file.path(iucn_dir, "api_key", "api_token.txt")
 # api_key <- scan(api_file, what = 'character')
