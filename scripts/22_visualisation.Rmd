@@ -408,8 +408,8 @@ fo_dist_plot <-
   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
   scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top",order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top",order = 1))+
    theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = "transparent"),
@@ -419,13 +419,13 @@ fo_dist_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.75,0.83),
+        legend.position = c(0.7,0.83),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0.5, unit="cm"))+
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
     coord_cartesian(ylim = c(0, 9000), clip="off") +
   #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
     annotate("segment", x = 3, xend = 3, y=-450, yend = -650)+
@@ -511,8 +511,8 @@ soy_dist_plot <-
   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
   scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top",order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top",order = 1))+
    theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = "transparent"),
@@ -522,14 +522,14 @@ soy_dist_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.75,0.83),
+        legend.position = c(0.7,0.83),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0.5, unit="cm"))+
-    coord_cartesian(ylim = c(0, 280), clip="off")+
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+    coord_cartesian(ylim = c(0, 295), clip="off")+
   labs(fill = "Country", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
   annotate("segment", x = 3, xend = 3, y=-15, yend = -20)+
   geom_text(data = facet_text, aes(x = area_name+0.5, y = sum), label = "SBM/SPC", size=3, fontface="bold")+
@@ -617,8 +617,8 @@ fo_ghg_plot <-
   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
   scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top",order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
    theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = "transparent"),
@@ -628,16 +628,16 @@ fo_ghg_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.75,0.83),
+        legend.position = c(0.7,0.83),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0.5, unit="cm"))+
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
     coord_cartesian(ylim = c(0, 210000), clip="off")+
    annotate("segment", x = 3, xend = 3, y=-15000, yend = -10000)+
-  labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "")+
+  labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
   geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fish oil", size=3, fontface="bold")+
   annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 212000, ymax = 222000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
 
@@ -720,8 +720,8 @@ soy_ghg_plot <-
   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
   scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
    theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = "transparent"),
@@ -737,7 +737,7 @@ soy_ghg_plot <-
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0.5, unit="cm"))+
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
     coord_cartesian(ylim = c(0, 210000), clip="off")+
   labs(fill = "Country", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
   annotate("segment", x = 3, xend = 3, y=-15000, yend = -10000)+
@@ -829,9 +829,8 @@ wg_nutr_plot <-
    scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
   scale_x_discrete(expand=expansion(mult=0.3))+
-  labs(fill = "Country", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
    theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = "transparent"),
@@ -847,9 +846,9 @@ wg_nutr_plot <-
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0.5, unit="cm"))+
+        legend.margin = margin(-0.2,0,0,0, unit="cm"))+
     coord_cartesian(ylim = c(0, 125), clip="off") +
-  #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
+  labs(fill = "Country", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
      annotate("segment", x = 3, xend = 3, y=-2, yend = -5)+
   geom_text(data = facet_text, aes(x = area_name+0.8, y = sum), label = "Wheat gluten", size=3, fontface="bold")+
   annotation_custom2(wheat_png, xmin = 2.8, xmax = 5, ymin = 120, ymax = 132, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
@@ -934,8 +933,8 @@ soy_water_plot <-
   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
   scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
   scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top"),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top"))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
    theme(axis.title = element_text(size = 9, face = "bold"),
      axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -946,13 +945,13 @@ soy_water_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.63,0.83),
+        legend.position = c(0.75,0.83),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0.5, unit="cm"))+
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
     coord_cartesian(ylim = c(0,3000), clip="off")+
   labs(fill = "Country", y = bquote(Water~consumption~("1000s"~m^3)), x = "Feed scenario", pattern = "Stage")+
   annotate("segment", x = 3, xend = 3, y=-150, yend = -220)+

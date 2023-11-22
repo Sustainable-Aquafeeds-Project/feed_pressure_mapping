@@ -65,7 +65,7 @@ crop_demand |>
 
 raw_material_totals <- 
   raw_material_iteration |> 
-  filter(type!="Total")
+  filter(type!="Total") |> 
   group_by(diet, fao_area_code) |>
   summarise(total_biomass = sum(demand)) |> 
   ungroup() |> 
@@ -117,85 +117,56 @@ raw_material_iteration |>
 
 ggsave(filename = sprintf(here("figures/embodied_fish_demand_%s.jpeg"), this_allocation_method), dpi = 600, device = "jpeg", width = 9, height = 6, units = "cm")
 
+
+
+
+#calculations
+
+raw_material_iteration |> 
+  filter(type %in%  c("Total") & diet == "marine_diet") |> pull(demand) |> sort() |> pluck(2)-raw_material_iteration |> 
+  filter(type %in%  c("Total") & diet == "marine_diet") |> pull(demand) |> sort() |> pluck(1)
+  
+
 ```
 
 
 
 
 ```{r}
-all_demand |> 
-  filter(!demand_from %in% c("Total")) |> 
-  group_by(type) |> 
-  summarise(demand = sum(demand,na.rm=TRUE))
+
+all_data <- readRDS(file = sprintf(here("data/tidy_data/pressures/marine_plant_disaggregated_pressures_by_ingredient_combined_df_%s.rds"),this_allocation_method))
 
 
+summary_by_pressure <- 
+  all_data |> 
+  group_by(diet, source, pressure) |> 
+  summarise(cpi_cont = sum(sum, na.rm=TRUE)) |> 
+   ungroup() |> 
+   group_by(pressure, diet) |> 
+   summarise(median = median(cpi_cont),
+             mean = mean(cpi_cont),
+             min = min(cpi_cont),
+             max = max(cpi_cont))
 
 
+#how much higher is median disturbance pressure in fish-dominant scenario?
+
+summary_by_pressure |> filter(pressure == "Disturbance") |> pull(median) |> pluck(1)/summary_by_pressure |> filter(pressure == "Disturbance") |> pull(median) |> pluck(2)
+
+#how much higher is median GHG, nutrients, and water in plant-dominant feed?
+summary_by_pressure |> filter(pressure == "GHG") |> pull(median) |> pluck(2)/summary_by_pressure |> filter(pressure == "GHG") |> pull(median) |> pluck(1)
+summary_by_pressure |> filter(pressure == "Nutrients") |> pull(median) |> pluck(2)/summary_by_pressure |> filter(pressure == "Nutrients") |> pull(median) |> pluck(1)
+summary_by_pressure |> filter(pressure == "Water") |> pull(median) |> pluck(2)/summary_by_pressure |> filter(pressure == "Water") |> pull(median) |> pluck(1)
 
 
-|> 
-  group_by(diet, demand_from) |> 
-  summarise(mean_demand = mean(demand, na.rm=TRUE), 
-            sd_demand = sd(demand, na.rm=TRUE),
-            min_demand = min(demand, na.rm = TRUE),
-            max_demand = max(demand, na.rm =TRUE)) |> 
-  ungroup() |> 
-  arrange(diet, -mean_demand)
+#How much do minimum and maximum scores vary across different diets and pressures
+summary_by_pressure |> filter(pressure == "GHG" & diet == "marine diet") |> pull(max)/summary_by_pressure |> filter(pressure == "GHG" & diet == "marine diet") |> pull(min)
+
+summary_by_pressure |> filter(pressure == "GHG" & diet == "marine diet") |> pull(max)/summary_by_pressure |> filter(pressure == "GHG" & diet == "plant diet") |> pull(min)
 
 
+summary_by_pressure |> filter(pressure == "Nutrients" & diet == "plant diet") |> pull(min)/summary_by_pressure |> filter(pressure == "Nutrients" & diet == "marine diet") |> pull(max)
 
-#What is overall demand by diet (accounting for allocation)
-
-#minimum
-summarised_demand |> 
-  group_by(diet, allocation) |> 
-  summarise(minimum = sum(min_demand))
-  
-#max
-summarised_demand |> 
-  group_by(diet, allocation) |> 
-  summarise(maximum = sum(max_demand))
-
-
-#mean
-summarised_demand |> 
-  group_by(diet, allocation) |> 
-  summarise(average = sum(mean_demand))
-
-
-#average mass
-mean_plant_mass <- 
-  summarised_demand |> 
-  group_by(diet, allocation) |> 
-  summarise(average = sum(mean_demand)) |> 
-  filter(diet == "plant_diet" & allocation == "Mass allocation") |> ungroup() |> 
-  pull(average)
-  
-
-mean_fish_mass <- 
-  summarised_demand |> 
-  group_by(diet, allocation) |> 
-  summarise(average = sum(mean_demand)) |> 
-  filter(diet == "marine_diet" & allocation == "Mass allocation") |> ungroup() |> 
-  pull(average)
-
-mean_plant_mass/mean_fish_mass # ratio of raw material demand between fish- and plant-dominant feeds
-
-
-
-all_demand |> filter(demand_from!= "Total") |>  mutate(realm = if_else(demand_from %in% c("Fishmeal", "Fish oil"), true = "marine", false = "terrestrial")) |> 
-  group_by(realm, diet, demand_from, allocation) |>  summarise(mean_ = mean(demand)) |> ungroup() |>  group_by(realm, diet, allocation) |> summarise(sum_mean = sum(mean_)) |> arrange(diet, allocation, realm)
-```
-
-Example of differences in raw material and total pressure for same ingredient within different diet
-```{r}
-
-brazil_sbm <- rast(here("data/spatial/marine_diet/int/soybean meal_ghg_gp_mass_allocation_BRA.tif"))
-
-us_sbm <- rast(here("data/spatial/marine_diet/int/soybean meal_ghg_gp_mass_allocation_USA.tif"))
-
-
-(brazil_sbm |> values() |> sum(na.rm=TRUE)/1000) /(us_sbm |> values() |> sum(na.rm=TRUE)/1000)
 
 ```
 
