@@ -137,6 +137,34 @@ raw_material_iteration |>
 all_data <- readRDS(file = sprintf(here("data/tidy_data/pressures/marine_plant_disaggregated_pressures_by_ingredient_combined_df_%s.rds"),this_allocation_method))
 
 
+summary_by_total <- 
+  all_data |> 
+  group_by(source, diet) |> 
+  summarise(cpi = sum(sum, na.rm=TRUE))
+
+
+#average differences in cpi
+summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> median()/summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> median()
+summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> mean()/summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> mean()
+
+
+
+#overlap in CPI
+
+#how many of the fish-dominant scores are greater than the minimum plant-dominant scores
+which(summary_by_total |> filter(diet == "marine diet") |> pull(cpi)>summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min(), TRUE) |> length()/500
+
+##how many of the plant-dominant scores are lower than the maximum fish-dominant scores
+which(summary_by_total |> filter(diet == "plant diet") |> pull(cpi)<summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max(), TRUE) |> length()/500
+
+#difference between minimum and maximum scores for each scenarios
+summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max()/summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> min()
+summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> max()/summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min()
+
+summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max()/summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min()
+
+
+
 summary_by_pressure <- 
   all_data |> 
   group_by(diet, source, pressure) |> 

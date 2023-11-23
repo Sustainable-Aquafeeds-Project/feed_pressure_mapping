@@ -831,7 +831,8 @@ wg_nutr_plot <-
   scale_x_discrete(expand=expansion(mult=0.3))+
   guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
          pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
-   theme(axis.text.x = element_blank(),
+   theme(axis.title.x = element_text(size = 9, face = "bold"),
+     axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = "transparent"),
         strip.placement = "outside",
@@ -867,10 +868,10 @@ ggsave(filename = sprintf(here("explore/wheat_gluten_%s.jpg"), this_allocation_m
 #SBM/SPC - WATER 
 
 
-marine_soy_water <- 
+marine_faba_water <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "soybean meal_production_water_moll|soybean meal_processing_water_moll", full.names = TRUE) |>
+                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -885,10 +886,10 @@ marine_soy_water <-
   })
 
 
-plant_soy_water <- 
+plant_faba_water <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "soy protein concentrate_production_water_moll|soy protein concentrate_processing_water_moll", full.names = TRUE) |>
+                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -908,16 +909,16 @@ plant_soy_water <-
 facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
 
 #soy png
-soy_png <- png::readPNG(here("data/tidy_data/png/soybeans.png"))
-soy_png <- grid::rasterGrob(soy_png)
+faba_png <- png::readPNG(here("data/tidy_data/png/faba_beans.png"))
+faba_png <- grid::rasterGrob(faba_png)
 
 
 
-soy_water_df <- bind_rows(marine_soy_water, plant_soy_water) |> 
+faba_water_df <- bind_rows(marine_faba_water, plant_faba_water) |> 
   mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
 
 
-soy_water_plot <- 
+faba_water_plot <- 
   ggplot(data = soy_water_df)+
   geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
     position="stack",
@@ -935,7 +936,7 @@ soy_water_plot <-
   scale_x_discrete(expand=expansion(mult=0.3))+
   guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
          pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
-   theme(axis.title = element_text(size = 9, face = "bold"),
+   theme(axis.title.x = element_text(size = 9, face = "bold"),
      axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         strip.background = element_rect(fill = "transparent"),
@@ -952,21 +953,20 @@ soy_water_plot <-
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim = c(0,3000), clip="off")+
+    coord_cartesian(ylim=c(0,140), clip="off")+
   labs(fill = "Country", y = bquote(Water~consumption~("1000s"~m^3)), x = "Feed scenario", pattern = "Stage")+
-  annotate("segment", x = 3, xend = 3, y=-150, yend = -220)+
-  geom_text(data = facet_text, aes(x = area_name+0.5, y = sum), label = "SBM/SPC", size=3, fontface="bold")+
-  annotation_custom2(soy_png, xmin = 1, xmax = 2, ymin = 2450, ymax = 3000, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotate("segment", x = 3, xend = 3, y=-7, yend = -12)+
+  geom_text(data = facet_text, aes(x = area_name+0.5, y = sum), label = "Faba beans", size=3, fontface="bold")+
+ annotation_custom2(faba_png, xmin = 2.7, xmax = 4.9, ymin = 135, ymax = 150, data = faba_water_df |> filter(diet == "Fish-dominant"))
   
  
 
-ggsave(filename = sprintf(here("explore/soy_water_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+ggsave(filename = sprintf(here("explore/faba_water_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
 
-
+(fo_ghg_plot|soy_ghg_plot)/
 (fo_dist_plot|soy_dist_plot)/
-  (fo_ghg_plot|soy_ghg_plot)/
-  (wg_nutr_plot|soy_water_plot)+
+  (wg_nutr_plot|faba_water_plot)+
   plot_annotation(tag_levels = "a")& 
   theme(plot.tag = element_text(size=10), 
         plot.tag.position = c(0, 1))
@@ -976,7 +976,11 @@ ggsave(filename = sprintf(here("figures/case_studies_%s.jpg"), this_allocation_m
 
 ```
 
+Calculations from case studies plot
 
+```{r}
+
+```
 
 
 
