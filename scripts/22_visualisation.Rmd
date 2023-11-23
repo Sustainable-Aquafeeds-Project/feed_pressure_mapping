@@ -980,6 +980,83 @@ Calculations from case studies plot
 
 ```{r}
 
+ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
+
+#GHG emissions 
+
+soy_ghg <- 
+  soy_ghg_df |> 
+  group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
+  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "soybean meal" & diet == "marine_diet") |> 
+                                         pull(ingredient_demand_tonnes),
+                                       diet== "Plant-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "soy protein concentrate" & diet == "plant_diet") |> 
+                                         pull(ingredient_demand_tonnes))) |> 
+  mutate(ghg_tonne = sum/ingredient_tonnes) |> 
+  ungroup() |> 
+  group_by(diet) |> 
+  nest() |> 
+  mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
+  unnest(cols = c(data, mean))
+
+
+
+fo_ghg <- 
+   fo_GHG_df |> 
+  group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
+  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "fish oil" & diet == "marine_diet") |> 
+                                         pull(ingredient_demand_tonnes),
+                                       diet== "Plant-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "fish oil" & diet == "plant_diet") |> 
+                                         pull(ingredient_demand_tonnes))) |> 
+  mutate(ghg_tonne = sum/ingredient_tonnes) |> 
+  ungroup() |> 
+  group_by(diet) |> 
+  nest() |> 
+  mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
+  unnest(cols = c(data, mean))
+
+
+
+
+soy_dist <- 
+  soy_disturbance_df |> 
+  group_by(diet, area_name) |> 
+  summarise(sum = sum(sum)) |> 
+  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "soybean meal" & diet == "marine_diet") |> 
+                                         pull(ingredient_demand_tonnes),
+                                       diet== "Plant-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "soy protein concentrate" & diet == "plant_diet") |> 
+                                         pull(ingredient_demand_tonnes))) |> 
+  mutate(km_tonne = sum/ingredient_tonnes) |> 
+  ungroup() |> 
+  group_by(diet) |> 
+  nest() |> 
+  mutate(mean = map(data, ~(mean(.$km_tonne)))) |> 
+  unnest(cols = c(data, mean))
+
+
+
+fo_dist <- 
+  fo_disturbance_df |> 
+  group_by(diet, area_name) |> 
+  summarise(sum = sum(sum)) |> 
+  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "fish oil" & diet == "marine_diet") |> 
+                                         pull(ingredient_demand_tonnes),
+                                       diet== "Plant-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "fish oil" & diet == "plant_diet") |> 
+                                         pull(ingredient_demand_tonnes))) |> 
+  mutate(km_tonne = sum/ingredient_tonnes) |> 
+  ungroup() |> 
+  group_by(diet) |> 
+  nest() |> 
+  mutate(mean = map(data, ~(mean(.$km_tonne)))) |> 
+  unnest(cols = c(data, mean))
+
 ```
 
 
