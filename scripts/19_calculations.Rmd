@@ -192,6 +192,9 @@ summary_by_pressure |> filter(pressure == "GHG" & diet == "marine diet") |> pull
 
 summary_by_pressure |> filter(pressure == "GHG" & diet == "marine diet") |> pull(max)/summary_by_pressure |> filter(pressure == "GHG" & diet == "plant diet") |> pull(min)
 
+#nutrients differences
+summary_by_pressure |> filter(pressure == "Nutrients" & diet == "plant diet") |> pull(max)/summary_by_pressure |> filter(pressure == "Nutrients" & diet == "marine diet") |> pull(max)
+
 
 summary_by_pressure |> filter(pressure == "Nutrients" & diet == "plant diet") |> pull(min)/summary_by_pressure |> filter(pressure == "Nutrients" & diet == "marine diet") |> pull(max)
 

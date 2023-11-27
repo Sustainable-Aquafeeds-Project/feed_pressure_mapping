@@ -31,7 +31,6 @@ this_allocation_method <- "econ_allocation"
 
 ```
 
-
 Pull in permuted data
 
 ```{r}
@@ -44,6 +43,7 @@ all_data <- readRDS(file = sprintf(here("data/tidy_data/pressures/marine_plant_d
 ```
 
 Summarise and plot by CPI total
+
 ```{r}
 
 cpi_total <- all_data |> 
@@ -120,6 +120,7 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_%s.jpg"), th
 ```
 
 Dig into why disturbance is so fragmented
+
 ```{r}
 
 
@@ -171,9 +172,108 @@ ggplot(data = cpi_by_pressure_stage |>
   labs(x = "CPI contribution")
 
 ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_and_stage_%s.jpg"), this_allocation_method), width = 12, height=15, units = "cm", device = "jpg", dpi = 600)
+
+
+
+
+processing_production_prop <- 
+  cpi_by_pressure_stage |> 
+  group_by(diet, source, stage) |> 
+  summarise(cpi_cont = sum(cpi_cont)) |> 
+  nest() |> 
+  mutate(cpi_total = map(data, ~sum(.$cpi_cont))) |> 
+  unnest(cols = c(data, cpi_total)) |> 
+  mutate(cpi_prop = cpi_cont/cpi_total)
+
+
+#what proportion of CPI does processing represent on average across irrespective of diet?
+
+processing_production_prop |> 
+  filter(stage == "production") |> 
+  pull(cpi_prop) |> 
+  median() # 89%
+
+#what proportion of CPI does processing represent on average for the marine diet?
+processing_production_prop |> 
+  filter(stage == "production" & diet == "marine diet") |> 
+  pull(cpi_prop) |> 
+  median() # 90%
+
+
+#what proportion of CPI does processing represent on average for the plant diet?
+processing_production_prop |> 
+  filter(stage == "production" & diet == "plant diet") |> 
+  pull(cpi_prop) |> 
+  median() # 88%
+
+
+#What about per pressure?
+
+(process_prod_pressure_stage <- 
+  cpi_by_pressure_stage |> 
+  group_by(diet, source, stage, pressure) |> 
+  summarise(cpi_cont = sum(cpi_cont)) |> 
+    ungroup() |> 
+    group_by(diet, pressure, source) |> 
+    nest() |> 
+    mutate(cpi_total = map(data, ~sum(.$cpi_cont))) |> 
+  unnest(cols = c(data, cpi_total)) |> mutate(cpi_prop = cpi_cont/cpi_total)
+)
+
+#Irrespective of diet
+
+(prop_pressure_production <- 
+  bind_rows(
+    
+    process_prod_pressure_stage |> 
+      ungroup() |> 
+      filter(stage == "production") |> 
+      group_by(pressure) |> 
+      summarise(median_prop = median(cpi_prop),
+                mean_prop = mean(cpi_prop),
+                sd_prop = sd(cpi_prop)) |> 
+      mutate(diet = "Aggregated"),
+    
+    
+    
+    #marine diets 
+    
+    process_prod_pressure_stage |> 
+      ungroup() |> 
+      filter(stage == "production"& diet == "marine diet") |> 
+      group_by(pressure) |> 
+      summarise(median_prop = median(cpi_prop),
+                mean_prop = mean(cpi_prop),
+                sd_prop = sd(cpi_prop)) |> 
+      mutate(diet = "Fish-dominant"),
+    
+    #plant diets 
+    
+    process_prod_pressure_stage |> 
+      ungroup() |> 
+      filter(stage == "production"& diet == "plant diet") |> 
+      group_by(pressure) |> 
+      summarise(median_prop = median(cpi_prop),
+                mean_prop = mean(cpi_prop),
+                sd_prop = sd(cpi_prop)) |> 
+      mutate(diet = "Plant-dominant")
+  )
+)
+
+
+ggplot(prop_pressure_production |> 
+         mutate(pressure = factor(pressure, levels = c("GHG", "Disturbance", "Nutrients", "Water"))), 
+       aes(x = pressure, y = mean_prop, colour = pressure))+
+  geom_point()+
+  geom_errorbar(aes(xmin = pressure, xmax = pressure, ymin= mean_prop-sd_prop, ymax = mean_prop+sd_prop), width = 0)+
+  facet_grid(rows=vars(diet))
+
+
+
 ```
 
 Breakdown by ingredient and the distribution of ingredient contributions
+
 ```{r}
 
 ingredient_totals <- 
@@ -297,6 +397,7 @@ ggsave(filename = sprintf(here("figures/normalised_pressure_per_tonne_per_ingred
 ```
 
 Break down of ingredient and stage
+
 ```{r}
 cpi_by_ingredient_pressure_stage <- 
   all_data |> 
@@ -333,8 +434,6 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_ingredients_
 
 
 ```
-
-
 
 # Ingredient case studies
 
@@ -984,7 +1083,7 @@ ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand
 
 #GHG emissions 
 
-soy_ghg <- 
+(soy_ghg <- 
   soy_ghg_df |> 
   group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
   mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
@@ -998,11 +1097,11 @@ soy_ghg <-
   group_by(diet) |> 
   nest() |> 
   mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
-  unnest(cols = c(data, mean))
+  unnest(cols = c(data, mean)))
 
 
 
-fo_ghg <- 
+(fo_ghg <- 
    fo_GHG_df |> 
   group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
   mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
@@ -1017,11 +1116,11 @@ fo_ghg <-
   nest() |> 
   mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
   unnest(cols = c(data, mean))
+)
 
 
 
-
-soy_dist <- 
+(soy_dist <- 
   soy_disturbance_df |> 
   group_by(diet, area_name) |> 
   summarise(sum = sum(sum)) |> 
@@ -1037,10 +1136,10 @@ soy_dist <-
   nest() |> 
   mutate(mean = map(data, ~(mean(.$km_tonne)))) |> 
   unnest(cols = c(data, mean))
+)
 
 
-
-fo_dist <- 
+(fo_dist <- 
   fo_disturbance_df |> 
   group_by(diet, area_name) |> 
   summarise(sum = sum(sum)) |> 
@@ -1056,33 +1155,13 @@ fo_dist <-
   nest() |> 
   mutate(mean = map(data, ~(mean(.$km_tonne)))) |> 
   unnest(cols = c(data, mean))
-
+)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
 
 # first row for marine ingredients
-marine_vs_plant_ghg <- (fo_ghg_plot|soy_ghg_plot)
-  
-ggsave(filename = sprintf(here("explore/ghg_marine_vs_plant_%s.jpg"), this_allocation_method), dp = 600, height = 7, width=18, unit = "cm")
 
+marine_vs_plant_ghg \<- (fo_ghg_plot\|soy_ghg_plot)
 
+ggsave(filename = sprintf(here("explore/ghg_marine_vs_plant\_%s.jpg"), this_allocation_method), dp = 600, height = 7, width=18, unit = "cm")
 
-
-
-
-
-
-```
-
-
+\`\`\`
