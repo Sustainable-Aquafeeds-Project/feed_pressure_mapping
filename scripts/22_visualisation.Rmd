@@ -122,8 +122,6 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_%s.jpg"), th
 Dig into why disturbance is so fragmented
 
 ```{r}
-
-
 # processing_prop_CPI <- 
 #   all_data |> 
 #   group_by(source, pressure, diet) |> 
@@ -136,7 +134,13 @@ Dig into why disturbance is so fragmented
 #   summarise(mean_prop_CPI_cont = mean(prop_CPI_cont, na.rm=TRUE),
 #             sd_prop_CPI_cont = sd(prop_CPI_cont, na.rm=TRUE))
 #   
-  
+
+
+
+cpi_by_stage <-  all_data |> 
+  group_by(diet, source, stage) |> 
+  summarise(cpi_cont = sum(sum, na.rm = FALSE)) |> 
+  mutate(pressure = "CPI")
 
 cpi_by_pressure_stage <- 
   all_data |> 
@@ -145,20 +149,26 @@ cpi_by_pressure_stage <-
   mutate(pressure = factor(pressure, levels = rev(c("GHG", "Disturbance", "Nutrients", "Water"))))
 
 
+cpi_stage_disagg <- bind_rows(cpi_by_stage, cpi_by_pressure_stage)
+
+
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
 
-ggplot(data = cpi_by_pressure_stage |> 
+ggplot(data = cpi_stage_disagg |> 
                               mutate(diet = case_when(diet == "plant diet" ~ "Plant-dominant\nfeed",
                                                       diet == "marine diet" ~ "Fish-dominant\nfeed"),
                                                       diet = factor(diet, levels = c("Plant-dominant\nfeed", "Fish-dominant\nfeed")),
-                                     stage = factor(stage, levels = c("production", "processing"))))+
+                                     pressure = factor(pressure, levels = rev(c("CPI", "GHG", "Disturbance", "Nutrients", "Water"))),
+                                     stage = case_when(stage == "production" ~ "Raw material production",
+                                                       TRUE ~ "Ingredient processing"),
+                                     stage = factor(stage, levels = c("Raw material production", "Ingredient processing"))))+
   aes(x = cpi_cont, y = pressure, fill = diet)+
   geom_point(pch = 21, position = position_jitterdodge(jitter.width = 0.5), alpha = 0.1)+
   geom_boxplot(notch = TRUE, colour = "grey35", alpha = 0.4, linewidth=0.5, outlier.alpha = 0)+
   facet_grid(rows = vars(stage))+
   scale_fill_manual(values = (my_pal[c(4,2)]))+
-  scale_x_continuous(limits = c(0,1.01), breaks = c(0,0.25,0.5,0.75, 1))+
+  #scale_x_continuous(limits = c(0,1.01), breaks = c(0,0.25,0.5,0.75, 1))+
   theme_bw()+
   theme(legend.position = c(0.8, 0.1),
         legend.background = element_rect(fill="transparent"),
@@ -171,11 +181,12 @@ ggplot(data = cpi_by_pressure_stage |>
         axis.title.y = element_blank())+
   labs(x = "CPI contribution")
 
-ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_and_stage_%s.jpg"), this_allocation_method), width = 12, height=15, units = "cm", device = "jpg", dpi = 600)
+ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_and_stage_%s.jpg"), this_allocation_method), width = 12, height=16, units = "cm", device = "jpg", dpi = 600)
+```
 
+Tabulate the statistics for how pressure disaggregates into raw material production (i.e. farming or fishing ) and ingredient processing.
 
-
-
+```{r}
 processing_production_prop <- 
   cpi_by_pressure_stage |> 
   group_by(diet, source, stage) |> 
