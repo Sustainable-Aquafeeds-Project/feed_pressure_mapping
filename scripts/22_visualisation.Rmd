@@ -1084,6 +1084,9 @@ ggsave(filename = sprintf(here("explore/faba_water_%s.jpeg"), this_allocation_me
 
 ggsave(filename = sprintf(here("figures/case_studies_%s.jpg"), this_allocation_method), dpi=600, width = 18, height = 21, unit = "cm")
 
+
+
+
 ```
 
 Calculations from case studies plot
