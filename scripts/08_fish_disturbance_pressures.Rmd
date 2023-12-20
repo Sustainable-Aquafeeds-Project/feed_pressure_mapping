@@ -194,10 +194,10 @@ Get trimmings species trophic levels  - needed for calculating the primary produ
    mutate(binomial = stringi::stri_count(TaxonName, regex="\\S+")) |> 
    filter(binomial==2) |> 
    pull(TaxonName) |> 
-   unique() )
+   unique())
 
 
-
+#test the function
 this_sp <- forage_spp[[1]]
 
 

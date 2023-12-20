@@ -109,6 +109,11 @@ embodied_fish_new_gear <-
           embodied_fish_trim_new_gear |> select(diet, fao_area_code, Gear, TaxonName, LonCentre, LatCentre, VBDesc, 
                    ei_kgco2_tonnecatch, ei_kg_CO2_eq_fm,  ei_kg_CO2_eq_fo))
 
+
+saveRDS(object = embodied_fish_new_gear, file = sprintf(here("data/large_data/embodied_fish_ghgs_%s.rds"), this_allocation_method))
+
+
+
 ```
 
 

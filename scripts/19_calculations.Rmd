@@ -20,6 +20,8 @@ this_allocation_method <- "econ_allocation"
 
 ```
 
+
+Total raw material demand
 ```{r}
 
 crop_demand <- 
@@ -96,6 +98,19 @@ saveRDS(raw_material_totals_by_origin, file = sprintf(here("data/tidy_data/deman
 ```
 
 ```{r}
+
+#Calculations of differences in FMFO demand
+
+raw_material_iteration |> 
+  filter(type %in%  c( "Total") & diet == "marine_diet") |> 
+  arrange(-demand) |> 
+  mutate(diff = demand-demand[1])
+
+
+
+#plot differences for supplementary information
+
+
 raw_material_iteration |> 
   filter(type %in%  c("Fishmeal", "Fish oil", "Total")) |>
   mutate(fao_area_code = factor(fao_area_code),
@@ -200,6 +215,44 @@ summary_by_pressure |> filter(pressure == "Nutrients" & diet == "plant diet") |>
 
 
 ```
+
+Breakdown of why FMFO GHGs vary so much - particularly the Northwest Pacific.
+
+```{r}
+
+embodied_fish_ghgs <- readRDS(here("data/large_data/embodied_fish_ghgs_econ_allocation.rds"))
+
+
+embodied_fish_ghgs |> group_by(fao_area_code, VBDesc) |> 
+  summarise(ghg_fm = sum(ei_kg_CO2_eq_fm),
+            ghg_fo = sum(ei_kg_CO2_eq_fo)) |> 
+  mutate(total_ghg = ghg_fm+ghg_fo) |> 
+  arrange(-total_ghg) |> 
+  group_by(fao_area_code) |> 
+  nest() |> 
+  mutate(prop_ghg = map(data, ~(.$total_ghg/sum(.$total_ghg)))) |> 
+  unnest(cols = c(data, prop_ghg))
+
+```
+
+
+Breakdown of distrubance variation
+```{r}
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 Some statistics on the number of species/crop raw materials/countries/marine regions needed to support demand. 
