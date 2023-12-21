@@ -338,7 +338,30 @@ carbon_conversion <- 9
     mutate(source = "trimmings")
     ) 
 
+#Save the data for TLs only
 
+(forage_tl_by_area <- 
+  fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> 
+    lazy_dt(immutable = FALSE) |> 
+    left_join(ecosystem_te, by="fao_area_code") |> 
+    left_join(forage_tls, by = "TaxonName") |> 
+    select(diet, fao_area_code, CommonName, total_embodied_fish, DietTroph) |> 
+  as_tibble())
+
+(trim_tl_by_area <- 
+  fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> 
+  lazy_dt(immutable = FALSE) |> 
+  left_join(ecosystem_te, by="fao_area_code") |> 
+  left_join(trim_tls, by = "TaxonName") |> 
+    select(diet, fao_area_code, CommonName, total_embodied_fish, DietTroph) |> 
+  as_tibble()
+)
+
+all_tls_by_area <- 
+  bind_rows(forage_tl_by_area, trim_tl_by_area) |> 
+  mutate(weighted_tl = total_embodied_fish*DietTroph)
+
+saveRDS(object = all_tls_by_area, file = sprintf(here("data/large_data/fish_tls_by_area_%s.rds"), this_allocation_method))
 
 #Bind the forage and trimmings catch npp per cell
 
@@ -349,6 +372,9 @@ all_fish_npp <-
   summarise(area_fm = sum(area_fm),
             area_fo = sum(area_fo)) |> 
   left_join(cell_area)
+
+
+saveRDS(object = all_fish_npp, file = sprintf(here("data/large_data/fish_disturbance_join_%s.rds"), this_allocation_method))
 
 
 #km per tonne of fishmeal/oil estimates

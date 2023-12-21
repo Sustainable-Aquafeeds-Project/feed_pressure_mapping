@@ -236,10 +236,72 @@ embodied_fish_ghgs |> group_by(fao_area_code, VBDesc) |>
 ```
 
 
-Breakdown of distrubance variation
+Breakdown of disturbance variation
 ```{r}
 
+#breakdown of trophic level by area
+readRDS(sprintf(here("data/large_data/fish_tls_by_area_%s.rds"), this_allocation_method)) |> 
+  group_by(fao_area_code) |> 
+  summarise(weighted_mean_tl = sum(weighted_tl)/sum(total_embodied_fish))
 
+#which species contribute the most to fish from the different regions and what is their trophic level?
+readRDS(sprintf(here("data/large_data/fish_tls_by_area_%s.rds"), this_allocation_method)) |> 
+  group_by(fao_area_code, CommonName, DietTroph) |> 
+  summarise(total_embodied_fish = sum(total_embodied_fish)) |> 
+  ungroup() |> 
+  arrange( -total_embodied_fish) #blue whiting is a large contributor with a tl of 4.13
+
+
+#how much does distrubance vary for fmfo?
+marine_fo_dist <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "fish oil_production_disturbance_moll|fish oil_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_fo_dist <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "fish oil_production_disturbance_moll|fish oil_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+   
+     this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+  })
+  
+
+fish_disturbance_df <- 
+  bind_rows(marine_fo_dist, plant_fo_dist) |> 
+  mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
+                          area == 31 ~ "Western-central Atlantic",
+                          area == 61 ~ "Northwest Pacific",
+                          area == 67 ~ "Northeast Pacific",
+                          area == 87 ~ "Southeast Pacific")) 
+
+#fishing in area 27 compared to min (31)
+fish_disturbance_df |> filter(stage == "production" & diet == "Fish-dominant") |>  pull(sum) |> max()/fish_disturbance_df |> filter(stage == "production" & diet == "Fish-dominant") |>  pull(sum) |> min()
+
+#at least how many times greater is area 27 than anywhere else in disturbance
+fish_disturbance_df |> filter(stage == "production" & diet == "Fish-dominant") |> arrange(-sum) |>  pull(sum) |> pluck(1) /fish_disturbance_df |> filter(stage == "production" & diet == "Fish-dominant") |> arrange(-sum) |>  pull(sum) |> pluck(2)
 
 ```
 
