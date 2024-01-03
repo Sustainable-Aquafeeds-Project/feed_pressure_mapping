@@ -335,6 +335,18 @@ all_tls_by_area <-
 
 saveRDS(object = all_tls_by_area, file = sprintf(here("data/large_data/fish_tls_by_area_%s.rds"), this_allocation_method))
 
+#save the prop of npp files for later
+
+prop_npp <- bind_rows(forage_npp |> select(diet, fao_area_code,LonCentre, LatCentre,mean_npp_t_C_yr, ppr_fm, ppr_fo, ppr_prop_fm, ppr_prop_fo, source),
+            trim_npp |> select(diet, fao_area_code,LonCentre, LatCentre, mean_npp_t_C_yr, ppr_fm, ppr_fo, ppr_prop_fm, ppr_prop_fo, source))
+
+
+saveRDS(object = prop_npp, file = sprintf(here("data/large_data/prop_npp_%s.rds"), this_allocation_method))
+
+
+
+
+
 #Bind the forage and trimmings catch npp per cell
 
 all_fish_npp <- 

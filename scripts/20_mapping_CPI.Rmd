@@ -95,9 +95,9 @@ Combine all values for pressures for a marine diet
 marine_source_ingredient <- 
   marine_diets |> 
   select(ingredient) |> 
-  mutate(source_1 = c(1, 1, 3, 4, 2, 5, 1),
+  mutate(source_1 = c(1, 1, 3, 1, 2, 5, 1),
          source_2 = c(2, 3, 1, 2, 4, 2, 3),
-         source_3 = c(3, 5, 5, 1, 3, 2, 4))|> 
+         source_3 = c(3, 5, 5, 4, 3, 2, 4))|> 
    mutate(row = row_number()) |> 
    group_split(row) 
   # select(ingredient, source_1 = `5`, source_2 = `9`, source_3 = `21`) |> 
@@ -188,9 +188,9 @@ Combine all values for a plant-dominant diet
 plant_source_ingredient <- 
   plant_diets |> 
   select(ingredient) |> 
- mutate(source_1 = c(1, 1, 2, 4, 4, 3, 3, 1, 3, 4, 2, 2, 1),
-         source_2 = c(2, 2, 3, 3, 1, 2, 3, 3, 5, 1, 3, 5, 2),
-         source_3 = c(3, 3, 1, 5, 5, 1, 4, 2, 1, 2, 1, 3, 5)) |> 
+ mutate(source_1 = c(1, 1, 2, 4, 5, 2, 3, 1, 3, 4, 2, 2, 1),
+         source_2 = c(2, 2, 3, 3, 4, 2, 3, 3, 5, 1, 3, 5, 2),
+         source_3 = c(3, 3, 1, 5, 3, 1, 4, 2, 1, 2, 1, 3, 5)) |> 
    mutate(row = row_number()) |> 
   group_split(row) 
 # 
@@ -496,9 +496,9 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_rasters[[3]], xy=TRUE)
 #     ncol=1,
 #     heights = c(11,1))
 source_diet_map <- 
-  (marine_sourcing_p1|plant_sourcing_p3)/
+  (marine_sourcing_p1|plant_sourcing_p1 )/
   (marine_sourcing_p2|plant_sourcing_p2)/
-  (marine_sourcing_p3|plant_sourcing_p1)+
+  (marine_sourcing_p3|plant_sourcing_p3)+
   plot_layout(guides = "collect")+
   plot_annotation(tag_levels = "a", #surely there is a better way than below?
                   title = "                      Fish-dominant feed                                 Plant-dominant feed") & 
