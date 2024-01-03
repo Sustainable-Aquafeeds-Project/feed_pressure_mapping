@@ -76,29 +76,14 @@ Import net primary productivity data
 
 #make npp into an xy file
 
-mean_npp <- rast(here("data/spatial/00-net-primary-productivity/annual_mean_npp_2019_gf_wgs.tif"))
-median_npp <- rast(here("data/spatial/00-net-primary-productivity/annual_median_npp_2019_gf_wgs.tif")) 
-min_npp <- rast(here("data/spatial/00-net-primary-productivity/annual_min_npp_2019_gf_wgs.tif")) 
-max_npp <- rast(here("data/spatial/00-net-primary-productivity/annual_max_npp_2019_gf_wgs.tif"))
+mean_npp <- rast(here("data/spatial/00-net-primary-productivity/npp_2013_2022_mean.tif")) |> focal(w=9, fun = mean, na.policy = "only", na.rm=TRUE)
+max_npp <- rast(here("data/spatial/00-net-primary-productivity/npp_2013_2022_max.tif")) |> focal(w=9, fun = mean, na.policy = "only", na.rm=TRUE)
 
 #mean 
 mean_npp_xyz <- terra::as.data.frame(mean_npp, xy = TRUE) |> 
   rename(mean_npp_t_km2_yr=focal_mean) |> 
   rename(LonCentre = x, 
          LatCentre = y)
-
-#median
-median_npp_xyz <- terra::as.data.frame(median_npp, xy = TRUE) |> 
-  rename(median_npp_t_km2_yr=focal_mean) |> 
-  rename(LonCentre = x, 
-         LatCentre = y)
-
-#min
-min_npp_xyz <- terra::as.data.frame(min_npp, xy = TRUE) |> 
-  rename(min_npp_t_km2_yr=focal_mean) |> 
-  rename(LonCentre = x, 
-         LatCentre = y)
-
 #max
 max_npp_xyz <- terra::as.data.frame(max_npp, xy = TRUE) |> 
   rename(max_npp_t_km2_yr=focal_mean) |> 
@@ -189,7 +174,7 @@ Get trimmings species trophic levels  - needed for calculating the primary produ
 
 ```{r}
 
-#Separate the catch records that have Genus and species.
+#Separate the catch records that have Genus and species
 (trim_spp <- readRDS(here("data/large_data/trimmings_spp_catch.rds")) |> 
    mutate(binomial = stringi::stri_count(TaxonName, regex="\\S+")) |> 
    filter(binomial==2) |> 
@@ -197,7 +182,7 @@ Get trimmings species trophic levels  - needed for calculating the primary produ
    unique())
 
 
-#test the function
+  #test the function
 this_sp <- forage_spp[[1]]
 
 
@@ -250,7 +235,6 @@ trim_tls <-
 Attach NPP, TL, data to forage and trimmings catch data and calculate the primary productivity required for the catch, the proportion of the annual PPR that is and tmultiply this proportion by the size of the cell.    
 
 ```{r}
-
 carbon_conversion <- 9
 
 (forage_npp <- 
@@ -260,38 +244,31 @@ carbon_conversion <- 9
     left_join(forage_tls, by = "TaxonName") |>
     mutate(te = case_when(is.na(te) ~ ecosystem_te |> pull(te) |> mean(),
                           TRUE ~ te)) |> 
-    left_join(mean_npp_xyz) |> 
-    left_join(median_npp_xyz) |> 
-    left_join(min_npp_xyz) |> 
-    left_join(max_npp_xyz) |> 
+    left_join(mean_npp_xyz, by = c("LonCentre", "LatCentre")) |> 
+    left_join(max_npp_xyz, by = c("LonCentre", "LatCentre")) |> 
     left_join(cell_area) |> 
     mutate(mean_npp_t_C_yr = mean_npp_t_km2_yr*area) |> 
-    mutate(median_npp_t_C_yr = median_npp_t_km2_yr*area) |> 
-    mutate(min_npp_t_C_yr = min_npp_t_km2_yr*area) |> 
     mutate(max_npp_t_C_yr = max_npp_t_km2_yr*area) |>
     as_tibble() |> 
     mutate(ppr_fm_mass = (fm_embodied_fish/carbon_conversion)*(1/te)^(DietTroph-1), #T C yr-1
            ppr_fo_mass = (fo_embodied_fish/carbon_conversion)*(1/te)^(DietTroph-1)) |> 
     group_by(diet, fao_area_code, LonCentre, LatCentre) |> 
     summarise(mean_npp_t_C_yr = mean(mean_npp_t_C_yr) ,
-              median_npp_t_C_yr = mean(median_npp_t_C_yr),
-              min_npp_t_C_yr = mean(min_npp_t_C_yr),
               max_npp_t_C_yr = mean(max_npp_t_C_yr),
               ppr_fm = sum(ppr_fm_mass),
               ppr_fo = sum(ppr_fo_mass)) |> 
     ungroup() |> 
-    mutate(ppr_prop_fm = case_when(ppr_fm/max_npp_t_C_yr<1 ~ ppr_fm/max_npp_t_C_yr,
+    mutate(ppr_prop_fm = case_when(ppr_fm/max_npp_t_C_yr<1 ~ ppr_fm/mean_npp_t_C_yr,
                                         TRUE ~ ppr_fm/max_npp_t_C_yr),
            
-           ppr_prop_fo = case_when(ppr_fo/max_npp_t_C_yr<1 ~ ppr_fo/max_npp_t_C_yr,
+           ppr_prop_fo = case_when(ppr_fo/max_npp_t_C_yr<1 ~ ppr_fo/mean_npp_t_C_yr,
                                         TRUE ~ ppr_fo/max_npp_t_C_yr)) |> 
     arrange(LonCentre, LatCentre) |> 
     left_join(cell_area) |> 
     mutate(area_fm = ppr_prop_fm*area,
            area_fo = ppr_prop_fo*area) |> 
     mutate(source = "forage"))
- 
-    
+
 
 
 (trim_npp <- 
@@ -301,42 +278,37 @@ carbon_conversion <- 9
   mutate(te = case_when(is.na(te) ~ ecosystem_te |> pull(te) |> mean(),
                         TRUE ~ te)) |> 
   left_join(mean_npp_xyz) |> 
-    left_join(median_npp_xyz) |> 
-    left_join(min_npp_xyz) |> 
     left_join(max_npp_xyz) |> 
     left_join(cell_area) |> 
     #work around for missing npp data for cod
     group_by(fao_area_code) |> 
-    mutate_at(vars(mean_npp_t_km2_yr,median_npp_t_km2_yr,min_npp_t_km2_yr, max_npp_t_km2_yr), 
+    mutate_at(vars(mean_npp_t_km2_yr, max_npp_t_km2_yr), 
             ~replace_na(., 
                         mean(., na.rm = TRUE))) |> 
     ungroup() |> 
     mutate(mean_npp_t_C_yr = mean_npp_t_km2_yr*area) |> 
-    mutate(median_npp_t_C_yr = median_npp_t_km2_yr*area) |> 
-    mutate(min_npp_t_C_yr = min_npp_t_km2_yr*area) |> 
     mutate(max_npp_t_C_yr = max_npp_t_km2_yr*area) |>
     mutate(ppr_fm = (fm_embodied_fish/carbon_conversion)*(1/te)^(DietTroph-1), #T C yr-1
            ppr_fo = (fo_embodied_fish/carbon_conversion)*(1/te)^(DietTroph-1)) |> 
     as_tibble() |> 
     group_by(diet, fao_area_code, LonCentre, LatCentre) |> 
     summarise(mean_npp_t_C_yr = mean(mean_npp_t_C_yr) ,
-              median_npp_t_C_yr = mean(median_npp_t_C_yr),
-              min_npp_t_C_yr = mean(min_npp_t_C_yr),
               max_npp_t_C_yr = mean(max_npp_t_C_yr),
               ppr_fm = sum(ppr_fm),
               ppr_fo = sum(ppr_fo)) |> 
     ungroup() |> 
-     mutate(ppr_prop_fm = case_when(ppr_fm/max_npp_t_C_yr<1 ~ ppr_fm/max_npp_t_C_yr,
-                                        TRUE ~ ppr_fm/max_npp_t_C_yr),
+     mutate(ppr_prop_fm = case_when(ppr_fm/max_npp_t_C_yr<1 ~ ppr_fm/mean_npp_t_C_yr,
+                                        TRUE ~ ppr_fm/mean_npp_t_C_yr),
            
-           ppr_prop_fo = case_when(ppr_fo/max_npp_t_C_yr<1 ~ ppr_fo/max_npp_t_C_yr,
-                                        TRUE ~ ppr_fo/max_npp_t_C_yr)) |> 
+           ppr_prop_fo = case_when(ppr_fo/max_npp_t_C_yr<1 ~ ppr_fo/mean_npp_t_C_yr,
+                                        TRUE ~ ppr_fo/mean_npp_t_C_yr)) |> 
          arrange(LonCentre, LatCentre) |> 
     left_join(cell_area) |> 
     mutate(area_fm = ppr_prop_fm*area,
            area_fo = ppr_prop_fo*area) |> 
     mutate(source = "trimmings")
     ) 
+
 
 #Save the data for TLs only
 
@@ -379,34 +351,34 @@ saveRDS(object = all_fish_npp, file = sprintf(here("data/large_data/fish_disturb
 
 #km per tonne of fishmeal/oil estimates
 all_fish_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum()/ (38400)
+  pull(area_fm)  |> sum(na.rm=TRUE)/ (38400)
 all_fish_npp |> filter(fao_area_code == "31" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum()/ (38400)
+  pull(area_fm)  |> sum(na.rm=TRUE)/ (38400)
 all_fish_npp |> filter(fao_area_code == "61" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum()/ (38400)
+  pull(area_fm)  |> sum(na.rm=TRUE)/ (38400)
 all_fish_npp |> filter(fao_area_code == "67" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum()/ (38400)
+  pull(area_fm)  |> sum(na.rm=TRUE)/ (38400)
 all_fish_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum()/ (38400)
+  pull(area_fm)  |> sum(na.rm=TRUE)/ (38400)
 
 
 
 #fishmeal trim
 trim_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum()/ (38400*0.3)
+  pull(area_fm)  |> sum(na.rm=TRUE)/ (38400*0.3)
 
 #fo trim 
 trim_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |> 
-  pull(area_fo)  |> sum() /(27600*0.4)
+  pull(area_fo)  |> sum(na.rm=TRUE) /(27600*0.4)
 
 
 #fishmeal forage
 forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum() / (38400*0.7)
+  pull(area_fm)  |> sum(na.rm=TRUE) / (38400*0.7)
 
 #fo forage
 forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
-  pull(area_fo)  |> sum() / (27600*0.6)
+  pull(area_fo)  |> sum(na.rm=TRUE) / (27600*0.6)
 
 ```
 
@@ -456,7 +428,7 @@ map(.x = all_fish_npp_list, .f = \(this_diet_fao_area){
   
   # FISH OIL DISTURBANCE
   
-  message("Processing fish oil disturbance raster - ", this_diet, " - fao area ", this_fao_area_code, " - ",  "mass allocation")
+  message("Processing fish oil disturbance raster - ", this_diet, " - fao area ", this_fao_area_code, " - ",  this_allocation_method)
   
   fo_saveName <- sprintf(here("data/spatial/%s/int/fish oil_disturbance_km2_%s_%s.tif"), this_diet, this_allocation_method, this_fao_area_code)
   

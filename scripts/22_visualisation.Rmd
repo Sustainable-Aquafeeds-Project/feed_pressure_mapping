@@ -536,12 +536,12 @@ fo_dist_plot <-
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim = c(0, 9000), clip="off") +
+    coord_cartesian(ylim = c(0,500), clip="off") +
   #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
-    annotate("segment", x = 3, xend = 3, y=-450, yend = -650)+
+   annotate("segment", x = 3, xend = 3, y=-25, yend = -35)+
   labs(fill = "FAO fishing area", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
   geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fish oil", size=3, fontface="bold")+
-  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 8700, ymax = 10000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 460, ymax = 500, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
   
   
   ggsave(filename = sprintf(here("explore/fish_oil_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
@@ -639,11 +639,11 @@ soy_dist_plot <-
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim = c(0, 295), clip="off")+
+    coord_cartesian(ylim = c(0, 500), clip="off")+
   labs(fill = "Country", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
-  annotate("segment", x = 3, xend = 3, y=-15, yend = -20)+
+   annotate("segment", x = 3, xend = 3, y=-25, yend = -35)+
   geom_text(data = facet_text, aes(x = area_name+0.5, y = sum), label = "SBM/SPC", size=3, fontface="bold")+
-  annotation_custom2(soy_png, xmin = 1, xmax = 2, ymin = 220, ymax = 280, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(soy_png, xmin = 1, xmax = 2, ymin = 400, ymax = 500, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
@@ -749,7 +749,7 @@ fo_ghg_plot <-
    annotate("segment", x = 3, xend = 3, y=-15000, yend = -10000)+
   labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
   geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fish oil", size=3, fontface="bold")+
-  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 212000, ymax = 222000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 202000, ymax = 212000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/fish_oil_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
@@ -960,7 +960,7 @@ wg_nutr_plot <-
         legend.margin = margin(-0.2,0,0,0, unit="cm"))+
     coord_cartesian(ylim = c(0, 125), clip="off") +
   labs(fill = "Country", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
-     annotate("segment", x = 3, xend = 3, y=-2, yend = -5)+
+     annotate("segment", x = 3, xend = 3, y=-6, yend = -9)+
   geom_text(data = facet_text, aes(x = area_name+0.8, y = sum), label = "Wheat gluten", size=3, fontface="bold")+
   annotation_custom2(wheat_png, xmin = 2.8, xmax = 5, ymin = 120, ymax = 132, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
   
@@ -1029,7 +1029,7 @@ faba_water_df <- bind_rows(marine_faba_water, plant_faba_water) |>
 
 
 faba_water_plot <- 
-  ggplot(data = soy_water_df)+
+  ggplot(data = faba_water_df)+
   geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
     position="stack",
     pattern_type = "stripe",
@@ -1065,7 +1065,7 @@ faba_water_plot <-
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
     coord_cartesian(ylim=c(0,140), clip="off")+
   labs(fill = "Country", y = bquote(Water~consumption~("1000s"~m^3)), x = "Feed scenario", pattern = "Stage")+
-  annotate("segment", x = 3, xend = 3, y=-7, yend = -12)+
+  annotate("segment", x = 3, xend = 3, y=-7, yend = -10)+
   geom_text(data = facet_text, aes(x = area_name+0.5, y = sum), label = "Faba beans", size=3, fontface="bold")+
  annotation_custom2(faba_png, xmin = 2.7, xmax = 4.9, ymin = 135, ymax = 150, data = faba_water_df |> filter(diet == "Fish-dominant"))
   
@@ -1170,6 +1170,9 @@ ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand
   mutate(mean = map(data, ~(mean(.$km_tonne)))) |> 
   unnest(cols = c(data, mean))
 )
+
+
+fo_dist_plot
 ```
 
 # first row for marine ingredients

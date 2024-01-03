@@ -887,7 +887,11 @@ Import the global net primary productivity data from NPP synthesis repo. Taken f
 # install.packages("BiocManager")
 # BiocManager::install("rhdf5")
 
-npp_2013_2022 <- rast(file.path(rdsi_dir, ("github/npp_synthesis/data/npp_2013_2022_mean.tif"))) |> writeRaster(filename = here("data/spatial/00-net-primary-productivity/npp_2013_2022_mean.tif"))
+npp_2013_2022 <- rast(file.path(rdsi_dir, ("github/npp_synthesis/data/npp_2013_2022_mean.tif"))) |> 
+  writeRaster(filename = here("data/spatial/00-net-primary-productivity/npp_2013_2022_mean.tif"), overwrite=TRUE)
+
+npp_2013_2022_max <- rast(file.path(rdsi_dir, ("github/npp_synthesis/data/npp_2013_2022_max.tif"))) |> writeRaster(filename = here("data/spatial/00-net-primary-productivity/npp_2013_2022_max.tif"), overwrite=TRUE)
+
 
 
 ```
