@@ -386,7 +386,7 @@ trim_npp |> filter(fao_area_code == "27" & diet == "marine_diet") |>
 
 #fishmeal forage
 forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 
-  pull(area_fm)  |> sum(na.rm=TRUE) / (38400*0.7)
+  pull(area_fm)  |> sum(na.rm=TRUE) / (38400)
 
 #fo forage
 forage_npp |> filter(fao_area_code == "87" & diet == "marine_diet") |> 

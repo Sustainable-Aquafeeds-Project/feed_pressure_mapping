@@ -332,8 +332,8 @@ ingredient_prop <-
 
 
 ggplot(data = ingredient_prop |> 
-         mutate(diet = case_when(diet == "marine diet" ~ "Fish-dominant diet",
-                                                           TRUE ~ "Plant-dominant diet"),
+         mutate(diet = case_when(diet == "marine diet" ~ "Fish-dominant",
+                                                           TRUE ~ "Plant-dominant"),
                 pressure = factor(pressure, levels = c("GHG", "Disturbance", "Nutrients", "Water"))), 
        aes(x = str_to_sentence(ingredient), y= prop_CPI, fill = diet))+
   facet_grid(cols = vars(pressure))+
@@ -343,15 +343,17 @@ ggplot(data = ingredient_prop |>
   theme_bw()+
   theme(legend.position = "bottom",
         legend.background = element_rect(fill="transparent"),
-        legend.title = element_blank(),
+        legend.title = element_text(size=6, face= "bold"),
+        legend.text = element_text(size=6),
         panel.grid = element_blank(),
         text = element_text(size=8),
-        panel.border = element_rect(colour = "black", linewidth = 0.5),
+        panel.border = element_rect(colour = "black", linewidth = 0.6),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
+        axis.line = element_blank(),
         axis.title.y = element_blank())+
   coord_flip()+
-  labs(y="Proportion of CPI")
+  labs(y="Proportion of CPI", fill = "Feed scenario")
 
 ggsave(filename = sprintf(here("figures/disaggregation_of_CPI_proportion_by_ingredient_%s.jpg"), this_allocation_method) , dpi = 600, device = "jpeg", width = 18, height = 12, units = "cm")
 
@@ -380,15 +382,13 @@ ingredient_prop <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_b
 
 
 
-ggplot(data = ingredient_prop_tonne |> 
-         mutate(diet = case_when(diet == "marine diet" ~ "Fish-dominant diet",
-                                                           TRUE ~ "Plant-dominant diet"),
-                pressure = factor(pressure, levels = c("GHG", "Disturbance", "Nutrients", "Water"))), 
-       aes(x = str_to_sentence(ingredient), y= pressure_tonne, fill = diet))+
+ggplot(data = ingredient_prop_tonne |> select(ingredient, pressure, pressure_tonne) |>  distinct() |> 
+         mutate(pressure = factor(pressure, levels = c("GHG", "Disturbance", "Nutrients", "Water"))), 
+       aes(x = str_to_sentence(ingredient), y= pressure_tonne))+
   facet_grid(cols = vars(pressure))+
-  geom_point(pch = 21, size= 1, position = position_jitterdodge(jitter.width = 0.3), alpha = 0.1, stroke=0.1)+
+  geom_point(pch = 21, size= 1, stroke=0.1)+
   geom_boxplot(colour = "grey35", alpha = 0.4, linewidth=0.2, outlier.alpha = 0, width = 0.8)+
-  scale_fill_manual(values = rev(my_pal[c(4,2)]))+
+  #scale_fill_manual(values = rev(my_pal[c(4,2)]))+
   theme_bw()+
   theme(legend.position = "bottom",
         legend.background = element_rect(fill="transparent"),
@@ -397,6 +397,7 @@ ggplot(data = ingredient_prop_tonne |>
         text = element_text(size=8),
         panel.border = element_rect(colour = "black", linewidth = 0.5),
         axis.text = element_text(size=8),
+        axis.text.x = element_text(size = 8, angle = 45, hjust=1),
         axis.title = element_text(size=8),
         axis.title.y = element_blank())+
   coord_flip()+
@@ -449,7 +450,748 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_ingredients_
 # Ingredient case studies
 
 ```{r}
-# FISH OIL - DISTURBANCE
+# FISH MEAL - DISTURBANCE
+
+marine_fm_dist <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_fm_dist <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+   
+     this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+  })
+  
+
+fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |> 
+  mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
+                          area == 31 ~ "Western-central Atlantic",
+                          area == 61 ~ "Northwest Pacific",
+                          area == 67 ~ "Northeast Pacific",
+                          area == 87 ~ "Southeast Pacific"))
+
+#fishmeal label
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1.5)
+
+#anchovy png
+ff_png <- png::readPNG(here("data/tidy_data/png/engraulis-australis-australian-anchovy.png"))
+ff_png <- grid::rasterGrob(ff_png)
+
+
+fm_dist_plot <- 
+  ggplot(data = fm_disturbance_df)+
+  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum,  pattern = stage),
+    position="stack",
+    pattern_type = "stripe",
+    pattern_size = 0.08,
+    pattern_spacing = 0.02, 
+    pattern_frequency = 3,
+    pattern_fill="grey40",   #removes gray parts you see between pattern lines
+    pattern_angle = 45,
+    pattern_colour = "grey40", 
+    linewidth=0.08) +
+  facet_grid(~diet, switch = "x")+
+  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
+  scale_x_discrete(expand=expansion(mult=0.3))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top",order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top",order = 1))+
+   theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(size=8),
+        panel.background = element_blank(),
+        axis.line = element_line(),
+        panel.spacing = unit(0, 'pt'),
+        text=element_text(size=8),
+        legend.position = c(0.7,0.83),
+        legend.box = "horizontal",
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.3, "cm"),
+        legend.background = element_rect(fill = "transparent"),
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+  coord_cartesian(ylim = c(0,620), clip="off") +
+  #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
+   annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
+  labs(fill = "FAO fishing area", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
+  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
+  annotation_custom2(ff_png, xmin = 0.5, xmax = 2, ymin = 590, ymax = 630, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+
+
+
+ggsave(filename = sprintf(here("explore/fishmeal_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+  
+  
+  
+  
+############################################  
+  
+  
+#SBM/SPC - DISTURBANCE
+
+#marine diet
+
+marine_SBM_dist <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "soybean meal_production_disturbance_moll|soybean meal_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_SPC_dist <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "soy protein concentrate_production_disturbance_moll|soy protein concentrate_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+  })
+  
+
+#facet label
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+
+#soy png
+soy_png <- png::readPNG(here("data/tidy_data/png/soybeans.png"))
+soy_png <- grid::rasterGrob(soy_png)
+
+soy_disturbance_df <- bind_rows(marine_SBM_dist, plant_SPC_dist) |> 
+  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
+
+
+soy_dist_plot <- 
+  ggplot(data = soy_disturbance_df)+
+  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum,  pattern = stage),
+    position="stack",
+    pattern_type = "stripe",
+    pattern_size = 0.08,
+    pattern_spacing = 0.02, 
+    pattern_frequency = 3,
+    pattern_fill="grey40",   # removes gray parts you see between pattern lines
+    pattern_angle = 45,
+    pattern_colour = "grey40", 
+    linewidth=0.08) +
+  facet_grid(~diet, switch = "x")+
+  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
+  scale_x_discrete(expand=expansion(mult=0.3))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top",order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top",order = 1))+
+   theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(size=8),
+        panel.background = element_blank(),
+        axis.line = element_line(),
+        panel.spacing = unit(0, 'pt'),
+        text=element_text(size=8),
+        legend.position = c(0.7,0.83),
+        legend.box = "horizontal",
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.3, "cm"),
+        legend.background = element_rect(fill = "transparent"),
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+    coord_cartesian(ylim = c(0,620), clip="off") +
+  labs(fill = "Country", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
+   annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
+  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
+  annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 500, ymax = 630, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+
+ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+
+
+#########################################  
+  
+
+  # FISH MEAL - GHG
+
+#fish meal label
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1.5)
+
+#anchovy png
+ff_png <- png::readPNG(here("data/tidy_data/png/engraulis-australis-australian-anchovy.png"))
+ff_png <- grid::rasterGrob(ff_png)
+
+
+
+marine_fm_GHG <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "fishmeal_production_ghg_moll|fishmeal_processing_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_fm_GHG <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "fishmeal_production_ghg_moll|fishmeal_processing_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+  })
+  
+
+fm_GHG_df <- bind_rows(marine_fm_GHG, plant_fm_GHG) |> 
+  mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
+                          area == 31 ~ "Western-central Atlantic",
+                          area == 61 ~ "Northwest Pacific",
+                          area == 67 ~ "Northeast Pacific",
+                          area == 87 ~ "Southeast Pacific"))
+
+options(scipen = 999)
+fm_ghg_plot <- 
+  ggplot(data = fm_GHG_df)+
+  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
+    position="stack",
+    pattern_type = "stripe",
+    pattern_size = 0.08,
+    pattern_spacing = 0.02, 
+    pattern_frequency = 3,
+    pattern_fill="grey40",   # removes gray parts you see between pattern lines
+    pattern_angle = 45,
+    pattern_colour = "grey40", 
+    linewidth=0.08) +
+  facet_grid(~diet, switch = "x")+
+  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "TealGrn"))+
+  scale_x_discrete(expand=expansion(mult=0.3))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top",order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
+   theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(size=8),
+        panel.background = element_blank(),
+        axis.line = element_line(),
+        panel.spacing = unit(0, 'pt'),
+        text=element_text(size=8),
+        legend.position = c(0.7,0.83),
+        legend.box = "horizontal",
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.3, "cm"),
+        legend.background = element_rect(fill = "transparent"),
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+   coord_cartesian(ylim = c(0, 350000), clip="off")+
+   annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
+  labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
+  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
+  annotation_custom2(ff_png, xmin = .5, xmax = 2, ymin = 332000, ymax = 362000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+
+ggsave(filename = sprintf(here("explore/fishmeal_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+
+
+
+#############################
+
+#SBM/SPC - GHG
+
+#marine diet
+
+marine_SBM_GHG <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "soybean meal_production_ghg_moll|soybean meal_processing_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+     this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_SPC_GHG <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "soy protein concentrate_production_ghg_moll|soy protein concentrate_processing_ghg_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+   this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+  })
+  
+
+
+
+
+#facet label
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+
+#soy png
+soy_png <- png::readPNG(here("data/tidy_data/png/soybeans.png"))
+soy_png <- grid::rasterGrob(soy_png)
+
+
+
+soy_ghg_df <- bind_rows(marine_SBM_GHG, plant_SPC_GHG) |> 
+  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
+
+options(scipen = 999)
+soy_ghg_plot <- 
+  ggplot(data = soy_ghg_df)+
+  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
+    position="stack",
+    pattern_type = "stripe",
+    pattern_size = 0.08,
+    pattern_spacing = 0.02, 
+    pattern_frequency = 3,
+    pattern_fill="grey40",   # removes gray parts you see between pattern lines
+    pattern_angle = 45,
+    pattern_colour = "grey40", 
+    linewidth=0.08) +
+  facet_grid(~diet, switch = "x")+
+  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
+  scale_x_discrete(expand=expansion(mult=0.3))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
+   theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(size=8),
+        panel.background = element_blank(),
+        axis.line = element_line(),
+        panel.spacing = unit(0, 'pt'),
+        text=element_text(size=8),
+        legend.position = c(0.75,0.83),
+        legend.box = "horizontal",
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.3, "cm"),
+        legend.background = element_rect(fill = "transparent"),
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+     coord_cartesian(ylim = c(0, 350000), clip="off")+
+   annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
+  labs(fill = "Country", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
+  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
+  annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 302000, ymax = 352000, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+  
+ 
+ggsave(filename = sprintf(here("explore/soy_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+################################
+
+#WHEAT GLUTEN - NUTRIENTS
+
+
+#marine diet
+
+marine_WG_nutr <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_WG_nutr <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+ })
+
+
+
+#wheat gluten label
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+
+#wheat png
+wheat_png <- png::readPNG(here("data/tidy_data/png/wheat-sheath.png"))
+wheat_png <- grid::rasterGrob(wheat_png)
+
+
+
+
+WG_nutr_df <- bind_rows(marine_WG_nutr, plant_WG_nutr) |> 
+  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
+
+
+
+
+#Wheat gluten nutrients plot
+
+wg_nutr_plot <- 
+  ggplot(data = WG_nutr_df)+
+  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
+    position="stack",
+    pattern_type = "stripe",
+    pattern_size = 0.08,
+    pattern_spacing = 0.02, 
+    pattern_frequency = 3,
+    pattern_fill="grey40",   # removes gray parts you see between pattern lines
+    pattern_angle = 45,
+    pattern_colour = "grey40", 
+    linewidth=0.08) +
+  facet_grid(~diet, switch = "x")+
+   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
+  scale_x_discrete(expand=expansion(mult=0.3))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
+   theme(axis.title.x = element_text(size = 9, face = "bold"),
+     axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(size=8),
+        panel.background = element_blank(),
+        axis.line = element_line(),
+        panel.spacing = unit(0, 'pt'),
+        text=element_text(size=8),
+        legend.position = c(0.75,0.83),
+        legend.box = "horizontal",
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.3, "cm"),
+        legend.background = element_rect(fill = "transparent"),
+        legend.margin = margin(-0.2,0,0,0, unit="cm"))+
+    coord_cartesian(ylim = c(0, 125), clip="off") +
+  labs(fill = "Country", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
+     annotate("segment", x = 3, xend = 3, y=-6, yend = -9)+
+  geom_text(data = facet_text, aes(x = area_name+1.25, y = sum), label = "Wheat gluten (13/10%)", size=2.5, fontface="bold")+
+  annotation_custom2(wheat_png, xmin = -0.2, xmax = 2, ymin = 113, ymax = 125, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+  
+ggsave(filename = sprintf(here("explore/wheat_gluten_%s.jpg"), this_allocation_method), dpi = 600, width = 8.9, height=7, unit="cm")
+
+
+
+##########################
+
+#SBM/SPC - WATER 
+
+
+marine_faba_water <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_faba_water <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+ })
+
+
+
+#facet label
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+
+#soy png
+faba_png <- png::readPNG(here("data/tidy_data/png/faba_beans.png"))
+faba_png <- grid::rasterGrob(faba_png)
+
+
+
+faba_water_df <- bind_rows(marine_faba_water, plant_faba_water) |> 
+  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
+
+
+faba_water_plot <- 
+  ggplot(data = faba_water_df)+
+  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
+    position="stack",
+    pattern_type = "stripe",
+    pattern_size = 0.08,
+    pattern_spacing = 0.02, 
+    pattern_frequency = 3,
+    pattern_fill="grey40",   # removes gray parts you see between pattern lines
+    pattern_angle = 45,
+    pattern_colour = "grey40", 
+    linewidth=0.08) +
+  facet_grid(~diet, switch = "x")+
+  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
+  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
+  scale_x_discrete(expand=expansion(mult=0.3))+
+  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
+         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
+   theme(axis.title.x = element_text(size = 9, face = "bold"),
+     axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        strip.background = element_rect(fill = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(size=8),
+        panel.background = element_blank(),
+        axis.line = element_line(),
+        panel.spacing = unit(0, 'pt'),
+        text=element_text(size=8),
+        legend.position = c(0.75,0.83),
+        legend.box = "horizontal",
+        legend.title = element_text(size=6),
+        legend.text = element_text(size=6),
+        legend.key.size = unit(0.3, "cm"),
+        legend.background = element_rect(fill = "transparent"),
+        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+    coord_cartesian(ylim=c(0,140), clip="off")+
+  labs(fill = "Country", y = bquote(Water~consumption~("1000s"~m^3)), x = "Feed scenario", pattern = "Stage")+
+  annotate("segment", x = 3, xend = 3, y=-7, yend = -10)+
+  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Faba beans (2/3%)", size=2.5, fontface="bold")+
+ annotation_custom2(faba_png, xmin = -0.3, xmax = 1.9, ymin = 125, ymax = 140, data = faba_water_df |> filter(diet == "Fish-dominant"))
+  
+ 
+
+ggsave(filename = sprintf(here("explore/faba_water_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+(fm_ghg_plot|soy_ghg_plot)/
+(fm_dist_plot|soy_dist_plot)/
+  (wg_nutr_plot|faba_water_plot)+
+  plot_annotation(tag_levels = "a")& 
+  theme(plot.tag = element_text(size=10), 
+        plot.tag.position = c(0, 1))
+  
+
+ggsave(filename = sprintf(here("figures/case_studies_%s.jpg"), this_allocation_method), dpi=600, width = 18, height = 21, unit = "cm")
+
+
+
+
+```
+
+Calculations from case studies plot
+
+```{r}
+ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
+
+#GHG emissions 
+
+(soy_ghg <- 
+  soy_ghg_df |> 
+  group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
+  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "soybean meal" & diet == "marine_diet") |> 
+                                         pull(ingredient_demand_tonnes),
+                                       diet== "Plant-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "soy protein concentrate" & diet == "plant_diet") |> 
+                                         pull(ingredient_demand_tonnes))) |> 
+  mutate(ghg_tonne = sum/ingredient_tonnes) |> 
+  ungroup() |> 
+  group_by(diet) |> 
+  nest() |> 
+  mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
+  unnest(cols = c(data, mean)))
+
+
+
+(fm_ghg <- 
+   fm_GHG_df |> filter(stage == "production") |> 
+  group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
+  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "fishmeal" & diet == "marine_diet") |> 
+                                         pull(ingredient_demand_tonnes),
+                                       diet== "Plant-dominant" ~ ingredient_demand |> 
+                                                     filter(ingredients == "fishmeal" & diet == "plant_diet") |> 
+                                         pull(ingredient_demand_tonnes))) |> 
+  mutate(ghg_tonne = sum/ingredient_tonnes) |> 
+  ungroup() |> 
+  group_by(diet) |> 
+  nest() |> 
+  mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
+  unnest(cols = c(data, mean))
+)
+
+
+
+
+#how does fishmeal disturbance compare to fish oil across the regions (30% of fishmeal in N. Atl comes from trimmings)
+marine_fm_dist <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_fm_dist <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+   
+     this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+  })
+  
+
+fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |> 
+  mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
+                          area == 31 ~ "Western-central Atlantic",
+                          area == 61 ~ "Northwest Pacific",
+                          area == 67 ~ "Northeast Pacific",
+                          area == 87 ~ "Southeast Pacific"))
+
+
+
+ readRDS(sprintf(here("data/large_data/embodied_fish_ghgs_with_embodied_fish_%s.rds"), this_allocation_method)) |> 
+   group_by(diet, fao_area_code) |> 
+   summarise(tonnes_fm = sum(fm_embodied_fish),
+             tonnes_fo = sum(fo_embodied_fish),
+             ghg_w_mean_fm = sum(ei_kg_CO2_eq_fm)/sum(fm_embodied_fish),
+             ghg_w_mean_fo = sum(ei_kg_CO2_eq_fm)/sum(fm_embodied_fish)) |> 
+   ungroup() |> 
+   select(-diet) |> 
+   distinct()
+   
+
+ 
+ 
+   
+readRDS(sprintf(here("data/large_data/embodied_fish_ghgs_with_embodied_fish_%s.rds"), this_allocation_method)) |> 
+   
+```
+
+
+```{r}
+#calculation
+
 
 marine_fo_dist <- 
   
@@ -494,7 +1236,57 @@ fo_disturbance_df <- bind_rows(marine_fo_dist, plant_fo_dist) |>
                           area == 67 ~ "Northeast Pacific",
                           area == 87 ~ "Southeast Pacific"))
 
-#fish oil label
+```
+
+Supplementary case study of fishmeal
+```{r}
+
+# FISHMEAL - DISTURBANCE
+
+marine_fm_dist <- 
+  
+  list.files(here("data/spatial/marine_diet/int"), 
+                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+    
+    this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Fish-dominant"))
+  })
+
+
+plant_fm_dist <- 
+  
+  list.files(here("data/spatial/plant_diet/int"), 
+                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+  map(.f = \(this_file){
+    
+    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
+   
+     this_stage <- str_extract(pattern = "production|processing", string = this_file)
+    
+    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
+      select(sum) |> 
+      mutate(area = this_area,
+             stage = this_stage,
+             diet = "Plant-dominant"))
+  })
+  
+
+fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |> 
+  mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
+                          area == 31 ~ "Western-central Atlantic",
+                          area == 61 ~ "Northwest Pacific",
+                          area == 67 ~ "Northeast Pacific",
+                          area == 87 ~ "Southeast Pacific"))
+
+#fishmeal label
 facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
 
 #anchovy png
@@ -503,14 +1295,14 @@ ff_png <- grid::rasterGrob(ff_png)
 
 
 fo_dist_plot <- 
-  ggplot(data = fo_disturbance_df)+
+  ggplot(data = fm_disturbance_df)+
   geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum,  pattern = stage),
     position="stack",
     pattern_type = "stripe",
     pattern_size = 0.08,
     pattern_spacing = 0.02, 
     pattern_frequency = 3,
-    pattern_fill="grey40",   # removes gray parts you see between pattern lines
+    pattern_fill="grey40",   #removes gray parts you see between pattern lines
     pattern_angle = 45,
     pattern_colour = "grey40", 
     linewidth=0.08) +
@@ -536,15 +1328,16 @@ fo_dist_plot <-
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim = c(0,500), clip="off") +
+  coord_cartesian(ylim = c(0,620), clip="off") +
   #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
    annotate("segment", x = 3, xend = 3, y=-25, yend = -35)+
   labs(fill = "FAO fishing area", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
-  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fish oil", size=3, fontface="bold")+
-  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 460, ymax = 500, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
-  
-  
-  ggsave(filename = sprintf(here("explore/fish_oil_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fishmeal", size=3, fontface="bold")+
+  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 590, ymax = 630, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+
+
+
+ggsave(filename = sprintf(here("explore/fishmeal_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
 
   
@@ -648,18 +1441,15 @@ soy_dist_plot <-
 ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
 
-  
 
 
-
-  
 #########################################  
   
   
-  # FISH OIL - GHG
+  # FISH MEAL - GHG
 
-#fish oil label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+#fish meal label
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1.2)
 
 #anchovy png
 ff_png <- png::readPNG(here("data/tidy_data/png/engraulis-australis-australian-anchovy.png"))
@@ -667,10 +1457,10 @@ ff_png <- grid::rasterGrob(ff_png)
 
 
 
-marine_fo_GHG <- 
+marine_fm_GHG <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "fish oil_production_ghg_moll|fish oil_processing_ghg_moll", full.names = TRUE) |>
+                        pattern = "fishmeal_production_ghg_moll|fishmeal_processing_ghg_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -685,10 +1475,10 @@ marine_fo_GHG <-
   })
 
 
-plant_fo_GHG <- 
+plant_fm_GHG <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "fish oil_production_ghg_moll|fish oil_processing_ghg_moll", full.names = TRUE) |>
+                        pattern = "fishmeal_production_ghg_moll|fishmeal_processing_ghg_moll", full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -703,16 +1493,16 @@ plant_fo_GHG <-
   })
   
 
-fo_GHG_df <- bind_rows(marine_fo_GHG, plant_fo_GHG) |> 
+fm_GHG_df <- bind_rows(marine_fm_GHG, plant_fm_GHG) |> 
   mutate(area_name = case_when(area == 27 ~ "Northeast Atlantic",
                           area == 31 ~ "Western-central Atlantic",
                           area == 61 ~ "Northwest Pacific",
                           area == 67 ~ "Northeast Pacific",
                           area == 87 ~ "Southeast Pacific"))
 
-
-fo_ghg_plot <- 
-  ggplot(data = fo_GHG_df)+
+options(scipen = 999)
+fm_ghg_plot <- 
+  ggplot(data = fm_GHG_df)+
   geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
     position="stack",
     pattern_type = "stripe",
@@ -745,440 +1535,15 @@ fo_ghg_plot <-
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim = c(0, 210000), clip="off")+
-   annotate("segment", x = 3, xend = 3, y=-15000, yend = -10000)+
+   coord_cartesian(ylim = c(0, 350000), clip="off")+
+   annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
   labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
-  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fish oil", size=3, fontface="bold")+
-  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 202000, ymax = 212000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fishmeal", size=3, fontface="bold")+
+  annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 332000, ymax = 352000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
 
-ggsave(filename = sprintf(here("explore/fish_oil_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
-
-
-
-
-
-#############################
-
-#SBM/SPC - GHG
-
-#marine diet
-
-marine_SBM_GHG <- 
-  
-  list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "soybean meal_production_ghg_moll|soybean meal_processing_ghg_moll", full.names = TRUE) |>
-  map(.f = \(this_file){
-    
-    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
-    
-     this_stage <- str_extract(pattern = "production|processing", string = this_file)
-    
-    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
-      select(sum) |> 
-      mutate(area = this_area,
-             stage = this_stage,
-             diet = "Fish-dominant"))
-  })
-
-
-plant_SPC_GHG <- 
-  
-  list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "soy protein concentrate_production_ghg_moll|soy protein concentrate_processing_ghg_moll", full.names = TRUE) |>
-  map(.f = \(this_file){
-    
-    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
-   this_stage <- str_extract(pattern = "production|processing", string = this_file)
-    
-    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
-      select(sum) |> 
-      mutate(area = this_area,
-             stage = this_stage,
-             diet = "Plant-dominant"))
-  })
-  
-
-
-
-
-#facet label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
-
-#soy png
-soy_png <- png::readPNG(here("data/tidy_data/png/soybeans.png"))
-soy_png <- grid::rasterGrob(soy_png)
-
-
-
-soy_ghg_df <- bind_rows(marine_SBM_GHG, plant_SPC_GHG) |> 
-  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
-
-
-soy_ghg_plot <- 
-  ggplot(data = soy_ghg_df)+
-  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
-    position="stack",
-    pattern_type = "stripe",
-    pattern_size = 0.08,
-    pattern_spacing = 0.02, 
-    pattern_frequency = 3,
-    pattern_fill="grey40",   # removes gray parts you see between pattern lines
-    pattern_angle = 45,
-    pattern_colour = "grey40", 
-    linewidth=0.08) +
-  facet_grid(~diet, switch = "x")+
-  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
-  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
-  scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
-   theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        strip.background = element_rect(fill = "transparent"),
-        strip.placement = "outside",
-        strip.text = element_text(size=8),
-        panel.background = element_blank(),
-        axis.line = element_line(),
-        panel.spacing = unit(0, 'pt'),
-        text=element_text(size=8),
-        legend.position = c(0.75,0.83),
-        legend.box = "horizontal",
-        legend.title = element_text(size=6),
-        legend.text = element_text(size=6),
-        legend.key.size = unit(0.3, "cm"),
-        legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim = c(0, 210000), clip="off")+
-  labs(fill = "Country", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
-  annotate("segment", x = 3, xend = 3, y=-15000, yend = -10000)+
-  geom_text(data = facet_text, aes(x = area_name+0.5, y = sum), label = "SBM/SPC", size=3, fontface="bold")+
-  annotation_custom2(soy_png, xmin = 1, xmax = 2, ymin = 170000, ymax = 210000, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
-  
- 
-ggsave(filename = sprintf(here("explore/soy_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
-
-
-
-
-
-################################
-
-#WHEAT GLUTEN - NUTRIENTS
-
-
-#marine diet
-
-marine_WG_nutr <- 
-  
-  list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
-  map(.f = \(this_file){
-    
-    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
-    
-    this_stage <- str_extract(pattern = "production|processing", string = this_file)
-    
-    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
-      select(sum) |> 
-      mutate(area = this_area,
-             stage = this_stage,
-             diet = "Fish-dominant"))
-  })
-
-
-plant_WG_nutr <- 
-  
-  list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
-  map(.f = \(this_file){
-    
-    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
-    
-    this_stage <- str_extract(pattern = "production|processing", string = this_file)
-    
-    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
-      select(sum) |> 
-      mutate(area = this_area,
-             stage = this_stage,
-             diet = "Plant-dominant"))
- })
-
-
-
-#wheat gluten label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
-
-#wheat png
-wheat_png <- png::readPNG(here("data/tidy_data/png/wheat-sheath.png"))
-wheat_png <- grid::rasterGrob(wheat_png)
-
-
-
-
-WG_nutr_df <- bind_rows(marine_WG_nutr, plant_WG_nutr) |> 
-  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
-
-
-
-
-#Wheat gluten nutrients plot
-
-wg_nutr_plot <- 
-  ggplot(data = WG_nutr_df)+
-  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
-    position="stack",
-    pattern_type = "stripe",
-    pattern_size = 0.08,
-    pattern_spacing = 0.02, 
-    pattern_frequency = 3,
-    pattern_fill="grey40",   # removes gray parts you see between pattern lines
-    pattern_angle = 45,
-    pattern_colour = "grey40", 
-    linewidth=0.08) +
-  facet_grid(~diet, switch = "x")+
-   scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
-  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
-  scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
-   theme(axis.title.x = element_text(size = 9, face = "bold"),
-     axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        strip.background = element_rect(fill = "transparent"),
-        strip.placement = "outside",
-        strip.text = element_text(size=8),
-        panel.background = element_blank(),
-        axis.line = element_line(),
-        panel.spacing = unit(0, 'pt'),
-        text=element_text(size=8),
-        legend.position = c(0.75,0.83),
-        legend.box = "horizontal",
-        legend.title = element_text(size=6),
-        legend.text = element_text(size=6),
-        legend.key.size = unit(0.3, "cm"),
-        legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,0, unit="cm"))+
-    coord_cartesian(ylim = c(0, 125), clip="off") +
-  labs(fill = "Country", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
-     annotate("segment", x = 3, xend = 3, y=-6, yend = -9)+
-  geom_text(data = facet_text, aes(x = area_name+0.8, y = sum), label = "Wheat gluten", size=3, fontface="bold")+
-  annotation_custom2(wheat_png, xmin = 2.8, xmax = 5, ymin = 120, ymax = 132, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
-  
-ggsave(filename = sprintf(here("explore/wheat_gluten_%s.jpg"), this_allocation_method), dpi = 600, width = 8.9, height=7, unit="cm")
-
-
-
-
-
-
-
-
-##########################
-
-#SBM/SPC - WATER 
-
-
-marine_faba_water <- 
-  
-  list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
-  map(.f = \(this_file){
-    
-    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
-    
-    this_stage <- str_extract(pattern = "production|processing", string = this_file)
-    
-    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
-      select(sum) |> 
-      mutate(area = this_area,
-             stage = this_stage,
-             diet = "Fish-dominant"))
-  })
-
-
-plant_faba_water <- 
-  
-  list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
-  map(.f = \(this_file){
-    
-    this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
-    
-    this_stage <- str_extract(pattern = "production|processing", string = this_file)
-    
-    return(global(rast(this_file), fun = sum, na.rm=TRUE) |> 
-      select(sum) |> 
-      mutate(area = this_area,
-             stage = this_stage,
-             diet = "Plant-dominant"))
- })
-
-
-
-#facet label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
-
-#soy png
-faba_png <- png::readPNG(here("data/tidy_data/png/faba_beans.png"))
-faba_png <- grid::rasterGrob(faba_png)
-
-
-
-faba_water_df <- bind_rows(marine_faba_water, plant_faba_water) |> 
-  mutate(area_name = countrycode::countrycode(sourcevar = area, origin = "iso3c", destination="country.name", warn=TRUE))
-
-
-faba_water_plot <- 
-  ggplot(data = faba_water_df)+
-  geom_col_pattern(mapping = aes(x = area_name, fill = area_name, y = sum/1000,  pattern = stage),
-    position="stack",
-    pattern_type = "stripe",
-    pattern_size = 0.08,
-    pattern_spacing = 0.02, 
-    pattern_frequency = 3,
-    pattern_fill="grey40",   # removes gray parts you see between pattern lines
-    pattern_angle = 45,
-    pattern_colour = "grey40", 
-    linewidth=0.08) +
-  facet_grid(~diet, switch = "x")+
-  scale_pattern_manual(values = c(processing = "stripe", production = "none"))+
-  scale_fill_manual(values = rcartocolor::carto_pal(n=5, name = "BrwnYl"))+
-  scale_x_discrete(expand=expansion(mult=0.3))+
-  guides(fill = guide_legend(override.aes = list(pattern = "none"), title.position = "top", order = 2),
-         pattern = guide_legend(override.aes = list(fill = "grey95"), title.position = "top", order = 1))+
-   theme(axis.title.x = element_text(size = 9, face = "bold"),
-     axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        strip.background = element_rect(fill = "transparent"),
-        strip.placement = "outside",
-        strip.text = element_text(size=8),
-        panel.background = element_blank(),
-        axis.line = element_line(),
-        panel.spacing = unit(0, 'pt'),
-        text=element_text(size=8),
-        legend.position = c(0.75,0.83),
-        legend.box = "horizontal",
-        legend.title = element_text(size=6),
-        legend.text = element_text(size=6),
-        legend.key.size = unit(0.3, "cm"),
-        legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim=c(0,140), clip="off")+
-  labs(fill = "Country", y = bquote(Water~consumption~("1000s"~m^3)), x = "Feed scenario", pattern = "Stage")+
-  annotate("segment", x = 3, xend = 3, y=-7, yend = -10)+
-  geom_text(data = facet_text, aes(x = area_name+0.5, y = sum), label = "Faba beans", size=3, fontface="bold")+
- annotation_custom2(faba_png, xmin = 2.7, xmax = 4.9, ymin = 135, ymax = 150, data = faba_water_df |> filter(diet == "Fish-dominant"))
-  
- 
-
-ggsave(filename = sprintf(here("explore/faba_water_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
-
-
-(fo_ghg_plot|soy_ghg_plot)/
-(fo_dist_plot|soy_dist_plot)/
-  (wg_nutr_plot|faba_water_plot)+
-  plot_annotation(tag_levels = "a")& 
-  theme(plot.tag = element_text(size=10), 
-        plot.tag.position = c(0, 1))
-  
-
-ggsave(filename = sprintf(here("figures/case_studies_%s.jpg"), this_allocation_method), dpi=600, width = 18, height = 21, unit = "cm")
-
+ggsave(filename = sprintf(here("explore/fishmeal_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
 
 
 ```
 
-Calculations from case studies plot
-
-```{r}
-
-ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
-
-#GHG emissions 
-
-(soy_ghg <- 
-  soy_ghg_df |> 
-  group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
-  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "soybean meal" & diet == "marine_diet") |> 
-                                         pull(ingredient_demand_tonnes),
-                                       diet== "Plant-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "soy protein concentrate" & diet == "plant_diet") |> 
-                                         pull(ingredient_demand_tonnes))) |> 
-  mutate(ghg_tonne = sum/ingredient_tonnes) |> 
-  ungroup() |> 
-  group_by(diet) |> 
-  nest() |> 
-  mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
-  unnest(cols = c(data, mean)))
-
-
-
-(fo_ghg <- 
-   fo_GHG_df |> 
-  group_by(diet, area_name) |> summarise(sum = sum(sum)) |> 
-  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "fish oil" & diet == "marine_diet") |> 
-                                         pull(ingredient_demand_tonnes),
-                                       diet== "Plant-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "fish oil" & diet == "plant_diet") |> 
-                                         pull(ingredient_demand_tonnes))) |> 
-  mutate(ghg_tonne = sum/ingredient_tonnes) |> 
-  ungroup() |> 
-  group_by(diet) |> 
-  nest() |> 
-  mutate(mean = map(data, ~(mean(.$ghg_tonne)))) |> 
-  unnest(cols = c(data, mean))
-)
-
-
-
-(soy_dist <- 
-  soy_disturbance_df |> 
-  group_by(diet, area_name) |> 
-  summarise(sum = sum(sum)) |> 
-  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "soybean meal" & diet == "marine_diet") |> 
-                                         pull(ingredient_demand_tonnes),
-                                       diet== "Plant-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "soy protein concentrate" & diet == "plant_diet") |> 
-                                         pull(ingredient_demand_tonnes))) |> 
-  mutate(km_tonne = sum/ingredient_tonnes) |> 
-  ungroup() |> 
-  group_by(diet) |> 
-  nest() |> 
-  mutate(mean = map(data, ~(mean(.$km_tonne)))) |> 
-  unnest(cols = c(data, mean))
-)
-
-
-(fo_dist <- 
-  fo_disturbance_df |> 
-  group_by(diet, area_name) |> 
-  summarise(sum = sum(sum)) |> 
-  mutate(ingredient_tonnes = case_when(diet == "Fish-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "fish oil" & diet == "marine_diet") |> 
-                                         pull(ingredient_demand_tonnes),
-                                       diet== "Plant-dominant" ~ ingredient_demand |> 
-                                                     filter(ingredients == "fish oil" & diet == "plant_diet") |> 
-                                         pull(ingredient_demand_tonnes))) |> 
-  mutate(km_tonne = sum/ingredient_tonnes) |> 
-  ungroup() |> 
-  group_by(diet) |> 
-  nest() |> 
-  mutate(mean = map(data, ~(mean(.$km_tonne)))) |> 
-  unnest(cols = c(data, mean))
-)
-
-
-fo_dist_plot
-```
-
-# first row for marine ingredients
-
-marine_vs_plant_ghg \<- (fo_ghg_plot\|soy_ghg_plot)
-
-ggsave(filename = sprintf(here("explore/ghg_marine_vs_plant\_%s.jpg"), this_allocation_method), dp = 600, height = 7, width=18, unit = "cm")
-
-\`\`\`

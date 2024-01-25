@@ -327,7 +327,7 @@ plant_diet_ghg <- list.files(here("data/spatial/plant_diet/int"), pattern = past
 
 #REPROJECT PER KM2 DATA TO GALL PETERS EQUAL AREA FOR TOTAL PRESSURES
 
-this_file <- marine_diet_ghg[[1]]
+this_file <- marine_diet_ghg[[36]]
 
 
 # Marine diets
@@ -356,7 +356,7 @@ map(.x = marine_diet_ghg, .f =  \(this_file){
     
     this_reprojected_rast <- project(this_rast, moll_rast)
     
-    this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km", transform = FALSE) #multiply up the footprints from per km2 to total based on cellsize
+    this_adj_reproj_rast <- this_reprojected_rast*cellSize(this_reprojected_rast, unit="km") #multiply up the footprints from per km2 to total based on cellsize
     
     names(this_adj_reproj_rast) <- "kgCO2eq"
     
@@ -607,7 +607,7 @@ map(.x = marine_diet_nutrients, .f = \(this_file){
   
   saveName <- gsub("km2", "moll",this_new_file)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing ", basename(saveName))
     
@@ -644,7 +644,7 @@ map(.x = plant_diet_nutrients, .f = \(this_file){
   
   saveName <- gsub("km2", "moll",this_new_file)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("processing ", basename(saveName))
     
@@ -775,7 +775,7 @@ map(.x= md_reprojected_rasters_nutrient, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing", "'", this_basename, "'")
     
@@ -803,7 +803,7 @@ map(.x= pd_reprojected_rasters_nutrient, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing", "'", this_basename, "'")
     

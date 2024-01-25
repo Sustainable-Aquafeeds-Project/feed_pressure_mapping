@@ -159,7 +159,7 @@ summary_by_total <-
 
 
 #average differences in cpi
-summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> median()/summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> median()
+summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> median()/summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> median()
 summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max()/summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> max()
 
 
@@ -176,8 +176,8 @@ which(summary_by_total |> filter(diet == "marine diet") |> pull(cpi)>summary_by_
 ##how many of the plant-dominant scores are lower than the maximum fish-dominant scores
 which(summary_by_total |> filter(diet == "plant diet") |> pull(cpi)<summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max(), TRUE) |> length()/500
 
-#how many times lower can the CPI of the plant dominant scenario be despite the higher 
-summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max()/summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min()
+#how many times lower can the CPI of the plant dominant scenario be despite the higher average
+summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min()/summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max()
 
 
 
