@@ -70,10 +70,13 @@ raw_material_totals <-
   filter(type!="Total") |> 
   group_by(diet, fao_area_code) |>
   summarise(total_biomass = sum(demand)) |> 
-  ungroup() |> 
-  group_by(diet) |> 
-  summarise(mean_biomass = mean(total_biomass, na.rm=TRUE),
-            sd_biomass = sd(total_biomass, na.rm=TRUE))
+  ungroup() 
+# |> 
+#   group_by(diet) |> 
+#   summarise(mean_biomass = mean(total_biomass, na.rm=TRUE),
+#             sd_biomass = sd(total_biomass, na.rm=TRUE))
+
+
 
 saveRDS(raw_material_totals, file = sprintf(here("data/tidy_data/demand/total_raw_material_demand_%s.rds"), this_allocation_method))
   
@@ -96,6 +99,8 @@ saveRDS(raw_material_totals_by_origin, file = sprintf(here("data/tidy_data/deman
 
   
 ```
+
+# Differences in embodied fish among regions and the main drivers
 
 ```{r}
 
@@ -133,13 +138,38 @@ raw_material_iteration |>
 ggsave(filename = sprintf(here("figures/embodied_fish_demand_%s.jpeg"), this_allocation_method), dpi = 600, device = "jpeg", width = 9, height = 6, units = "cm")
 
 
-
-
 #calculations
 
 raw_material_iteration |> 
   filter(type %in%  c("Total") & diet == "marine_diet") |> pull(demand) |> sort() |> pluck(2)-raw_material_iteration |> 
   filter(type %in%  c("Total") & diet == "marine_diet") |> pull(demand) |> sort() |> pluck(1)
+  
+
+
+
+# Reasons for differences
+
+fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> 
+  lazy_dt() |> 
+  select(diet, fao_area_code, TaxonName, CommonName, trimmings_weight, byproduct_allocation_factor_fishmeal, byproduct_allocation_factor_fish_oil, total_embodied_fish) |> 
+  mutate(source = "trimmings") |> 
+  as_tibble() |> 
+  group_by(diet, fao_area_code) |> 
+  summarise(embodied_fish = sum(total_embodied_fish))
+
+fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> mutate(source = "forage fish") |> 
+  select(diet, fao_area_code, TaxonName, CommonName, forage_allocation_factor_fishmeal, forage_allocation_factor_fish_oil, total_embodied_fish) |> 
+  as_tibble() |> 
+  group_by(diet, fao_area_code, TaxonName, CommonName, forage_allocation_factor_fishmeal, forage_allocation_factor_fish_oil) |> 
+  summarise(embodied_fish = sum(total_embodied_fish)) |> 
+  arrange(diet, fao_area_code, -embodied_fish) |> 
+  ungroup() |> 
+  filter(diet == "marine_diet") |> 
+  group_by(diet, fao_area_code) |> 
+  nest() |> 
+  mutate(cumulative = map(data, ~(cumsum(.$embodied_fish/sum(.$embodied_fish)))))|> 
+  unnest(cols = c(data, cumulative)) |> 
+  slice(1:3) 
   
 
 ```
