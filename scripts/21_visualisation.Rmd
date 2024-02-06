@@ -27,7 +27,8 @@ this_allocation_method <- "econ_allocation"
 # this_allocation_method <- "ge_allocation"
 # this_allocation_method <- "mass_allocation"
 
-
+#colour palette
+my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
 
 ```
 
@@ -51,7 +52,7 @@ cpi_total <- all_data |>
   summarise(cpi = sum(sum, na.rm=TRUE)) |> 
   arrange(source)
 
-my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
+
 
 
 both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nfeed"), 
@@ -1542,6 +1543,30 @@ fm_ghg_plot <-
   annotation_custom2(ff_png, xmin = 2, xmax = 3.5, ymin = 332000, ymax = 352000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/fishmeal_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
+
+
+
+```
+
+The sensitivity of trimmings conversion factors to the price
+
+```{r}
+
+readRDS(here("data/tidy_data/allocation/trimmings_conversion_sensitvity.rds")) |>
+  ggplot() +
+  aes(x = `trim price`, y = cf, linetype = ingredient, colour = species_name) +
+  geom_vline(xintercept = 10, linetype = "dashed", colour = "grey50")+
+  geom_line()+
+  theme_bw()+
+  theme(panel.grid = element_blank(), 
+        text = element_text(size=8),
+        legend.text = element_text(size=6))+
+  scale_x_reverse()+
+  labs(y = "Embodied fish conversion factor", x = "Price of seafood processing wastes (USD)", linetype = "Ingredient", colour = "Species")+
+  scale_colour_manual(values = my_pal)
+  
+  
+ggsave(here("figures/supplementary/trimmings_conversion_sensitivity.jpg"), device = "jpg", dpi = 600, height = 7, width = 11, units = "cm")
 
 
 

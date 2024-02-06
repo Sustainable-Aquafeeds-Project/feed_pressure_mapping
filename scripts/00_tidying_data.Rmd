@@ -943,3 +943,24 @@ trimmings_conversions <-
 saveRDS(trimmings_conversions, here("data/tidy_data/allocation/trimmings_conversion_factors.csv"))
 
 ```
+
+
+Trimmings sensitivity import into project
+
+```{r}
+
+trimmings_sensitivity <- 
+  read_csv(file.path(rdsi_dir, "raw_data/allocation/trimmings_cf_sensitivity.csv")) |> 
+  pivot_longer(values_to = "cf", names_to = "species", cols = -c(`trim price`)) |> 
+  mutate(species_name = case_when(grepl("AP", species) ~ "Alaska pollock",
+                                  grepl("BW", species) ~ "Blue whiting",
+                                  grepl("AC", species) ~ "Atlantic cod",
+                                  grepl("CA", species) ~ "Capelin"),
+         ingredient = case_when(grepl("(fm)", species) ~ "Fishmeal",
+                                TRUE ~ "Fish oil")) |> 
+  select(-species)
+
+
+saveRDS(object = trimmings_sensitivity, file = here("data/tidy_data/allocation/trimmings_conversion_sensitvity.rds"))
+```
+
