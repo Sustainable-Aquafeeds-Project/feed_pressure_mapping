@@ -93,10 +93,11 @@ cpi_by_pressure <-
   all_data |> 
   group_by(diet, source, pressure) |> 
   summarise(cpi_cont = sum(sum, na.rm=TRUE)) |> 
-  mutate(pressure = factor(pressure, levels = rev(c("GHG", "Disturbance", "Nutrients", "Water"))))
-
-
-my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
+  mutate(pressure = case_when(pressure == "GHG" ~ "GHG\nemissions",
+                              pressure == "Nutrients" ~ "Excess\nnutrients",
+                              pressure == "Water" ~ "Water\nconsumption", 
+                              TRUE ~ pressure)) |> 
+  mutate(pressure = factor(pressure, levels = rev(c("GHG\nemissions", "Disturbance", "Excess\nnutrients", "Water\nconsumption"))))
 
 
 ggplot(data = cpi_by_pressure |> 
