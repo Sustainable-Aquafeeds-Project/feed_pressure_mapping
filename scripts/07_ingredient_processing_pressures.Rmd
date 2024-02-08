@@ -17,8 +17,8 @@ library(gdata)
 select <- dplyr::select
 
 #allocation method (un-comment preference)
-this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
+#this_allocation_method <- "econ_allocation"
+this_allocation_method <- "ge_allocation"
 # this_allocation_method <- "mass_allocation"
 
 
@@ -30,7 +30,8 @@ Bring in the LCA data for processing pressures for each ingredient and filter fo
 ```{r}
 # We are interested in the same processing pressures as those used in the crops data and we want data based on our chosen allocation factor
 
-processing_main_pressures <- readRDS(here("data/tidy_data/LCA/processing_LCA.rds")) |> 
+processing_main_pressures <- 
+  readRDS(here("data/tidy_data/LCA/processing_LCA.rds")) |> 
   filter(impact %in% c("Global warming", "Water consumption", "Land use", "Freshwater eutrophication", "Marine eutrophication")) |> 
   filter(allocation == this_allocation_method) |> 
   mutate(value_tonne = value*1000) |>  #changes value per kg to per metric tonne
@@ -54,9 +55,9 @@ ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand
 diets <- c("marine_diet", "plant_diet")
 
 #test function
-this_ingredient_source <- these_ingredient_files[[1]]
-this_ingredient <- "fishmeal"
-this_diet <- "marine_diet"
+# this_ingredient_source <- these_ingredient_files[[1]]
+# this_ingredient <- "fishmeal"
+# this_diet <- "marine_diet"
 
 #loop through the diets
 map(.x = diets, .f = \(this_diet){

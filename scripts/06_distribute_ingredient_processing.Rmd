@@ -22,8 +22,6 @@ Ingredient demand
 
 ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds"))
 
-
-
 ```
 
 
@@ -171,7 +169,7 @@ map(all_relevant_ports_w_demand, \(this_areas_ports){
 #pull in the country sourcing rasters for each crop and create a list for attributing demand for ingredients under different diets=
 
 sourcing_countries <- readRDS(here("data/tidy_data/demand/sourcing_countries_crops.rds")) |> 
-  select(ingredients, diet, source_iso3c, ingredient_demand_tonnes) |> 
+  select(ingredients, diet, iso3c, ingredient_demand_tonnes) |> 
   distinct() |> 
   rownames_to_column() |> 
   group_by(rowname) |> 
@@ -191,7 +189,7 @@ map(sourcing_countries, \(this_diet_ingredient_demand){
   
   this_diet <- this_diet_ingredient_demand$diet |> unique()
   this_ingredient <- this_diet_ingredient_demand$ingredients |> unique()
-  this_country <- this_diet_ingredient_demand$source_iso3c |> unique()
+  this_country <- this_diet_ingredient_demand$iso3c |> unique()
   this_demand <- this_diet_ingredient_demand$ingredient_demand_tonnes
   
   saveName <- sprintf(here("data/spatial/%s/processing/%s_%s.tif"), this_diet, this_ingredient, this_country)

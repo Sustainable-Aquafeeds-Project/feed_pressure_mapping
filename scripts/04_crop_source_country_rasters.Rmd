@@ -30,12 +30,9 @@ Write country shapefiles to raster for terrestrial systems
 countries_shp <- ne_countries(scale = "medium", type = "countries", returnclass = "sf")
 
 #crop feed countries
-crop_countries <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds")) |> pull(source_iso3c) |> unique()
-
-crop_countries_shp <- countries_shp |> filter(iso_a3 %in% crop_countries)
+crop_countries <- countries_shp |> filter(!is.na(iso_a3)) |> pull(iso_a3) |> unique()
 
 #check the crop from the demand data and teh shapefile are now all the same
-length(crop_countries_shp |> pull(iso_a3) |> unique())
 length(crop_countries)
   
 #if it returns null it's because the file already exists
@@ -48,7 +45,7 @@ map(.x = crop_countries, .f =  \(this_country){
   
   if(!file.exists(this_country_filepath)){
     
-    this_country_map <- crop_countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3))
+    this_country_map <- countries_shp |> filter(iso_a3 == this_country) |> mutate(iso_n3 = as.double(iso_n3))
     
     this_country_raster <- rasterize(x = vect(this_country_map), y = rast(res=0.5, crs = "EPSG:4326"))
     

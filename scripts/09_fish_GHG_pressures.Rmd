@@ -20,8 +20,8 @@ select <- dplyr::select
 
 
 #allocation method (un-comment preference)
-this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
+#this_allocation_method <- "econ_allocation"
+ this_allocation_method <- "ge_allocation"
 # this_allocation_method <- "mass_allocation"
 
 ```
@@ -31,7 +31,7 @@ Bringing in the emission intensity data from Halpern et al stored in RDSI and ti
 
 ei_data <- read_csv(here("data/raw_data/fisheries/all_catch_emissions_2017.csv")) 
  
- ei_data |> filter(ParkerGearName == "Purse seine") |> filter(ei_kgco2_kgcatch>3)
+
 ```
 
 Now join the embodied fish demand xy data with the emission intensity data and calculate the emissions from each gear in each cell. Then we can save the rasters for each diet and source, for both fishmeal and oil ingredients
@@ -157,7 +157,7 @@ ghg_raw_r_list_fm <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fishmeal_ghg_km2_%s_%s.tif"), this_diet, this_allocation_method, this_source)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_xy <- this_df |> select(LonCentre, LatCentre, total_kgCO2_fm)
     
@@ -202,7 +202,7 @@ ghg_raw_r_list_fo <-
   
   saveName <- sprintf(here("data/spatial/%s/int/fish oil_ghg_km2_%s_%s.tif"), this_diet, this_allocation_method, this_source)
   
-  if(file.exists(saveName)){
+  if(!file.exists(saveName)){
     
     this_xy <- this_df |> select(LonCentre, LatCentre, total_kgCO2_fo)
     

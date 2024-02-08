@@ -19,8 +19,8 @@ select <- dplyr::select
 
 
 #allocation method (un-comment preference)
-this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
+#this_allocation_method <- "econ_allocation"
+this_allocation_method <- "ge_allocation"
 # this_allocation_method <- "mass_allocation"
 
 
@@ -32,7 +32,7 @@ We're  interested from where the different crop ingredients could be sourced acr
 ```{r}
 crop_demand <- readRDS(here("data/tidy_data/demand/total_crop_demand.rds"))
 
-crop_production <- readRDS(here("data/tidy_data/production-data/top_crop_producers.rds")) |> rename(national_production = mean_value) |> 
+crop_production <- readRDS(here("data/tidy_data/production-data/top_crop_producers.rds")) |> rename(national_production = mean_value) 
 
 #Check that demand for each raw material on each country in the various diets does not outstrip national production - all possible
 
@@ -63,7 +63,7 @@ sort(unique(all_crop_pressures$raw_material))
 #filter for the pressures of interest
 crop_main_pressures <- all_crop_pressures |> filter(impact %in% c("Global warming", "Water use",  "Water consumption", "Land use", "Freshwater eutrophication", "Marine eutrophication"))
 
-#check that five facets are available across all materials (i.e. GWP, FW eutrophication, marine eutrophication, land use, water use). 
+#check that five pressures are available across all materials (i.e. GWP, FW eutrophication, marine eutrophication, land use, water use). 
 crop_main_pressures |> 
   select(raw_material, impact) |> 
   distinct() |> 
@@ -96,8 +96,7 @@ plausible_crops_w_impact <- crop_main_pressures |> filter(raw_material != "Lupin
 saveRDS(plausible_crops_w_impact, file = here("data/tidy_data/demand/crop_sourcing_countries_plausible_impacts_all_allocation_methods.rds"))
 
 
-#are at least 5 countries available where they can plausibly source demand and with which we have impacts?
-#No - guar has only 1 (India)
+#are at least 5 countries available where they can plausibly source demand and with which we have impacts? Yes
 plausible_crops_w_impact |> 
   group_by(raw_material, impact, allocation) |> 
   count()  # accounts for two allocation methods

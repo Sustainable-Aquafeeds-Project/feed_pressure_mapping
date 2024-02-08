@@ -23,8 +23,8 @@ select <- dplyr::select
 values <- terra::values
 
 #allocation method (un-comment preference)
-this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
+#this_allocation_method <- "econ_allocation"
+this_allocation_method <- "ge_allocation"
 # this_allocation_method <- "mass_allocation"
 ```
 
@@ -194,7 +194,7 @@ crop_raw_material_demand <-
   left_join(allocation_factors, by = c("ingredients" = "ingredient")) |> 
   drop_na(item) |> 
   rename(FAOSTAT_name = item) |> 
-  mutate(total_crop_demand =  (ingredient_demand_tonnes*across(contains(this_allocation_column)))$econ_allocation_factor)
+  mutate(total_crop_demand =  (ingredient_demand_tonnes*across(contains(this_allocation_column)))$ge_allocation_factor)
 
 #export total crop demand 
 saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/total_crop_demand.rds"))
