@@ -55,9 +55,9 @@ ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand
 diets <- c("marine_diet", "plant_diet")
 
 #test function
-# this_ingredient_source <- these_ingredient_files[[1]]
-# this_ingredient <- "fishmeal"
-# this_diet <- "marine_diet"
+this_ingredient_source <- these_ingredient_files[[1]]
+this_ingredient <- "fishmeal"
+this_diet <- "marine_diet"
 
 #loop through the diets
 map(.x = diets, .f = \(this_diet){
