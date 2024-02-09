@@ -243,7 +243,7 @@ saveRDS(marine_diet_pressures_by_ingredient_df, file = sprintf(here("data/tidy_d
 marine_diet_pressures_by_ingredient_df |> pull(source) |> unique()
 ```
 
-Disaggreagte by ingredients and pressures - Plant diets - takes ~1 hour
+Disaggreagte by ingredients and pressures - Plant diets - takes ~2.5 hours
 
 ```{r}
 plant_source_ingredient <- 
