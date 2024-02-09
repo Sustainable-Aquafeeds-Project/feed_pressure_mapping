@@ -607,7 +607,7 @@ map(.x = marine_diet_nutrients, .f = \(this_file){
   
   saveName <- gsub("km2", "moll",this_new_file)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing ", basename(saveName))
     
@@ -644,7 +644,7 @@ map(.x = plant_diet_nutrients, .f = \(this_file){
   
   saveName <- gsub("km2", "moll",this_new_file)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("processing ", basename(saveName))
     
@@ -775,7 +775,7 @@ map(.x= md_reprojected_rasters_nutrient, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/marine_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing", "'", this_basename, "'")
     
@@ -803,7 +803,7 @@ map(.x= pd_reprojected_rasters_nutrient, .f = \(this_file){
   
   saveName <- sprintf(here("data/spatial/plant_diet/pressures/%s"), this_basename)
   
-  if(!file.exists(saveName)){
+  if(file.exists(saveName)){
     
     message("Processing", "'", this_basename, "'")
     
