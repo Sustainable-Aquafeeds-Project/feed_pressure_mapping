@@ -71,7 +71,7 @@ both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nf
   #   width = .3, color = "black", fill_type = "gradient"
   # )+
   scale_colour_manual(values = my_pal[c(4,2)], guide = "none")+
-  scale_x_continuous(limits = c(0,3))+
+  scale_x_continuous(limits = c(0.5,3))+
   theme_pubr()+
   geom_boxplot(notch = TRUE, colour = "grey40", width = 0.2, alpha = 0, linewidth=0.5)+
   geom_point(data = both_diet_means, aes(y = diet, x=mean_CPI), colour = "red", size = 1, alpha = 0.7, shape = 0)+
