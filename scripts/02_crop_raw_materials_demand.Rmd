@@ -24,8 +24,8 @@ values <- terra::values
 
 #allocation method (un-comment preference)
 #this_allocation_method <- "econ_allocation"
-this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
+#this_allocation_method <- "ge_allocation"
+ this_allocation_method <- "mass_allocation"
 ```
 
 #CROP INGREDIENTS
@@ -188,16 +188,16 @@ selected_allocation_column <- allocation_factors[which(names(allocation_factors)
 
 #join the ingredient demand by diet to the top 10 producer data so for each ingredient there will be an raw material demand per source, and diet scenario. Create new raw_material demand column by dividing total ingredient demand by the conversion factor (i.e. the ingredient extraction rate from the raw material in the first place)
 
-crop_raw_material_demand <- 
+(crop_raw_material_demand <- 
   readRDS(here("data/tidy_data/demand/total_ingredient_demand_by_diet.rds")) |> 
   ungroup() |> 
   left_join(allocation_factors, by = c("ingredients" = "ingredient")) |> 
   drop_na(item) |> 
   rename(FAOSTAT_name = item) |> 
-  mutate(total_crop_demand =  (ingredient_demand_tonnes*across(contains(this_allocation_column)))$ge_allocation_factor)
+  mutate(total_crop_demand =  unlist(across(contains(this_allocation_column)) * ingredient_demand_tonnes)))
 
 #export total crop demand 
-saveRDS(object = crop_raw_material_demand, file = here("data/tidy_data/demand/total_crop_demand.rds"))
+saveRDS(object = crop_raw_material_demand, file = sprintf(here("data/tidy_data/demand/total_crop_demand_%s.rds"), this_allocation_method))
 
 ```
 

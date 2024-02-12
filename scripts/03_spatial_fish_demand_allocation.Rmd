@@ -23,9 +23,9 @@ values <- terra::values
 
 
 #allocation method (un-comment preference)
-this_allocation_method <- "econ_allocation"
+#this_allocation_method <- "econ_allocation"
 # this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
+this_allocation_method <- "mass_allocation"
 
 
 ```
@@ -704,6 +704,11 @@ saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/
 
 ```
 
+
+
+```{r}
+rm(list = ls(all.names = TRUE))
+```
 
 
 #MOVE THESE 
