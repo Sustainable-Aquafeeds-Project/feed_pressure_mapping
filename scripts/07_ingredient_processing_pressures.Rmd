@@ -267,7 +267,7 @@ map(.x = diets, .f = \(this_diet){
 }) #end of mapping across the diet list
 
 
-
+rm(list = ls(all.names = TRUE))
 
 ```
 

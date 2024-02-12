@@ -21,8 +21,8 @@ select <- dplyr::select
 
 #allocation method (un-comment preference)
 #this_allocation_method <- "econ_allocation"
- this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
+#this_allocation_method <- "ge_allocation"
+this_allocation_method <- "mass_allocation"
 
 ```
 
@@ -172,7 +172,7 @@ ghg_raw_r_list_fm <-
 })
 
 #check the rasters
-#plot(rast(ghg_raw_r_list_fm))
+plot(rast(ghg_raw_r_list_fm))
 
 ```
 
@@ -217,7 +217,7 @@ ghg_raw_r_list_fo <-
 })
 
 #check the rasters
-#plot(rast(ghg_raw_r_list_fo))
+plot(rast(ghg_raw_r_list_fo))
 
 
 #clear the environment
