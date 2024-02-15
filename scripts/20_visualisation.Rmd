@@ -24,8 +24,8 @@ values <- terra::values
 
 #ALLOCATION METHOD (un-comment preference)
 #this_allocation_method <- "econ_allocation"
- this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
+#this_allocation_method <- "ge_allocation"
+#this_allocation_method <- "mass_allocation"
 
 #colour palette
 my_pal <- rcartocolor::carto_pal(n = 8, name = "Bold")[c(1, 3, 7, 2)]
