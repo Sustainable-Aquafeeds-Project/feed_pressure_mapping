@@ -18,11 +18,14 @@ library(ggnewscale)
 
 source(here("src/directories.R"))
 
+
 select <- dplyr::select
 values <- terra::values
 
 
 #allocation method (un-comment preference)
+
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 # this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"
@@ -559,12 +562,17 @@ forage_fmfo_yield <- fread(here("data/large_data/embodied_fmfo_potential_from_fo
 
 #use the proportions for each region to divide the demand up and work out how the spp_based demand converts to embodied fish
 
+
+#test this function
+this_diet <- "marine_diet"
+
+
 forage_supply_demand_by_diet <- 
   map_df(.x =  c("marine_diet", "plant_diet"), .f = \(this_diet){
     
     this_df <- forage_fmfo_yield |> 
-      mutate(diet = this_diet,
-             #extract total fmfo demand for each diet
+      mutate(diet = this_diet) |> 
+      mutate(#extract total fmfo demand for each diet
              total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal") |> pull(ingredient_demand_tonnes),
              total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil") |> pull(ingredient_demand_tonnes),
              #distribute fishmeal and oil demand according to its distribution
@@ -633,11 +641,11 @@ trim_supply_demand_by_diet <-
        return(tibble(fao_area_code = this_df |> pull(fao_area_code) |> unique(), trimmings_weight_sum = this_df |> pull(trimmings_weight) |> unique() |> sum()))
       })
     
-    this_demand_df <- 
+this_demand_df <- 
       this_trimmings_df |>
       left_join(these_weight_sums) |> 
-      mutate(diet = this_diet,
-             #extract total fmfo demand for each diet
+      mutate(diet = this_diet) |> 
+      mutate(#extract total fmfo demand for each diet
              total_fm_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fishmeal") |> pull(ingredient_demand_tonnes),
              total_fo_needed_for_diet = fmfo_demand |> filter(diet == this_diet & ingredients == "fish oil") |> pull(ingredient_demand_tonnes)) |> 
       mutate(weighted_fm_needed = total_fm_needed_for_diet*trimmings_weight/trimmings_weight_sum,
@@ -708,83 +716,5 @@ saveRDS(object = embodied_trimingsfish_demand_by_diet_source, file = here("data/
 
 ```{r}
 rm(list = ls(all.names = TRUE))
-```
-
-
-#MOVE THESE 
-
-Supplementary plots
-
-```{r}
-
-trimmings_fm <- 
-  fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> 
-  as_tibble() |>  
-  ungroup() |>  
-  select(fao_area_code, LonCentre, LatCentre, fm_embodied_fish) |> group_by(LonCentre, LatCentre) |> 
-  summarise(fm_embodied_fish = sum(fm_embodied_fish, na.rm=TRUE)) 
-
-
-ggplot()+
-  geom_tile(data = trimmings_fm_mass |> filter(fm_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fm_embodied_fish_mass+1))+
-  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
-  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
-                       trans = "log10")+
-  theme(panel.background = element_rect(fill="transparent"))+
-  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fish meal -", 38400*0.4),  "MT demand, trimmings, fish-dominant"))
-
-ggsave(file = here("figures/presos/fishmeal_trimmings_mass.jpg"), height = 4, width=7)
-
-
-trimmings_fo_mass <- fread(here("data/large_data/embodied_fishfromtrimmings_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
-  select(fao_area_code, LonCentre, LatCentre, fo_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fo_embodied_fish_mass = sum(fo_embodied_fish_mass, na.rm=TRUE)) 
-
-
-ggplot()+
-  geom_tile(data = trimmings_fo_mass |> filter(fo_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fo_embodied_fish_mass+1))+
-  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
-  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
-                       trans = "log10")+
-  theme(panel.background = element_rect(fill="transparent"))+
-  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fish oil -", 27900*0.3),  "MT demand, trimmings, fish-dominant"))
-
-ggsave(file = here("figures/presos/fish oil_trimmings_mass.jpg"), height = 4, width=7)
-
-#forage fish
-
-forage_fm_mass <- fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
-  select(fao_area_code, LonCentre, LatCentre, fm_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fm_embodied_fish_mass = sum(fm_embodied_fish_mass, na.rm=TRUE)) 
-
-
-ggplot()+
-  geom_tile(data = forage_fm_mass |> filter(fm_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fm_embodied_fish_mass+1))+
-  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
-  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
-                       trans = "log10")+
-  theme(panel.background = element_rect(fill="transparent"))+
-  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fishmeal -", 38400*0.6),  "MT demand, forage fish, fish-dominant"))
-
-ggsave(file = here("figures/presos/fishmeal_forage_mass.jpg"), height = 4, width=7)
-
-
-forage_fo_mass <- fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> as_tibble() |>  ungroup() |>  
-  select(fao_area_code, LonCentre, LatCentre, fo_embodied_fish_mass) |> group_by(LonCentre, LatCentre) |> summarise(fo_embodied_fish_mass = sum(fo_embodied_fish_mass, na.rm=TRUE)) 
-
-
-ggplot()+
-  geom_tile(data = forage_fo_mass |> filter(fo_embodied_fish_mass>0), aes(x=LonCentre, y=LatCentre, fill=fo_embodied_fish_mass+1))+
-  geom_sf(data = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf"), fill="grey90", colour="grey90")+
-  scale_fill_gradientn(colours = brewer.pal(n=8, "YlOrRd"),
-                
-                       trans = "log10"
-                       )+
-  theme(panel.background = element_rect(fill="transparent"))+
-  labs(fill="Embodied fish (MT)", x="", y="", title = paste(paste("Fish oil -", 27900*0.7),  "MT demand, forage fish, fish-dominant"))
-
-ggsave(file = here("figures/presos/fish oil_forage_mass.jpg"), height = 4, width=7)
-
-forage_fo_mass$fo_embodied_fish_mass |> max()
-trimmings_fm_mass |> filter(fm_embodied_fish_mass>0) |> pull(fm_embodied_fish_mass) |> min()
-
 ```
 

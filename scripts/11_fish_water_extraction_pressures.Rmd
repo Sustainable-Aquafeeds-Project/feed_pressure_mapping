@@ -18,6 +18,7 @@ select <- dplyr::select
 
 
 #allocation method (un-comment preference)
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 # this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"
@@ -66,7 +67,6 @@ Fish oil
 
 
 ```{r}
-
 fo_template_files <- list.files(path = here("data/spatial/marine_diet/int"), pattern = "fish oil_ghg_km2", full.names = TRUE)
 fo_template_files <- fo_template_files[grepl(this_allocation_method, fo_template_files)]
 
@@ -93,8 +93,10 @@ map(.x = fo_template_files, .f = \(this_file){
   }
   
   })
+```
 
 
+```{r}
 #clear the environment
 rm(list = ls(all.names = TRUE))
 ```

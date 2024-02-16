@@ -13,12 +13,14 @@ library(doParallel)
 source(here("src/directories.R"))
 source(here("src/spatial.R"))
 
+
 base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))
 
 select <- dplyr::select
 
 
 #allocation method (un-comment preference)
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 #this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"

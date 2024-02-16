@@ -19,6 +19,7 @@ source(here("src/spatial.R"))
 source(here("src/directories.R"))
 
 #allocation method (un-comment preference)
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 #this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"

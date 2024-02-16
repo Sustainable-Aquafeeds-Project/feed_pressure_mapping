@@ -27,11 +27,14 @@ values <- terra::values
 
 
 #ALLOCATION METHOD (un-comment preference)
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 #this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"
 
 
+marine_run <- !file.exists(sprintf(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
+plant_run <- !file.exists(sprintf(here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
 
 ```
 
@@ -46,7 +49,8 @@ plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations
 
 Disaggregate by ingredients and pressures - Marine diets - takes ~ 1 hour
 
-```{r}
+```{r, eval= marine_run}
+
 marine_source_ingredient <- 
   marine_diets |>
   select(1:501) |> 
@@ -245,7 +249,8 @@ marine_diet_pressures_by_ingredient_df |> pull(source) |> unique()
 
 Disaggreagte by ingredients and pressures - Plant diets - takes ~2.5 hours
 
-```{r}
+```{r, eval= plant_run}
+
 plant_source_ingredient <- 
   plant_diets |>
   select(1:501) |> 

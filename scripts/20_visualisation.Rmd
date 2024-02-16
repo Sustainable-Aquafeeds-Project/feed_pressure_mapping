@@ -23,6 +23,7 @@ values <- terra::values
 
 
 #ALLOCATION METHOD (un-comment preference)
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 #this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"
@@ -1185,8 +1186,7 @@ fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |>
 
  
  
-   
-readRDS(sprintf(here("data/large_data/embodied_fish_ghgs_with_embodied_fish_%s.rds"), this_allocation_method)) |> 
+
    
 ```
 

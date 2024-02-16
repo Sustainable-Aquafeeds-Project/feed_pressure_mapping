@@ -100,7 +100,6 @@ source_combinations_pd <- source_combinations_pd[!duplicated(as.list(source_comb
 Given the number of unique combinations varies from marine to plant diet - here I take the first 500 diets generated from each and save them for future use.
 
 ```{r}
-
 source_combinations_md <- source_combinations_md |> select(1:501)
 
 source_combinations_pd <-  source_combinations_pd |> select(1:501)
@@ -110,8 +109,10 @@ source_combinations_pd <-  source_combinations_pd |> select(1:501)
 saveRDS(object = source_combinations_md, file = here("data/tidy_data/diets/ingredient_source_combinations_marine_diet.rds"))
 
 saveRDS(object = source_combinations_pd, file = here("data/tidy_data/diets/ingredient_source_combinations_plant_diet.rds"))
+```
 
 
+```{r}
 #clear the environment
 rm(list = ls(all.names = TRUE))
 
