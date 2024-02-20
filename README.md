@@ -1,6 +1,9 @@
-# feed_pressure_mapping
+# READ ME!
 
-This is the repository for Cottrell et al ' ' looking at the role of ingredient sourcing vs diet composition for the total cumulative pressures from aquafeed diets. This readMe file should be read before trying to reproduce the output from this research project. Below you will find information on the publication associated with this repository, contact information for the lead author, and a description of the repository structure with each section explained.
+This is the repository for Cottrell et al <reference>. This paper examines environmental trade-offs from the transition from fish- to plant-dominant feeds for Atlantic salmon (_Salmo salar_) and explores how changes to where ingredients are sourced can compound or mitigate these trade-offs.
+
+
+Please read this file should be read before trying to reproduce the output from this research project. Below you will find information on the publication associated with this repository, contact information for the lead author, and a description of the repository structure with each section explained.
 
 ## Link to associated publication
 
@@ -10,9 +13,30 @@ Not yet available
 
 Please direct any correspondence to Richard Cottrell at [richardstuart.cottrell\@utas.edu.au](mailto:richardstuart.cottrell@utas.edu.au){.email}
 
+## Reproducibility
+We strongly believe in and advocate for open and reproducible science. The code in this repository enables a user to recreate the results outlined in the above publication. There are a a few important points to know/adhere to for the code to run smoothly:
+
+- The code must be run as an R project - the code within relies on relative file paths from the project home folder.
+- The large data folder must be downloaded and stored inside your local copy of this repository - there are large data inputs needed for this code which cannot be stored on github. Please ensure you follow the instructions for obtaining this data folder in the 'scripts' section below.
+
+
 ## Repository structure
 
-This respoitory is organised into six main folders: 'scripts', 'src', 'data', 'figures', 'explore', 'doc'. The contents of each are explained below.
+This respoitory is organised into 2 master scripts (these are all that is needed to run the analyses) and six main folders: 
+
+- scripts - each step in the analysis is outlined by inidvidual scripts. These can be independently run if desired.
+- src - this folder holds scripts which are used to source different functions throughout the analysis.
+- data - the data folder holds all data inputs for, and data products from the analysis
+- figures - contains the figures (main and supplementary) from the analysis. Check here for results after running analysis.
+- explore - this folder holds the results from exploratory analysis and can be ignored.
+
+### Master scripts
+
+| Script | Description       |
+|:-------|:------------------|  
+| 1_choose_allocation_method| This is the first step before running the analyses. We estimate raw material demand from aquaculture diets and environmental pressures from production of their ingredients using allocation approaches - economic (default), mass, or energetic. |
+| 2_run_project_scripts | Running this script runs all the individual project scripts and outputs results into the figures folder for one step reproducibility.|
+
 
 ### scripts
 
