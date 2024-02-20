@@ -176,7 +176,7 @@ fread(here("data/large_data/embodied_foragefish_per_cell.csv")) |> mutate(source
 ```
 
 
-
+#Differences betweem diets from the iterations
 
 ```{r}
 
@@ -201,11 +201,22 @@ summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> max()/summary_b
 
 #overlap in CPI
 
+#how many of the fish-dominant scores are lower than the minimum plant-dominant scores
+which(summary_by_total |> filter(diet == "marine diet") |> pull(cpi)<summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min(), TRUE) |> length()/2000
+
 #how many of the fish-dominant scores are greater than the minimum plant-dominant scores
-which(summary_by_total |> filter(diet == "marine diet") |> pull(cpi)>summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min(), TRUE) |> length()/500
+which(summary_by_total |> filter(diet == "marine diet") |> pull(cpi)>summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min(), TRUE) |> length()/2000
+
+
 
 ##how many of the plant-dominant scores are lower than the maximum fish-dominant scores
-which(summary_by_total |> filter(diet == "plant diet") |> pull(cpi)<summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max(), TRUE) |> length()/500
+which(summary_by_total |> filter(diet == "plant diet") |> pull(cpi)<summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max(), TRUE) |> length()/2000
+
+##how many of the plant-dominant scores are higher than the maximum fish-dominant scores
+which(summary_by_total |> filter(diet == "plant diet") |> pull(cpi)>summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max(), TRUE) |> length()/2000
+
+
+
 
 #how many times lower can the CPI of the plant dominant scenario be despite the higher average
 summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min()/summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max()
@@ -268,7 +279,7 @@ Breakdown of why FMFO GHGs vary so much - particularly the Northwest Pacific.
 
 ```{r}
 
-embodied_fish_ghgs <- readRDS(here("data/large_data/embodied_fish_ghgs_econ_allocation.rds"))
+embodied_fish_ghgs <- readRDS(sprintf(here("data/large_data/embodied_fish_ghgs_%s.rds"), this_allocation_method))
 
 
 embodied_fish_ghgs |> group_by(fao_area_code, VBDesc) |> 
