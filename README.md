@@ -55,6 +55,12 @@ All scripts are numbered by the order in which they should be run. **Note:** 01_
 | 05_spatial_crop_demand_allocation.Rmd        |  Allocates crop demand to grid cells based on World Resources Institute's Spatial Allocation Model |
 | 06_distribute_ingredient_processing.Rmd      | Assigns ingredient processing locations for marine and agricultural ingredients |
 | 07_ingredient_processing_pressures.Rmd |       |
+| 08_fish_disturbance_pressures.Rmd | |
+| 09_fish_ghg_pressures.Rmd |   |
+| 10_fish_nutrient_pressures.Rmd | |
+| 11_fish_water_extraction_pressures.Rmd |   |
+| 12_crop_disturbance_pressures.Rmd   |   |
+| 13_crop_ghg_pressures.Rmd |   |
 
 ### src
 
