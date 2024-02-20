@@ -17,7 +17,6 @@ library(terra)
 library(rnaturalearth)
 #library(rnaturalearthdata)
 library(RColorBrewer)
-library(parallel)
 library(ggdist)
 library(data.table)
 library(dtplyr)
@@ -53,7 +52,7 @@ Disaggregate by ingredients and pressures - Marine diets - takes ~ 1 hour
 
 marine_source_ingredient <- 
   marine_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "guar meal"~ as.integer(1),
@@ -253,7 +252,7 @@ Disaggreagte by ingredients and pressures - Plant diets - takes ~2.5 hours
 
 plant_source_ingredient <- 
   plant_diets |>
-  select(1:501) |> 
+  select(1:2001) |> 
   rename_at(vars(-ingredient), ~ paste("source", .x)) |>
   mutate(row = row_number()) |> 
   mutate_at(vars(-ingredient, -row), ~ case_when(ingredient == "linseed oil"~ as.integer(1),
