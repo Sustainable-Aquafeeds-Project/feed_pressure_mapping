@@ -61,6 +61,19 @@ All scripts are numbered by the order in which they should be run. **Note:** 01_
 | 11_fish_water_extraction_pressures.Rmd |   |
 | 12_crop_disturbance_pressures.Rmd   |   |
 | 13_crop_ghg_pressures.Rmd |   |
+| 14_crop_nutrient_pressures.Rmd |   |
+| 15_crop_water_extraction_pressures.Rmd | |
+| 16a_rescaling_disturbance.Rmd || 
+| 16b_rescaling_GHG_emissions.Rmd | |
+| 16c_rescaling_nutrient_pressures.Rmd || 
+| 16d_rescaling_water_consumption.Rmd | |
+| 17_ingredient_permutations.Rmd | |
+| 18_mapping_CPI.Rmd | |
+| 19_CPI_permutations.Rmd ||
+| 20_visualisation.Rmd | |
+| 21_calculations.Rmd ||
+| 22_diet_concept_plot.Rmd | |
+
 
 ### src
 
