@@ -3,7 +3,7 @@
 This is the repository for Cottrell et al <reference>. This paper examines environmental trade-offs from the transition from fish- to plant-dominant feeds for Atlantic salmon (_Salmo salar_) and explores how changes to where ingredients are sourced can compound or mitigate these trade-offs.
 
 
-Please read this file should be read before trying to reproduce the output from this research project. Below you will find information on the publication associated with this repository, contact information for the lead author, and a description of the repository structure with each section explained.
+Please read this file before trying to reproduce the output from this research project. Below you will find information on the publication associated with this repository, contact information for the lead author, and a description of the repository structure with each section explained.
 
 ## Link to associated publication
 
@@ -14,15 +14,16 @@ Not yet available
 Please direct any correspondence to Richard Cottrell at [richardstuart.cottrell\@utas.edu.au](mailto:richardstuart.cottrell@utas.edu.au){.email}
 
 ## Reproducibility
-We strongly believe in and advocate for open and reproducible science. The code in this repository enables a user to recreate the results outlined in the above publication. There are a a few important points to know/adhere to for the code to run smoothly:
+We strongly advocate for open and reproducible science. The code in this repository enables a user to recreate the results outlined in the above publication. There are a a few important points to know/adhere to for the code to run smoothly:
 
 - The code must be run as an R project - the code within relies on relative file paths from the project home folder.
 - The large data folder must be downloaded and stored inside your local copy of this repository - there are large data inputs needed for this code which cannot be stored on github. Please ensure you follow the instructions for obtaining this data folder in the 'scripts' section below.
+- Once the R project is cloned and the large data folder is in place, analyses can be replicated using just two master scripts in the home folder. The first just requires confirming and saving your preference for the allocation method used throughout the analyses and running the second runs all scripts necessary to generate the results.
 
 
 ## Repository structure
 
-This respoitory is organised into 2 master scripts (these are all that is needed to run the analyses) and six main folders: 
+This respoitory is organised into 2 master scripts (**all that is needed to run the analyses**) and six main folders: 
 
 - scripts - each step in the analysis is outlined by inidvidual scripts. These can be independently run if desired.
 - src - this folder holds scripts which are used to source different functions throughout the analysis.
@@ -38,7 +39,7 @@ This respoitory is organised into 2 master scripts (these are all that is needed
 | 2_run_project_scripts | Running this script runs all the individual project scripts and outputs results into the figures folder for one step reproducibility.|
 
 
-### scripts
+### 'scripts' folder
 
 The scripts folder contains all code necessary to generate the results attached to the publication listed above.
 
@@ -46,13 +47,33 @@ All scripts are numbered by the order in which they should be run. **Note:** 01_
 
 | Script                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |:---------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 00_tidying_data                              | This script is used for tidying all data products used in the project                                                                                                                                                                                                                                                                                                                                                                        |
-| 01_global_ingredient_demand.Rmd              | Calculates the gross ingredient demand for salmon based on the ingredient compositions of different diets, country-specific FCRs and production volumes                                                                                                                                                                                                                                                                                      |
-| 02_crop_raw_materials_demand.Rmd             | Isolates raw materials that support crop-based aquafeed ingredients and synthesises with production data from FAO and MAPSPAM, yield conversion factors from FAO, and price data from TBC. Economic allocation approaches are used to avoid double counting crop biomass                                                                                                                                                                     |
-| 03_spatial_forage_fish_demand_allocation.Rmd | Uses economic allocation conversion data from Kok et al 2021 to calculate the embodided fish required to meet forage fish demand from plant and fish based feeds over 3 different source areas - the North Atlantic, East Pacfic, and all other areas combined (dictated by productivity). This script applies this allocation spatially due to differences in how FMFO converts to embodied fish biomass depending on the species harvested |
-| 04_crop_source_country_rasters.Rmd           | Generates rasters for the source countries to multiply against the mapspam layers                                                                                                                                                                                                                                                                                                                                                            |
-| 05_spatial_crop_demand_allocation.Rmd        |                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| 06_forage_fish_disturbance_pressures         | Creates a disturbance metric based on two facets - benthic destruction and biomass removal. Benthic destruction is a function of the effort spent by bottom trawlers catch forage fish species, calculated by harmonising global fishing watch data on effort with that of spatialised catch in forage fish species. Biomass removal is a function of catch normalised by the productivity in the supporting waters.                         |
+| 00_tidying_data                              | **DO NOT RUN ** This script can only be used by anyone with access to the UTAS Sustainable Aquafeeds Project's Research Data Storage (RDSI) resource. It is not required to replicate the analyses but manipulates external data and saves the tidied versions in the project    |
+| 01_global_ingredient_demand.Rmd              | Calculates the gross ingredient demand for salmon based on the ingredient compositions of different diets, country-specific FCRs and production volumes    |
+| 02_crop_raw_materials_demand.Rmd             | Isolates raw materials that support crop-based aquafeed ingredients and synthesises with production data from FAO and MAPSPAM, yield conversion factors from FAO, and price data from TBC. Economic allocation approaches are used to avoid double counting crop biomass  |
+| 03_spatial_fish_demand_allocation.Rmd | Based on the spatial patterns in fisheries catch, the representation of different species in different areas, and their fishmeal and oil yields , this script assigns feed fish demand from aquaculture feeds to grid cells with FAO major fishing areas |
+| 04_crop_source_country_rasters.Rmd           | Generates rasters for the source countries to crop for existing spatial resources for crop mapping |
+| 05_spatial_crop_demand_allocation.Rmd        |  Allocates crop demand to grid cells based on World Resources Institute's Spatial Allocation Model |
+| 06_distribute_ingredient_processing.Rmd      | Assigns ingredient processing locations for marine and agricultural ingredients |
+| 07_ingredient_processing_pressures.Rmd |       |
+| 08_fish_disturbance_pressures.Rmd | |
+| 09_fish_ghg_pressures.Rmd |   |
+| 10_fish_nutrient_pressures.Rmd | |
+| 11_fish_water_extraction_pressures.Rmd |   |
+| 12_crop_disturbance_pressures.Rmd   |   |
+| 13_crop_ghg_pressures.Rmd |   |
+| 14_crop_nutrient_pressures.Rmd |   |
+| 15_crop_water_extraction_pressures.Rmd | |
+| 16a_rescaling_disturbance.Rmd || 
+| 16b_rescaling_GHG_emissions.Rmd | |
+| 16c_rescaling_nutrient_pressures.Rmd || 
+| 16d_rescaling_water_consumption.Rmd | |
+| 17_ingredient_permutations.Rmd | |
+| 18_mapping_CPI.Rmd | |
+| 19_CPI_permutations.Rmd ||
+| 20_visualisation.Rmd | |
+| 21_calculations.Rmd ||
+| 22_diet_concept_plot.Rmd | |
+
 
 ### src
 
