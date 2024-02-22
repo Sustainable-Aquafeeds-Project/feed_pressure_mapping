@@ -84,6 +84,7 @@ both_diet_means <- tibble(diet = c("Fish-\ndominant\nfeed", "Plant-\ndominant\nf
 
 
 ggsave(filename = sprintf(here("figures/diet_permutation_comparisons_%s.jpg"), this_allocation_method), device = "jpg", dpi = 600, width = 8.9, height = 5, units="cm")
+ggsave(filename = sprintf(here("figures/diet_permutation_comparisons_%s.pdf"), this_allocation_method), device = "pdf", dpi = 600, width = 8.9, height = 5, units="cm")
 
 ```
 
@@ -120,6 +121,7 @@ ggplot(data = cpi_by_pressure |>
   labs(x = "Normalised pressures scores")
 
 ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_%s.jpg"), this_allocation_method), width = 12, height=9, units = "cm", device = "jpg", dpi = 600)
+ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_%s.pdf"), this_allocation_method), width = 12, height=9, units = "cm", device = "pdf", dpi = 600)
 ```
 
 Dig into why disturbance is so fragmented
@@ -205,7 +207,7 @@ processing_production_prop <-
 processing_production_prop |> 
   filter(stage == "production") |> 
   pull(cpi_prop) |> 
-  median() # 89%
+  median() # 87%
 
 #what proportion of CPI does processing represent on average for the marine diet?
 processing_production_prop |> 
@@ -275,7 +277,7 @@ processing_production_prop |>
 )
 
 
-ggplot(prop_pressure_production |> 
+  ggplot(prop_pressure_production |> 
          mutate(pressure = factor(pressure, levels = c("GHG", "Disturbance", "Nutrients", "Water"))), 
        aes(x = pressure, y = mean_prop, colour = pressure))+
   geom_point()+
@@ -458,7 +460,7 @@ ggsave(filename = sprintf(here("figures/disaggregation_of_pressures_ingredients_
 marine_fm_dist <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+                        pattern = sprintf("fishmeal_production_disturbance_moll_%s|fishmeal_processing_disturbance_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -476,7 +478,7 @@ marine_fm_dist <-
 plant_fm_dist <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "fishmeal_production_disturbance_moll|fishmeal_processing_disturbance_moll", full.names = TRUE) |>
+                        pattern = sprintf("fishmeal_production_disturbance_moll_%s|fishmeal_processing_disturbance_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -545,7 +547,7 @@ fm_dist_plot <-
    annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
   labs(fill = "FAO fishing area", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
   geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
-  annotation_custom2(ff_png, xmin = 0.5, xmax = 2, ymin = 590, ymax = 630, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(ff_png, xmin = 0.5, xmax = 2, ymin = 590, ymax = 630, data = fm_disturbance_df |> filter(diet == "Fish-dominant"))
 
 
 
@@ -565,7 +567,7 @@ ggsave(filename = sprintf(here("explore/fishmeal_disturbance_%s.jpeg"), this_all
 marine_SBM_dist <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "soybean meal_production_disturbance_moll|soybean meal_processing_disturbance_moll", full.names = TRUE) |>
+                        pattern = sprintf("soybean meal_production_disturbance_moll_%s|soybean meal_processing_disturbance_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -583,7 +585,7 @@ marine_SBM_dist <-
 plant_SPC_dist <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "soy protein concentrate_production_disturbance_moll|soy protein concentrate_processing_disturbance_moll", full.names = TRUE) |>
+                        pattern = sprintf("soy protein concentrate_production_disturbance_moll_%s|soy protein concentrate_processing_disturbance_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -646,7 +648,7 @@ soy_dist_plot <-
     coord_cartesian(ylim = c(0,620), clip="off") +
   labs(fill = "Country", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
    annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
-  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
   annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 500, ymax = 630, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
@@ -671,7 +673,7 @@ ff_png <- grid::rasterGrob(ff_png)
 marine_fm_GHG <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "fishmeal_production_ghg_moll|fishmeal_processing_ghg_moll", full.names = TRUE) |>
+                        pattern = sprintf("fishmeal_production_ghg_moll_%s|fishmeal_processing_ghg_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -689,7 +691,7 @@ marine_fm_GHG <-
 plant_fm_GHG <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "fishmeal_production_ghg_moll|fishmeal_processing_ghg_moll", full.names = TRUE) |>
+                        pattern = sprintf("fishmeal_production_ghg_moll_%s|fishmeal_processing_ghg_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-1, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -750,7 +752,7 @@ fm_ghg_plot <-
    annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
   labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
   geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
-  annotation_custom2(ff_png, xmin = .5, xmax = 2, ymin = 332000, ymax = 362000, data = fo_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(ff_png, xmin = .5, xmax = 2, ymin = 332000, ymax = 362000, data = fm_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/fishmeal_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
@@ -767,7 +769,7 @@ ggsave(filename = sprintf(here("explore/fishmeal_GHG_%s.jpeg"), this_allocation_
 marine_SBM_GHG <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "soybean meal_production_ghg_moll|soybean meal_processing_ghg_moll", full.names = TRUE) |>
+                        pattern = sprintf("soybean meal_production_ghg_moll_%s|soybean meal_processing_ghg_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -785,7 +787,7 @@ marine_SBM_GHG <-
 plant_SPC_GHG <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "soy protein concentrate_production_ghg_moll|soy protein concentrate_processing_ghg_moll", full.names = TRUE) |>
+                        pattern = sprintf("soy protein concentrate_production_ghg_moll_%s|soy protein concentrate_processing_ghg_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -852,7 +854,7 @@ soy_ghg_plot <-
      coord_cartesian(ylim = c(0, 350000), clip="off")+
    annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
   labs(fill = "Country", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
-  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
   annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 302000, ymax = 352000, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
   
  
@@ -869,7 +871,7 @@ ggsave(filename = sprintf(here("explore/soy_GHG_%s.jpeg"), this_allocation_metho
 marine_WG_nutr <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
+                        pattern = sprintf("wheat gluten_production_nutrient_moll_%s|wheat gluten_processing_nutrient_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -887,7 +889,7 @@ marine_WG_nutr <-
 plant_WG_nutr <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "wheat gluten_production_nutrient_moll|wheat gluten_processing_nutrient_moll", full.names = TRUE) |>
+                        pattern = sprintf("wheat gluten_production_nutrient_moll_%s|wheat gluten_processing_nutrient_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -974,7 +976,7 @@ ggsave(filename = sprintf(here("explore/wheat_gluten_%s.jpg"), this_allocation_m
 marine_faba_water <- 
   
   list.files(here("data/spatial/marine_diet/int"), 
-                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
+                        pattern = sprintf("faba beans_production_water_moll_%s|faba beans_processing_water_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -992,7 +994,7 @@ marine_faba_water <-
 plant_faba_water <- 
   
   list.files(here("data/spatial/plant_diet/int"), 
-                        pattern = "faba beans_production_water_moll|faba beans_processing_water_moll", full.names = TRUE) |>
+                        pattern = sprintf("faba beans_production_water_moll_%s|faba beans_processing_water_moll_%s", this_allocation_method, this_allocation_method), full.names = TRUE) |>
   map(.f = \(this_file){
     
     this_area <- str_sub(this_file, start = nchar(tools::file_path_sans_ext(this_file))-2, end = nchar(tools::file_path_sans_ext(this_file)))
@@ -1059,7 +1061,7 @@ faba_water_plot <-
     coord_cartesian(ylim=c(0,140), clip="off")+
   labs(fill = "Country", y = bquote(Water~consumption~("1000s"~m^3)), x = "Feed scenario", pattern = "Stage")+
   annotate("segment", x = 3, xend = 3, y=-7, yend = -10)+
-  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Faba beans (2/3%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "Faba beans (2/3%)", size=2.5, fontface="bold")+
  annotation_custom2(faba_png, xmin = -0.3, xmax = 1.9, ymin = 125, ymax = 140, data = faba_water_df |> filter(diet == "Fish-dominant"))
   
  
@@ -1076,6 +1078,7 @@ ggsave(filename = sprintf(here("explore/faba_water_%s.jpeg"), this_allocation_me
   
 
 ggsave(filename = sprintf(here("figures/case_studies_%s.jpg"), this_allocation_method), dpi=600, width = 18, height = 21, unit = "cm")
+ggsave(filename = sprintf(here("figures/case_studies_%s.pdf"), this_allocation_method), dpi=600, width = 18, height = 21, unit = "cm")
 
 
 

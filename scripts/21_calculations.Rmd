@@ -251,7 +251,7 @@ summary_by_pressure |> filter(pressure == "GHG" & diet == "marine diet") |> pull
 summary_by_pressure |> filter(pressure == "GHG" & diet == "marine diet") |> pull(max)/summary_by_pressure |> filter(pressure == "GHG" & diet == "plant diet") |> pull(min)
 
 summary_by_pressure |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(max)/summary_by_pressure |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(max)
-summary_by_pressure |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(max)/summary_by_pressure |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(min)
+summary_by_pressure |> filter(pressure == "Disturbance" & diet == "plant diet") |> pull(max)/summary_by_pressure |> filter(pressure == "Disturbance" & diet == "marine diet") |> pull(min)
 
 
 
@@ -271,7 +271,7 @@ pressure_scores <-
 
 
 
-which(pressure_scores |> filter(diet == "plant diet" & pressure == "Nutrients") |> pull(cpi_cont) > pressure_scores |> filter(diet == "marine diet" & pressure == "Nutrients") |> pull(cpi_cont) |> max(), TRUE) |> length()/500
+which(pressure_scores |> filter(diet == "plant diet" & pressure == "Nutrients") |> pull(cpi_cont) > pressure_scores |> filter(diet == "marine diet" & pressure == "Nutrients") |> pull(cpi_cont) |> max(), TRUE) |> length()/2000
 
 ```
 
