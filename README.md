@@ -23,7 +23,7 @@ We strongly advocate for open and reproducible science. The code in this reposit
 
 ## Repository structure
 
-This respoitory is organised into 2 master scripts (**all that is needed to run the analyses**) and six main folders: 
+This respoitory is organised into **2 master scripts** (all that is needed to run the analyses) and five main folders  : 
 
 - scripts - each step in the analysis is outlined by inidvidual scripts. These can be independently run if desired.
 - src - this folder holds scripts which are used to source different functions throughout the analysis.
