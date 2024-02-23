@@ -41,9 +41,9 @@ This respoitory is organised into 2 master scripts (**all that is needed to run 
 
 ### 'scripts' folder
 
-The scripts folder contains all code necessary to generate the results attached to the publication listed above.
+The scripts folder contains all code necessary to generate the results attached to the publication listed above. However, replication of results can be most easily completed through '2_run_project_scripts' in the project home folder.
 
-All scripts are numbered by the order in which they should be run. **Note:** 00_tidying_data cannot be run unless the user is a member of the Sustainable Aquafeeds Project and has access to the Research Data Storage facility. Raw data is tidied in this script and products are saved to the project folders.
+For individual running, all scripts are numbered by the order in which they should be run. **Note:** 00_tidying_data cannot be run unless the user is a member of the Sustainable Aquafeeds Project and has access to the Research Data Storage facility. Raw data is tidied in this script and products are saved to the project folders.
 
 | Script                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |:---------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -74,10 +74,22 @@ All scripts are numbered by the order in which they should be run. **Note:** 00_
 
 ### 'src' folder
 
-### 'data'
+Contains two reference scripts "directories.R" and "functions.R" which hold regularly used directory file paths and functions respectively. These are sourced within individual markdown scripts when needed.
+
+### 'data' folder
+
+The data folder is divided into a number of subfolders, each with their own subdirectories. The main dubdirectories within the data folder are listed below.
+
+| Folder | Description|
+|:---------|:------------|
+| raw_data | This folder contains a number of sources of raw data needed for the analysis. This often not the raw product per se, it may be tidied, but it is not a data product |
+| tidy_data | This folder contains a number of data products that have been produced from analyses regarding allocation, dietary scenarios, raw material and ingredient demand, and figure icons among others |
+| spatial | This folders holds the files that underpin the majority of the final analyses including data on marine primary productivity, locations of ports, inividual country rasters, and the layers used for final analysis in the fish-dominant and plant-dominant diets (labelled marine_diet, plant_diet). In these latter folders, layers are divided in the production layers ('production' folder), intermediate layers ('int' folder, including pressure data per km2 for raw material production), processing layers ('processing' folder holding the locations and pressure per km2 for processing activities) and pressures (the rescaled pressure layers for each ingredient).Files are labelled for each ingredient, pressure, location, and allocation method.
 
 ### 'figures' folder
 
+The folder holds all figues produced from the code and is the location where reproduced results will be located.
+
 ### 'explore' folder
 
-### doc
+The explore folder has been used to view outputs (data and figures) that are not finalised. These are unessential for anyone wanting to reproduce this study.
