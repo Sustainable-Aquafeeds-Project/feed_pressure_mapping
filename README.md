@@ -11,7 +11,7 @@ Not yet available
 
 ## Contact
 
-Please direct any correspondence to Richard Cottrell at [richardstuart.cottrell\@utas.edu.au](mailto:richardstuart.cottrell@utas.edu.au){.email}
+Please direct any correspondence to Richard Cottrell at [richardstuart.cottrell\@utas.edu.au](mailto:richardstuart.cottrell@utas.edu.au)
 
 ## Reproducibility
 We strongly advocate for open and reproducible science. The code in this repository enables a user to recreate the results outlined in the above publication. There are a a few important points to know/adhere to for the code to run smoothly:
