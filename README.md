@@ -43,7 +43,7 @@ This respoitory is organised into 2 master scripts (**all that is needed to run 
 
 The scripts folder contains all code necessary to generate the results attached to the publication listed above.
 
-All scripts are numbered by the order in which they should be run. **Note:** 01_tidying_data does not need to be run unless the user wishes to rerun the conversion from downloaded data format (e.g. wide format, unjoined data) to create the the tidied raw data available through the raw_data file within the project. Otherwise, scripts 02\_... onwards can be run enitirely using the pre tidied raw data in the raw_data file. The raw_data file is not available through cloning or forking the project due to the size of datasets that are incompatible with Github storage. The raw_data file can be downloaded from the associated Github Large File Storage found here: <ENTER LINK OR DOI>.
+All scripts are numbered by the order in which they should be run. **Note:** 00_tidying_data cannot be run unless the user is a member of the Sustainable Aquafeeds Project and has access to the Research Data Storage facility. Raw data is tidied in this script and products are saved to the project folders.
 
 | Script                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 |:---------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -53,34 +53,31 @@ All scripts are numbered by the order in which they should be run. **Note:** 01_
 | 03_spatial_fish_demand_allocation.Rmd | Based on the spatial patterns in fisheries catch, the representation of different species in different areas, and their fishmeal and oil yields , this script assigns feed fish demand from aquaculture feeds to grid cells with FAO major fishing areas |
 | 04_crop_source_country_rasters.Rmd           | Generates rasters for the source countries to crop for existing spatial resources for crop mapping |
 | 05_spatial_crop_demand_allocation.Rmd        |  Allocates crop demand to grid cells based on World Resources Institute's Spatial Allocation Model |
-| 06_distribute_ingredient_processing.Rmd      | Assigns ingredient processing locations for marine and agricultural ingredients |
-| 07_ingredient_processing_pressures.Rmd |       |
-| 08_fish_disturbance_pressures.Rmd | |
-| 09_fish_ghg_pressures.Rmd |   |
-| 10_fish_nutrient_pressures.Rmd | |
-| 11_fish_water_extraction_pressures.Rmd |   |
-| 12_crop_disturbance_pressures.Rmd   |   |
-| 13_crop_ghg_pressures.Rmd |   |
-| 14_crop_nutrient_pressures.Rmd |   |
-| 15_crop_water_extraction_pressures.Rmd | |
-| 16a_rescaling_disturbance.Rmd || 
-| 16b_rescaling_GHG_emissions.Rmd | |
-| 16c_rescaling_nutrient_pressures.Rmd || 
-| 16d_rescaling_water_consumption.Rmd | |
-| 17_ingredient_permutations.Rmd | |
-| 18_mapping_CPI.Rmd | |
-| 19_CPI_permutations.Rmd ||
-| 20_visualisation.Rmd | |
-| 21_calculations.Rmd ||
-| 22_diet_concept_plot.Rmd | |
+| 06_distribute_ingredient_processing.Rmd      | Assigns biomass to ingredient processing locations for marine and agricultural ingredients |
+| 07_ingredient_processing_pressures.Rmd |  Joins environmental pressures data from ingredient processing to ingredient biomass in processing locations    |
+| 08_fish_disturbance_pressures.Rmd |  Calculated fisheries disturbance for a region through the primary production required for forage fish (and trimmings species) divided by net primary productivity per cell, multiplied by a cell's area |
+| 09_fish_ghg_pressures.Rmd | Joins greenhouse gas emissions data from Parker et al to species and gear types used in forage fisheries and in catch for trimmings  |
+| 10_fish_nutrient_pressures.Rmd | Calculates nutrient pollution from fisheries (assumed to be negligible and set at zero) |
+| 11_fish_water_extraction_pressures.Rmd | Calculates the water consumption pressures from fisheries (assumed to be negligible and set at zero)   |
+| 12_crop_disturbance_pressures.Rmd   | Joins land use data from Agrifootprint for crops to biomass in each cell |
+| 13_crop_ghg_pressures.Rmd | Joins greenhouse gas emissions from Agrifooprint for crops to biomass in each cell  |
+| 14_crop_nutrient_pressures.Rmd | Joins nutrient pressures (N and P) from Agrifootprint for crops to biomass in each cell  |
+| 15_crop_water_extraction_pressures.Rmd | Joins water consumption pressures (blue water) from Agrifootprint for crops in each cell |
+| 16a-d_rescaling_disturbance.Rmd | Reprojects pressure data to Molleweide, calculates the maximum possible pressure across both feeds (takes to highest possible per ingredient), and rescales each cell to the proprotion of maximum pressure each could represent. Original script was split into four to reduce memory use | 
+| 17_ingredient_permutations.Rmd | Sets up data frame of unique combinations of ingredient sourcing |
+| 18_mapping_CPI.Rmd | Maps the CPI for each feed scenario for 3 combinations as an example of the CPI calculations  |
+| 19_CPI_permutations.Rmd | Iterations the CPI calculations based on the ingredients permutations dataframe created in script 17 |
+| 20_visualisation.Rmd | Creates the plots for the analysis. Contains some calculations based on the data plotted |
+| 21_calculations.Rmd | Most calculations for the manuscript are conducted here |
+| 22_diet_concept_plot.Rmd | code to create the diet composition used in the cpnceptual figure |
 
 
-### src
+### 'src' folder
 
-### data
+### 'data'
 
-### figures
+### 'figures' folder
 
-### explore
+### 'explore' folder
 
 ### doc
