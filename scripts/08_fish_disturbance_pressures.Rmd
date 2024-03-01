@@ -26,7 +26,6 @@ library(rfishbase)
 library(RColorBrewer)
 
 source(here("src/directories.R"))
-source(here("src/spatial.R"))
 
 select <- dplyr::select
 resample <- terra::resample

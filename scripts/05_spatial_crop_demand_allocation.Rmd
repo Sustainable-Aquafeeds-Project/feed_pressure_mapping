@@ -11,7 +11,6 @@ library(parallel)
 library(doParallel)
 
 source(here("src/directories.R"))
-source(here("src/spatial.R"))
 
 
 base_raster_ea <- rast(here("data/spatial/base_raster_gall_peters.tif"))

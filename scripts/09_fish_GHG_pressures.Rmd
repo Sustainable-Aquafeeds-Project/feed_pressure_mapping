@@ -14,7 +14,6 @@ library(dtplyr)
 library(here)
 
 source(here("src/directories.R"))
-source(here("src/spatial.R"))
 
 select <- dplyr::select
 

@@ -40,7 +40,7 @@ final_palette <- c(light_gray, continuous_pal)
 
 
 #SOURCE FILES
-source(here("src/fxns.R"))
+source(here("src/functions.R"))
 
 
 

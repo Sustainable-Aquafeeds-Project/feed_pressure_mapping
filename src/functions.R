@@ -1,6 +1,4 @@
-# IUCN API query functions
 
-library(rredlist)
 library(here)
 library(terra)
 

@@ -33,7 +33,6 @@ library(readxl)
 #install.packages("/Users/rsc2/Downloads/ncdf4_1.21.tgz", repos = NULL)
 
 source(here("src/directories.R"))
-#source(here("src/spatial.R"))
 
 select <- dplyr::select
 
