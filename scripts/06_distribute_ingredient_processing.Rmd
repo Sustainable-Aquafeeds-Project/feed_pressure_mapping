@@ -152,7 +152,7 @@ map(all_relevant_ports_w_demand, \(this_areas_ports){
 })
 
 #check the rasters are summing correctly and still represent the correct biomass
-(fm_spatial_27 <- rast("/mnt/rdsi/github/feed_pressure_mapping/data/spatial/marine_diet/processing/fishmeal_27.tif") |> values() |> sum(na.rm=TRUE))
+(fm_spatial_27 <- rast(here("data/spatial/marine_diet/processing/fishmeal_27.tif")) |> values() |> sum(na.rm=TRUE))
 
 (fm_demand_27 <- ingredient_demand |> filter(diet == "marine_diet", ingredients == "fishmeal") |> pull(ingredient_demand_tonnes)
 ) 
@@ -205,6 +205,14 @@ map(sourcing_countries, \(this_diet_ingredient_demand){
   }
 })
 
+
+```
+
+
+```{r}
+
+#clear the environment
+rm(list = ls(all.names = TRUE))
 
 ```
 

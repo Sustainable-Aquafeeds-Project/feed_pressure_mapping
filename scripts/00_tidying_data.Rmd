@@ -8,6 +8,8 @@ editor_options:
     wrap: 72
 ---
 
+######### DO NOT RUN UNLESS YOU HAVE ACCESS TO UTAS SUSTAINABLE AQUAFEEDS PROJECT RDSI DRIVE #########
+
 This script takes the raw_data from databases and publications (much of
 which is stored in the rdsi storage at UTAS) and tidies it to be useable
 for this project. Spatial products are stored here("data/spatial"), some
@@ -962,4 +964,6 @@ trimmings_sensitivity <-
 
 saveRDS(object = trimmings_sensitivity, file = here("data/tidy_data/allocation/trimmings_conversion_sensitvity.rds"))
 ```
+
+
 

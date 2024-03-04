@@ -48,7 +48,6 @@ processing_main_pressures <-
 Bring in processing locations and assign pressures based on ingredient demand per diet
 
 ```{r}
-
 ingredient_demand <- readRDS(here("data/tidy_data/demand/total_ingredient_demand.rds"))
 
 #marine diet
@@ -266,8 +265,12 @@ map(.x = diets, .f = \(this_diet){
     
   }) #end of mapping across this diet's ingredients list
 }) #end of mapping across the diet list
+```
 
 
+```{r}
+
+#clear the environment
 rm(list = ls(all.names = TRUE))
 
 ```

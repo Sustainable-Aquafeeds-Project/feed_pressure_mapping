@@ -45,6 +45,7 @@ ingredient_by_raw_material <-
 
 crop_production_raw <- readRDS(file = here("data/tidy_data/production-data/crops_production_tidy.rds"))
 
+
 (crop_production <- 
   crop_production_raw |>
   filter(element == "Production"  & area!= "China" & item %in% ingredient_by_raw_material$FAOSTAT_name & year %in% seq(from = 2015, to = 2019)) |> 
@@ -202,6 +203,10 @@ saveRDS(object = crop_raw_material_demand, file = sprintf(here("data/tidy_data/d
 
 ```
 
+```{r}
+#clear the environment
+rm(list = ls(all.names = TRUE))
+```
 
 
 

@@ -50,16 +50,6 @@ aquaculture %>% filter(species == "Atlantic salmon" & year %in% c(1990, 2019)) |
     
     )
 
-#Global production
-round(sum(top_salmon_producers$value), digits = 20)
-
-#Average production levels - mean production is ~ 200,000 tonnes, median is 75,000.
-
-top_salmon_producers |> pull(value) |> mean()
-
-top_salmon_producers |> pull(value) |> median()
-
-
 
 
 
