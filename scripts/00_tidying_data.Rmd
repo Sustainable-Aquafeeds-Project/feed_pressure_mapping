@@ -966,4 +966,13 @@ saveRDS(object = trimmings_sensitivity, file = here("data/tidy_data/allocation/t
 ```
 
 
+Bring in ecosystem transfer efficiency data into project
+```{r}
+
+ read_csv(file.path(rdsi_dir, "raw_data/cashion/ecosystem_te.csv")) |> 
+  write_csv(here("data/tidy_data/ecosystem-te/ecosystem_te.csv"))
+  
+
+```
+
 
