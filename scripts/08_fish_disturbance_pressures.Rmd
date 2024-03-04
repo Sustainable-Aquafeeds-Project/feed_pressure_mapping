@@ -96,7 +96,7 @@ Import ecosystem transfer-efficiency
 
 ```{r}
 
-ecosystem_te <- read_csv(file.path(rdsi_dir, "raw_data/cashion/ecosystem_te.csv")) |> select(TE, fao_area_code) |> group_by(fao_area_code) |> summarise(te=mean(TE, na.rm = TRUE)) |> mutate(te= te/100)
+ecosystem_te <- read_csv(here("data/tidy_data/ecosystem-te/ecosystem_te.csv")) |> select(TE, fao_area_code) |> group_by(fao_area_code) |> summarise(te=mean(TE, na.rm = TRUE)) |> mutate(te= te/100)
 
 
 ```
