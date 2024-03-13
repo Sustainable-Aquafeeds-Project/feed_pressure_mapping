@@ -871,7 +871,7 @@ ei_data <-
   arrange(ParkerGearName)|> 
   as_tibble()
   
-write_csv(x= ei_data, file = here("data/raw_data/fisheries/all_catch_emissions_2017.csv"))
+write_csv(x= ei_data, file = here("data/large_data/all_catch_emissions_2017.csv"))
 
 
 

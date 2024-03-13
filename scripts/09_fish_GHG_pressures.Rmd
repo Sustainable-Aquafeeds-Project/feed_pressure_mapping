@@ -29,7 +29,7 @@ source(here("1_choose_allocation_method.R")) #selects from set up script
 Bringing in the emission intensity data from Halpern et al stored in RDSI and tidy to distinct categories with functional groups associated with the Watson data.
 ```{r}
 
-ei_data <- read_csv(here("data/raw_data/fisheries/all_catch_emissions_2017.csv")) 
+ei_data <- read_csv(here("data/large_data/all_catch_emissions_2017.csv")) 
  
 
 ```
