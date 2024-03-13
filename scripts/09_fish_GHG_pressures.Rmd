@@ -44,7 +44,7 @@ embodied_fish_forage <- fread(here("data/large_data/embodied_foragefish_per_cell
 unique(ei_data$ParkerGearName)
 unique(embodied_fish_trim$VBDesc)
 
-#Gear classifications are different. So we need the join file with Parker Data created in Halpern et al food systems project
+#Gear classifications are different. So we need the join file with Parker Data.
 parker_gear_join <- read_csv(here("data/raw_data/fisheries/parker_gear_join.csv"))
 
 #now join parker gear data to the embodied fish by the parker gear categories, species and description from watson. Adjust the emissions intensities to reflect per tonne pressures
