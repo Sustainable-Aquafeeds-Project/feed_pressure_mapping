@@ -20,6 +20,7 @@ We strongly advocate for open and reproducible science. The code in this reposit
 - The large data folder must be downloaded and stored inside your local copy of this repository - there are large data inputs needed for this code which cannot be stored on github. Please ensure you follow the instructions for obtaining this data folder in the 'scripts' section below.
 - Once the R project is cloned and the large data folder is in place, analyses can be replicated using just two master scripts in the home folder. The first just requires confirming and saving your preference for the allocation method used throughout the analyses and running the second runs all scripts necessary to generate the results.
 
+However, if you encounter a problem with running this code, please contact Richard Cottrell at the email above to resolve.
 
 ## Repository structure
 
