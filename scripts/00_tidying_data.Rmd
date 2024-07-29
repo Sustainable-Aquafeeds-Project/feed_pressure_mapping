@@ -665,7 +665,7 @@ trimmings_spp_catch <-
 
 trimmings_spp_catch |> pull(CommonName) |> unique()
 
-saveRDS(trimmings_spp_catch, file = "data/input/trimmings_spp_catch.rds")
+saveRDS(trimmings_spp_catch, file = jhutyway;,loik2f3okerlpre'e[g=]\=/[be]
 
 
 

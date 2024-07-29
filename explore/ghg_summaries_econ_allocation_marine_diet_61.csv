@@ -1,0 +1,69 @@
+diet,fao_area_code,TaxonName,VBDesc,fm_emissions_total,fo_emissions_total,source
+marine_diet,61,Engraulis japonicus,bottom trawls,204710843.70916304,121403432.40247056,Whole fish
+marine_diet,61,Larimichthys polyactis,bottom trawls,56419635.03961467,31661816.65012619,Whole fish
+marine_diet,61,Scomber japonicus,purse seines,16193179.206705598,9098802.964178191,Whole fish
+marine_diet,61,Sardinops sagax,seine nets,3679752.8221699623,2065019.7239227921,Whole fish
+marine_diet,61,Sardinops sagax,purse seines,3676023.3836637028,2062926.8213701572,Whole fish
+marine_diet,61,Clupeiformes,bottom trawls,2814830.2265465795,1579638.692656805,Whole fish
+marine_diet,61,Clupea pallasii pallasii,purse seines,2657585.1458818475,1491395.2130659616,Whole fish
+marine_diet,61,Cololabis saira,seine nets,1171131.4852333674,657220.6702970208,Whole fish
+marine_diet,61,Clupeidae,mid-water trawls,444502.1687012894,253843.50184902042,Whole fish
+marine_diet,61,Clupeiformes,mid-water trawls,248567.45735254633,139492.1688940109,Whole fish
+marine_diet,61,Clupeidae,purse seines,119062.22457281603,67993.30611097295,Whole fish
+marine_diet,61,Sardinella aurita,seine nets,76991.94974233511,43968.07825230634,Whole fish
+marine_diet,61,Clupeiformes,purse seines,62944.746265490016,35323.60700219572,Whole fish
+marine_diet,61,Sardinella,purse seines,45286.42295603111,25861.885495321432,Whole fish
+marine_diet,61,Sardinella,mid-water trawls,39472.549996074675,22541.735504214354,Whole fish
+marine_diet,61,Mallotus villosus,purse seines,36523.56441478516,58771.51169919513,Whole fish
+marine_diet,61,Sardinella,boat seines,27761.354454418677,15853.77963705106,Whole fish
+marine_diet,61,Etrumeus whiteheadi,purse seines,25955.555740270895,14565.851876276018,Whole fish
+marine_diet,61,Stolephorus,bottom trawls,17671.92078872556,9917.205516755186,Whole fish
+marine_diet,61,Sardinella zunasi,seine nets,10132.72503585634,5786.532861898167,Whole fish
+marine_diet,61,Rastrelliger kanagurta,purse seines,4456.224612741863,2500.7635469698666,Whole fish
+marine_diet,61,Stolephorus,mid-water trawls,3711.084622707832,2082.602640282523,Whole fish
+marine_diet,61,Engraulidae,purse seines,1692.879186569317,1003.9592440164319,Whole fish
+marine_diet,61,Stolephorus,purse seines,1617.9503124530215,907.968406848663,Whole fish
+marine_diet,61,Engraulidae,mid-water trawls,1156.0457601743994,685.5910549559858,Whole fish
+marine_diet,61,Spratelloides gracilis,bottom trawls,929.5068954271867,521.6247300674595,Whole fish
+marine_diet,61,Rastrelliger kanagurta,seine nets,904.7865126238083,507.7520379223947,Whole fish
+marine_diet,61,Scomberomorus guttatus,mid-water trawls,595.5217120643027,334.1974694680332,Whole fish
+marine_diet,61,Dussumieria elopsoides,bottom trawls,400.79280795665375,224.91865449506653,Whole fish
+marine_diet,61,Opisthonema oglinum,purse seines,397.1434142950091,222.87067185714207,Whole fish
+marine_diet,61,Atherinidae,bottom trawls,381.2579933587261,213.95602211257165,Whole fish
+marine_diet,61,Scomberomorus guttatus,purse seines,355.6801349464729,199.60212806871561,Whole fish
+marine_diet,61,Opisthonema libertate,purse seines,255.49865457408856,143.38184835472052,Whole fish
+marine_diet,61,Opisthonema oglinum,seine nets,176.21832945938112,98.89097002873046,Whole fish
+marine_diet,61,Sardinella gibbosa,purse seines,135.79262012549285,77.5475951413707,Whole fish
+marine_diet,61,Spratelloides gracilis,mid-water trawls,82.02016483568505,46.02843351994723,Whole fish
+marine_diet,61,Dussumieria elopsoides,mid-water trawls,55.87397858097536,31.35560278087192,Whole fish
+marine_diet,61,Sardinella gibbosa,mid-water trawls,40.07100112027046,22.88349520697387,Whole fish
+marine_diet,61,Atherinidae,mid-water trawls,38.52053876959153,21.61712380681889,Whole fish
+marine_diet,61,Atherinidae,purse seines,24.482442609293777,13.739163830081932,Whole fish
+marine_diet,61,Spratelloides gracilis,purse seines,18.89121868490659,10.601456423441551,Whole fish
+marine_diet,61,Dussumieria elopsoides,purse seines,18.56875853036572,10.420496828738813,Whole fish
+marine_diet,61,Euphausia superba,mid-water trawls,4.25818580208166,2.38962726421424,Whole fish
+marine_diet,61,Clupeidae,gillnets,0,5853.999776102572,Trimmings
+marine_diet,61,Clupeidae,with gorges or hooks,0,13300.882552555133,Trimmings
+marine_diet,61,Engraulidae,lampara-like nets,0,0.35380062517603733,Trimmings
+marine_diet,61,Engraulis anchoita,purse seines,0,0.11223987164551717,Trimmings
+marine_diet,61,Engraulis mordax,bottom trawls,0,75.755174269172,Trimmings
+marine_diet,61,Engraulis ringens,gillnets,0,0.017022758975966713,Trimmings
+marine_diet,61,Katsuwonus pelamis,gillnets,0,2036.6540250422931,Trimmings
+marine_diet,61,Katsuwonus pelamis,longline tuna,0,23562.363158029635,Trimmings
+marine_diet,61,Katsuwonus pelamis,pole line tuna,0,23093.06051245653,Trimmings
+marine_diet,61,Katsuwonus pelamis,purse seine tuna,0,4390.526739574797,Trimmings
+marine_diet,61,Katsuwonus pelamis,troll lines,0,3792.9618476562473,Trimmings
+marine_diet,61,Sardinella,gillnets,0,1195.2079719863611,Trimmings
+marine_diet,61,Scomber scombrus,traps,0,2.3265341643360986,Trimmings
+marine_diet,61,Sprattus fuegensis,gillnets,0,8519.926523308644,Trimmings
+marine_diet,61,Theragra chalcogramma,mid-water trawls,0,131747.0740528895,Trimmings
+marine_diet,61,Thunnus,longline tuna,0,0.3245357213437653,Trimmings
+marine_diet,61,Thunnus alalunga,gillnets,0,726.0855692173582,Trimmings
+marine_diet,61,Thunnus alalunga,longline tuna,0,27597.88403508094,Trimmings
+marine_diet,61,Thunnus alalunga,pole line tuna,0,0.9633607881795561,Trimmings
+marine_diet,61,Thunnus alalunga,purse seine tuna,0,0.06840217348923963,Trimmings
+marine_diet,61,Thunnus albacares,gillnets,0,187.06655956366666,Trimmings
+marine_diet,61,Thunnus albacares,longline tuna,0,43231.77090825358,Trimmings
+marine_diet,61,Thunnus albacares,pole line tuna,0,945.3862616423113,Trimmings
+marine_diet,61,Thunnus albacares,purse seine tuna,0,426.18555527720133,Trimmings
+marine_diet,61,Thunnus albacares,troll lines,0,689.2470367820231,Trimmings

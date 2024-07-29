@@ -1,0 +1,69 @@
+diet,fao_area_code,TaxonName,VBDesc,fm_emissions_total,fo_emissions_total,source
+plant_diet,61,Engraulis japonicus,bottom trawls,95958207.98867017,52784101.044552416,Whole fish
+plant_diet,61,Larimichthys polyactis,bottom trawls,26446703.924819376,13766007.2391853,Whole fish
+plant_diet,61,Scomber japonicus,purse seines,7590552.753143249,3956001.2887731264,Whole fish
+plant_diet,61,Sardinops sagax,seine nets,1724884.1353921702,897834.6625751269,Whole fish
+plant_diet,61,Sardinops sagax,purse seines,1723135.9610923608,896924.7049435466,Whole fish
+plant_diet,61,Clupeiformes,bottom trawls,1319451.6686937094,686799.4315899153,Whole fish
+plant_diet,61,Clupea pallasii pallasii,purse seines,1245743.0371321158,648432.7013330268,Whole fish
+plant_diet,61,Cololabis saira,seine nets,548967.8837031408,285748.1175204439,Whole fish
+plant_diet,61,Clupeidae,mid-water trawls,208360.39157872938,110366.73993435668,Whole fish
+plant_diet,61,Clupeiformes,mid-water trawls,116515.99563400606,60648.76908435254,Whole fish
+plant_diet,61,Clupeidae,purse seines,55810.41776850751,29562.30700477085,Whole fish
+plant_diet,61,Sardinella aurita,seine nets,36089.97644171956,19116.555761872325,Whole fish
+plant_diet,61,Clupeiformes,purse seines,29505.349811948443,15358.090000954662,Whole fish
+plant_diet,61,Sardinella,purse seines,21228.01076063956,11244.298041444108,Whole fish
+plant_diet,61,Sardinella,mid-water trawls,18502.75781066,9800.75456704972,Whole fish
+plant_diet,61,Mallotus villosus,purse seines,17120.420819430547,25552.831173563107,Whole fish
+plant_diet,61,Sardinella,boat seines,13013.134900508747,6892.947668283069,Whole fish
+plant_diet,61,Etrumeus whiteheadi,purse seines,12166.666753251959,6332.97907664175,Whole fish
+plant_diet,61,Stolephorus,bottom trawls,8283.712869715133,4311.828485545736,Whole fish
+plant_diet,61,Sardinella zunasi,seine nets,4749.7148605576585,2515.8838529992036,Whole fish
+plant_diet,61,Rastrelliger kanagurta,purse seines,2088.8552872227483,1087.2884986825507,Whole fish
+plant_diet,61,Stolephorus,mid-water trawls,1739.5709168942933,905.4794088184894,Whole fish
+plant_diet,61,Engraulidae,purse seines,793.5371187043668,436.50401913757946,Whole fish
+plant_diet,61,Stolephorus,purse seines,758.4142089623551,394.76887254289744,Whole fish
+plant_diet,61,Engraulidae,mid-water trawls,541.8964500817484,298.0830673721677,Whole fish
+plant_diet,61,Spratelloides gracilis,bottom trawls,435.70635723149377,226.7933608988955,Whole fish
+plant_diet,61,Rastrelliger kanagurta,seine nets,424.11867779241015,220.76175561843206,Whole fish
+plant_diet,61,Scomberomorus guttatus,mid-water trawls,279.15080253014196,145.30324759479703,Whole fish
+plant_diet,61,Dussumieria elopsoides,bottom trawls,187.87162872968182,97.79071934568111,Whole fish
+plant_diet,61,Opisthonema oglinum,purse seines,186.16097545078588,96.90029211180106,Whole fish
+plant_diet,61,Atherinidae,bottom trawls,178.71468438690297,93.0243574402486,Whole fish
+plant_diet,61,Scomberomorus guttatus,purse seines,166.72506325615922,86.78353394291983,Whole fish
+plant_diet,61,Opisthonema libertate,purse seines,119.76499433160392,62.33993406726994,Whole fish
+plant_diet,61,Opisthonema oglinum,seine nets,82.602341934085,42.99607392553505,Whole fish
+plant_diet,61,Sardinella gibbosa,purse seines,63.6527906838248,33.71634571363943,Whole fish
+plant_diet,61,Spratelloides gracilis,mid-water trawls,38.44695226672738,20.012362399977054,Whole fish
+plant_diet,61,Dussumieria elopsoides,mid-water trawls,26.19092745983221,13.632870774292087,Whole fish
+plant_diet,61,Sardinella gibbosa,mid-water trawls,18.783281775126763,9.949345742162544,Whole fish
+plant_diet,61,Atherinidae,mid-water trawls,18.056502548246044,9.398749481225604,Whole fish
+plant_diet,61,Atherinidae,purse seines,11.476144973106438,5.973549491339957,Whole fish
+plant_diet,61,Spratelloides gracilis,purse seines,8.855258758549963,4.609328879757195,Whole fish
+plant_diet,61,Dussumieria elopsoides,purse seines,8.70410556110893,4.53065079510383,Whole fish
+plant_diet,61,Euphausia superba,mid-water trawls,1.9960245947257798,1.0389683757453207,Whole fish
+plant_diet,61,Clupeidae,gillnets,0,2545.21729395764,Trimmings
+plant_diet,61,Clupeidae,with gorges or hooks,0,5782.992414154407,Trimmings
+plant_diet,61,Engraulidae,lampara-like nets,0,0.1538263587721901,Trimmings
+plant_diet,61,Engraulis anchoita,purse seines,0,0.04879994419370313,Trimmings
+plant_diet,61,Engraulis mordax,bottom trawls,0,32.937032290944444,Trimmings
+plant_diet,61,Engraulis ringens,gillnets,0,0.007401199554768139,Trimmings
+plant_diet,61,Katsuwonus pelamis,gillnets,0,885.501750018389,Trimmings
+plant_diet,61,Katsuwonus pelamis,longline tuna,0,10244.505720882433,Trimmings
+plant_diet,61,Katsuwonus pelamis,pole line tuna,0,10040.461092372407,Trimmings
+plant_diet,61,Katsuwonus pelamis,purse seine tuna,0,1908.9246693803466,Trimmings
+plant_diet,61,Katsuwonus pelamis,troll lines,0,1649.113846807064,Trimmings
+plant_diet,61,Sardinella,gillnets,0,519.6556399940698,Trimmings
+plant_diet,61,Scomber scombrus,traps,0,1.0115365931896034,Trimmings
+plant_diet,61,Sprattus fuegensis,gillnets,0,3704.315879699404,Trimmings
+plant_diet,61,Theragra chalcogramma,mid-water trawls,0,57281.336544734564,Trimmings
+plant_diet,61,Thunnus,longline tuna,0,0.14110248754076735,Trimmings
+plant_diet,61,Thunnus alalunga,gillnets,0,315.6893779205906,Trimmings
+plant_diet,61,Thunnus alalunga,longline tuna,0,11999.080015252586,Trimmings
+plant_diet,61,Thunnus alalunga,pole line tuna,0,0.418852516599807,Trimmings
+plant_diet,61,Thunnus alalunga,purse seine tuna,0,0.0297400754301042,Trimmings
+plant_diet,61,Thunnus albacares,gillnets,0,81.3332867668116,Trimmings
+plant_diet,61,Thunnus albacares,longline tuna,0,18796.4221340233,Trimmings
+plant_diet,61,Thunnus albacares,pole line tuna,0,411.0375050618745,Trimmings
+plant_diet,61,Thunnus albacares,purse seine tuna,0,185.29806751182664,Trimmings
+plant_diet,61,Thunnus albacares,troll lines,0,299.67262468783605,Trimmings

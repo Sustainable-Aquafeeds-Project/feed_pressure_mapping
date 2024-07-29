@@ -1,0 +1,49 @@
+diet,fao_area_code,TaxonName,VBDesc,fm_emissions_total,fo_emissions_total,source
+plant_diet,87,Scomber japonicus,purse seines,2953893.0127233793,1543104.996374924,Whole fish
+plant_diet,87,Engraulis ringens,purse seines,2383855.5780223687,1270586.9416700369,Whole fish
+plant_diet,87,Trachurus murphyi,seine nets,1287217.021993327,669770.6526970335,Whole fish
+plant_diet,87,Strangomera bentincki,purse seines,845521.8134681344,439945.7800823484,Whole fish
+plant_diet,87,Trachurus murphyi,mid-water trawls,534656.1701805837,278194.7456815111,Whole fish
+plant_diet,87,Trachurus murphyi,purse seines,361144.6127705687,187912.41793772296,Whole fish
+plant_diet,87,Ethmidium maculatum,purse seines,78264.77954047293,40723.08832184142,Whole fish
+plant_diet,87,Opisthonema libertate,mid-water trawls,34790.78918811157,18102.502673777697,Whole fish
+plant_diet,87,Sprattus fuegensis,mid-water trawls,21772.80878028807,11625.1479032246,Whole fish
+plant_diet,87,Sprattus fuegensis,purse seines,16927.834650825887,9038.272621736498,Whole fish
+plant_diet,87,Opisthonema libertate,purse seines,10679.98205202938,5557.057145424694,Whole fish
+plant_diet,87,Opisthonema libertate,seine nets,7859.483912526329,4089.482643573899,Whole fish
+plant_diet,87,Clupeidae,mid-water trawls,5602.779429823383,8404.18583043942,Whole fish
+plant_diet,87,Atherinidae,mid-water trawls,5256.040828758127,2734.8472218213365,Whole fish
+plant_diet,87,Sprattus fuegensis,seine nets,4931.323563628778,2632.9798035861313,Whole fish
+plant_diet,87,Atherinidae,purse seines,3019.570765761983,1571.1568819354613,Whole fish
+plant_diet,87,Engraulidae,mid-water trawls,2173.5103286916465,1158.4736368599936,Whole fish
+plant_diet,87,Sardinops sagax,seine nets,1220.8754724487253,635.2515139813162,Whole fish
+plant_diet,87,Sardinops sagax,purse seines,1142.7205192998736,594.5855710302571,Whole fish
+plant_diet,87,Clupeidae,purse seines,1128.1801174849302,1692.2735360740814,Whole fish
+plant_diet,87,Engraulidae,purse seines,656.6835021615542,350.0100804549616,Whole fish
+plant_diet,87,Clupeiformes,purse seines,203.94046783548185,106.11523769471805,Whole fish
+plant_diet,87,Clupeiformes,mid-water trawls,26.00215382925972,13.529559696765922,Whole fish
+plant_diet,87,Brevoortia aurea,purse seines,1.786488973644922,0.9295541198338931,Whole fish
+plant_diet,87,Trachurus symmetricus,purse seines,0.6170230335651373,0.3210522490450465,Whole fish
+plant_diet,87,Engraulis ringens,mid-water trawls,0.3821211816539924,0.20366929440745346,Whole fish
+plant_diet,87,Engraulis ringens,seine nets,0.02105578031096118,0.011222659525362113,Whole fish
+plant_diet,87,Trachurus symmetricus,seine nets,0.012101384537752028,0.006296647792799287,Whole fish
+plant_diet,87,Cetengraulis mysticetus,purse seines,0,673.7107382594157,Trimmings
+plant_diet,87,Engraulidae,lampara-like nets,0,6.906756333798863,Trimmings
+plant_diet,87,Engraulis ringens,gillnets,0,0.009265795713861805,Trimmings
+plant_diet,87,Engraulis ringens,with gorges or hooks,0,0.022432866191008715,Trimmings
+plant_diet,87,Katsuwonus pelamis,gillnets,0,2.207576445009116,Trimmings
+plant_diet,87,Katsuwonus pelamis,longline tuna,0,11485.678534757633,Trimmings
+plant_diet,87,Katsuwonus pelamis,pole line tuna,0,7150.905385594671,Trimmings
+plant_diet,87,Katsuwonus pelamis,purse seine tuna,0,12479.46333352055,Trimmings
+plant_diet,87,Sprattus fuegensis,gillnets,0,690.2995418036807,Trimmings
+plant_diet,87,Sprattus fuegensis,with gorges or hooks,0,1407.5305015522504,Trimmings
+plant_diet,87,Thunnus alalunga,gillnets,0,0.42345304005253864,Trimmings
+plant_diet,87,Thunnus alalunga,longline tuna,0,1737.373245160377,Trimmings
+plant_diet,87,Thunnus alalunga,mid-water trawls,0,0.04954738652724711,Trimmings
+plant_diet,87,Thunnus alalunga,pole line tuna,0,177.41830111804487,Trimmings
+plant_diet,87,Thunnus alalunga,purse seine tuna,0,5.985666726011524,Trimmings
+plant_diet,87,Thunnus alalunga,troll lines,0,0.9521310389707247,Trimmings
+plant_diet,87,Thunnus albacares,gillnets,0,0.006948303817747677,Trimmings
+plant_diet,87,Thunnus albacares,longline tuna,0,4143.653921023974,Trimmings
+plant_diet,87,Thunnus albacares,pole line tuna,0,926.4323759124478,Trimmings
+plant_diet,87,Thunnus albacares,purse seine tuna,0,8006.927087919157,Trimmings
