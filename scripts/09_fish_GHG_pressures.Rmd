@@ -19,7 +19,7 @@ select <- dplyr::select
 
 
 #allocation method (un-comment preference)
-#source(here("1_choose_allocation_method.R")) #selects from set up script
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 #this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"
@@ -220,8 +220,6 @@ ghg_raw_r_list_fo <-
 #plot(rast(ghg_raw_r_list_fo))
 
 
-#clear the environment
-rm(list = ls(all.names = TRUE))
 
 ```
 
@@ -230,32 +228,36 @@ rm(list = ls(all.names = TRUE))
 Table for supplementary summary of gears and emissions for Northwest Pacific (61) and Southeast Pacific (87)
 ```{r}
 
-trimmings_species <- readRDS(file = here("data/large_data/trimmings_spp_catch.rds")) |> pull(TaxonName) |> unique()
-forage_species <- readRDS(file = here("data/large_data/spatial_forage_catch_2017.rds")) |> pull(TaxonName) |> unique()
+# trimmings_species <- readRDS(file = here("data/large_data/trimmings_spp_catch.rds")) |> pull(TaxonName) |> unique()
+# forage_species <- readRDS(file = here("data/large_data/spatial_forage_catch_2017.rds")) |> pull(TaxonName) |> unique()
+# 
+# 
+# emissions_summary <- 
+#   readRDS(sprintf(here("data/large_data/embodied_fish_ghgs_with_embodied_fish_%s.rds"), this_allocation_method)) |> 
+#   filter(fao_area_code %in% c(61, 87)) |> 
+#   group_by(diet, fao_area_code, TaxonName, VBDesc) |> 
+#   summarise(fm_emissions_total = sum(ei_kg_CO2_eq_fm, na.rm=TRUE),
+#             fo_emissions_total = sum(ei_kg_CO2_eq_fo, na.rm = TRUE))
+# 
+# savesummary <- \(x){
+#   this_diet <- x$diet |> unique()
+#   this_area <- x$fao_area_code |> unique()
+#   write_csv(x, file = sprintf(here("explore/ghg_summaries_%s_%s_%s.csv"), this_allocation_method, this_diet, this_area))
+# }
+# 
+# emissions_summary |> 
+#   ungroup() |> 
+#   filter(fm_emissions_total>0 | fo_emissions_total>0) |> 
+#   arrange(-fm_emissions_total) |> 
+#   mutate(source = case_when(fm_emissions_total == 0 ~ "Trimmings",
+#                             TRUE~ "Whole fish")) |>
+#   group_by(diet, fao_area_code) |> 
+#   group_split() |> 
+#   map(savesummary)
 
-
-emissions_summary <- 
-  readRDS(sprintf(here("data/large_data/embodied_fish_ghgs_with_embodied_fish_%s.rds"), this_allocation_method)) |> 
-  filter(fao_area_code %in% c(61, 87)) |> 
-  group_by(diet, fao_area_code, TaxonName, VBDesc) |> 
-  summarise(fm_emissions_total = sum(ei_kg_CO2_eq_fm, na.rm=TRUE),
-            fo_emissions_total = sum(ei_kg_CO2_eq_fo, na.rm = TRUE))
-
-savesummary <- \(x){
-  this_diet <- x$diet |> unique()
-  this_area <- x$fao_area_code |> unique()
-  write_csv(x, file = sprintf(here("explore/ghg_summaries_%s_%s_%s.csv"), this_allocation_method, this_diet, this_area))
-}
-
-emissions_summary |> 
-  ungroup() |> 
-  filter(fm_emissions_total>0 | fo_emissions_total>0) |> 
-  arrange(-fm_emissions_total) |> 
-  mutate(source = case_when(fm_emissions_total == 0 ~ "Trimmings",
-                            TRUE~ "Whole fish")) |>
-  group_by(diet, fao_area_code) |> 
-  group_split() |> 
-  map(savesummary)
-
+```
+```{r}
+#clear the environment
+rm(list = ls(all.names = TRUE))
 ```
 

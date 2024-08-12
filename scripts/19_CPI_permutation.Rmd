@@ -15,7 +15,7 @@ library(here)
 library(sf)
 library(terra)
 library(rnaturalearth)
-#library(rnaturalearthdata)
+library(rnaturalearthdata)
 library(RColorBrewer)
 library(ggdist)
 library(data.table)
@@ -26,14 +26,14 @@ values <- terra::values
 
 
 #ALLOCATION METHOD (un-comment preference)
-#source(here("1_choose_allocation_method.R")) #selects from set up script
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 #this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"
 
 
-marine_run <- !file.exists(sprintf(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
-plant_run <- !file.exists(sprintf(here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
+marine_run <- file.exists(sprintf(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
+plant_run <- file.exists(sprintf(here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
 
 ```
 
@@ -46,7 +46,7 @@ plant_diets <- readRDS(here("data/tidy_data/diets/ingredient_source_combinations
 
 #Disaggregation by pressure and ingredient
 
-Disaggregate by ingredients and pressures - Marine diets - takes ~ 1 hour
+Disaggregate by ingredients and pressures - Marine diets - takes ~ 2.5 hours
 
 ```{r, eval= marine_run}
 
@@ -246,7 +246,7 @@ saveRDS(marine_diet_pressures_by_ingredient_df, file = sprintf(here("data/tidy_d
 marine_diet_pressures_by_ingredient_df |> pull(source) |> unique()
 ```
 
-Disaggreagte by ingredients and pressures - Plant diets - takes ~2.5 hours
+Disaggreagte by ingredients and pressures - Plant diets - takes ~4 hours
 
 ```{r, eval= plant_run}
 
