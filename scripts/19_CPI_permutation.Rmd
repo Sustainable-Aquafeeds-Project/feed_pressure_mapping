@@ -33,7 +33,7 @@ source(here("1_choose_allocation_method.R")) #selects from set up script
 
 
 marine_run <- !file.exists(sprintf(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
-plant_run <- file.exists(sprintf(here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
+plant_run <- !file.exists(sprintf(here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
 
 ```
 
@@ -246,7 +246,7 @@ saveRDS(marine_diet_pressures_by_ingredient_df, file = sprintf(here("data/tidy_d
 marine_diet_pressures_by_ingredient_df |> pull(source) |> unique()
 ```
 
-Disaggreagte by ingredients and pressures - Plant diets - takes ~4 hours
+Disaggreagte by ingredients and pressures - Plant diets - takes ~6 hours
 
 ```{r, eval= plant_run}
 
