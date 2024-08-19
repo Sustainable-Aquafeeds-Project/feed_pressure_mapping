@@ -12,5 +12,5 @@
 
 
 #this_allocation_method <- "econ_allocation"
-#this_allocation_method <- "ge_allocation"
-this_allocation_method <- "mass_allocation"
+this_allocation_method <- "ge_allocation"
+#this_allocation_method <- "mass_allocation"

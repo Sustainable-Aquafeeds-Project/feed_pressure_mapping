@@ -32,7 +32,7 @@ source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "mass_allocation"
 
 
-marine_run <- file.exists(sprintf(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
+marine_run <- !file.exists(sprintf(here("data/tidy_data/pressures/marine_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
 plant_run <- file.exists(sprintf(here("data/tidy_data/pressures/plant_disaggregated_pressures_by_ingredient_df_%s.rds"), this_allocation_method))
 
 ```
