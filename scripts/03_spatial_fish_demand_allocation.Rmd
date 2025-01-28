@@ -93,7 +93,8 @@ Isolate catch for trimmings first
 
 trimmings_spp_catch <- readRDS(here("data/large_data/trimmings_spp_catch.rds")) |> filter(IYear == 2017)
 
-trimmings_xyz <- trimmings_spp_catch |> 
+trimmings_xyz <- 
+  trimmings_spp_catch |> 
   group_by(LonCentre, LatCentre) |> 
   summarise(total_catch = sum(ReportedIND)) |> 
   #select(LonCentre, LatCentre, total_catch) |> 
@@ -110,12 +111,12 @@ plot(total_trimmings_raster)
 #bring in the FAO regions shape file
 
 fao_areas_shp <- 
-  read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+  read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.1.0&typeName=FAO_AREAS_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
   mutate(F_AREA = as.numeric(F_AREA)) |> 
   group_by(F_AREA) |> 
   group_split()
 
-this_area <- fao_areas_shp[[1]]
+this_area <- fao_areas_shp[[13]]
 
 
 
@@ -180,7 +181,7 @@ sum(values(total_forage_raster), na.rm = TRUE)
 
 
 fao_areas_shp <- 
-  read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.0.0&typeName=fifao:FAO_AREAS_CWP_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
+  read_sf("https://www.fao.org/fishery/geoserver/fifao/ows?service=WFS&request=GetFeature&version=1.1.0&typeName=FAO_AREAS_NOCOASTLINE&outputFormat=json") |> filter(F_LEVEL == "MAJOR") |> 
   mutate(F_AREA = as.numeric(F_AREA)) |> 
   group_by(F_AREA) |> 
   group_split()

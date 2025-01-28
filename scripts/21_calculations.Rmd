@@ -13,11 +13,11 @@ library(here)
 library(terra)
 
 #ALLOCATION METHOD (un-comment preference)
-#source(here("1_choose_allocation_method.R")) #selects from set up script
+source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
 # this_allocation_method <- "ge_allocation"
-# this_allocation_method <- "mass_allocation"
-
+#this_allocation_method <- "mass_allocation"
+this_allocation_method
 
 ```
 
@@ -86,6 +86,7 @@ saveRDS(raw_material_totals, file = sprintf(here("data/tidy_data/demand/total_ra
 
 raw_material_totals_by_origin <- 
   raw_material_iteration |> 
+  filter(type!="Total") |> 
   mutate(origin = case_when(type %in% c("Fishmeal", "Fish oil") ~ "Marine",
                             TRUE ~ "Terrestrial")) |> 
   group_by(diet, origin, fao_area_code) |>
