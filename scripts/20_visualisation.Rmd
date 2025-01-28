@@ -12,7 +12,7 @@ library(here)
 library(patchwork)
 library(rcartocolor)
 library(RColorBrewer)
-#library(ggpubr)
+library(ggpubr)
 library(ggpattern)
 library(egg)
 
@@ -500,6 +500,9 @@ fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |>
                           area == 67 ~ "Northeast Pacific",
                           area == 87 ~ "Southeast Pacific"))
 
+
+disturbance_max <- fm_disturbance_df$sum |> max()+50
+
 #fishmeal label
 facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1.5)
 
@@ -542,12 +545,12 @@ fm_dist_plot <-
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-  coord_cartesian(ylim = c(0,620), clip="off") +
+  coord_cartesian(ylim = c(0,disturbance_max), clip="off") +
   #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
    annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
   labs(fill = "FAO fishing area", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
   geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
-  annotation_custom2(ff_png, xmin = 0.5, xmax = 2, ymin = 590, ymax = 630, data = fm_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(ff_png, xmin = 0.5, xmax = 2, ymin = disturbance_max-30, ymax = disturbance_max+20, data = fm_disturbance_df |> filter(diet == "Fish-dominant"))
 
 
 
@@ -645,11 +648,11 @@ soy_dist_plot <-
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
         legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim = c(0,620), clip="off") +
+    coord_cartesian(ylim = c(0,disturbance_max), clip="off") +
   labs(fill = "Country", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
    annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
   geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
-  annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 500, ymax = 630, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = disturbance_max-120, ymax = disturbance_max+10, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
 
@@ -751,7 +754,7 @@ fm_ghg_plot <-
    coord_cartesian(ylim = c(0, 350000), clip="off")+
    annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
   labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
-  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
   annotation_custom2(ff_png, xmin = .5, xmax = 2, ymin = 332000, ymax = 362000, data = fm_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/fishmeal_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
@@ -855,7 +858,7 @@ soy_ghg_plot <-
    annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
   labs(fill = "Country", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
   geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
-  annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 302000, ymax = 352000, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+  annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 290000, ymax = 352000, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
   
  
 ggsave(filename = sprintf(here("explore/soy_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")

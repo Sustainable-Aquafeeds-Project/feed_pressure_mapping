@@ -305,7 +305,7 @@ marine_diet1_df <- terra::as.data.frame(marine_diet_rasters[[1]], xy=TRUE)
 (marine_sourcing_p1 <- 
   ggplot()+
    geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth=0.08)+
-  geom_sf(data = countries, fill= "grey90", colour= "white", linewidth=0.08)+
+  geom_sf(data = countries, fill= "grey95", colour= "white", linewidth=0.08)+
   geom_tile(data = marine_diet1_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
   theme(panel.grid = element_blank(),
@@ -337,7 +337,7 @@ marine_diet2_df <- terra::as.data.frame(marine_diet_rasters[[2]], xy=TRUE)
 (marine_sourcing_p2 <- 
   ggplot()+
    geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth=0.08)+
-  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
+  geom_sf(data = countries, fill="grey95", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet2_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
   theme(panel.grid = element_blank(),
@@ -367,7 +367,7 @@ marine_diet3_df <- terra::as.data.frame(marine_diet_rasters[[3]], xy=TRUE)
 (marine_sourcing_p3 <- 
   ggplot()+
   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth=0.08)+
-  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
+  geom_sf(data = countries, fill="grey95", colour= "white", linewidth=0.15)+
   geom_tile(data = marine_diet3_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth= 0.15)+
   theme(panel.grid = element_blank(),
@@ -399,7 +399,7 @@ plant_diet1_df <- terra::as.data.frame(plant_diet_rasters[[1]], xy=TRUE)
 (plant_sourcing_p1 <- 
   ggplot()+
   geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth=0.08)+
-  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
+  geom_sf(data = countries, fill="grey95", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet1_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
   theme(panel.grid = element_blank(),
@@ -429,7 +429,7 @@ plant_diet2_df <- terra::as.data.frame(plant_diet_rasters[[2]], xy=TRUE)
 (plant_sourcing_p2 <- 
   ggplot()+
    geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth=0.08)+
-  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
+  geom_sf(data = countries, fill="grey95", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet2_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
   theme(panel.grid = element_blank(),
@@ -458,7 +458,7 @@ plant_diet3_df <- terra::as.data.frame(plant_diet_rasters[[3]], xy=TRUE)
 (plant_sourcing_p3 <- 
   ggplot()+
    geom_sf(data = bbox, colour="grey75", fill= "aliceblue", alpha=0.6, linewidth=0.08)+
-  geom_sf(data = countries, fill="grey90", colour= "white", linewidth=0.15)+
+  geom_sf(data = countries, fill="grey95", colour= "white", linewidth=0.15)+
   geom_tile(data = plant_diet3_df, aes(x = x, y=y, fill=sum))+
   geom_sf(data = coastline, colour="grey45", linewidth = 0.15)+
   theme(panel.grid = element_blank(),
@@ -502,7 +502,7 @@ source_diet_map <-
   (marine_sourcing_p3|plant_sourcing_p3)+
   plot_layout(guides = "collect")+
   plot_annotation(tag_levels = "a", #surely there is a better way than below?
-                  title = "                      Fish-dominant feed                                 Plant-dominant feed") & 
+                  title = "                   Fish-dominant feed                       Plant-dominant feed") & 
   theme(plot.tag = element_text(size=10), 
         plot.tag.position = c(0.1, 1),
         legend.position = "bottom")
