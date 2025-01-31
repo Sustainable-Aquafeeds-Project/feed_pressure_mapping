@@ -217,8 +217,6 @@ which(summary_by_total |> filter(diet == "plant diet") |> pull(cpi)<summary_by_t
 which(summary_by_total |> filter(diet == "plant diet") |> pull(cpi)>summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max(), TRUE) |> length()/2000
 
 
-
-
 #how many times lower can the CPI of the plant dominant scenario be despite the higher average
 summary_by_total |> filter(diet == "plant diet") |> pull(cpi) |> min()/summary_by_total |> filter(diet == "marine diet") |> pull(cpi) |> max()
 
@@ -290,8 +288,12 @@ embodied_fish_ghgs |> group_by(fao_area_code, VBDesc) |>
   arrange(-total_ghg) |> 
   group_by(fao_area_code) |> 
   nest() |> 
-  mutate(prop_ghg = map(data, ~(.$total_ghg/sum(.$total_ghg)))) |> 
-  unnest(cols = c(data, prop_ghg))
+  mutate(prop_ghg = map(data, ~(.$total_ghg/sum(.$total_ghg)))) |>
+  mutate(total_area_fm_ghgs = map(data, ~(sum(.$ghg_fm)))) |>
+  mutate(total_area_fo_ghgs = map(data, ~(sum(.$ghg_fo)))) |>
+  mutate(total_area_ghgs = map(data, ~(sum(.$total_ghg)))) |> 
+  unnest(cols = c(data, prop_ghg,total_area_fm_ghgs, total_area_fo_ghgs, total_area_ghgs))
+  
 
 ```
 
@@ -414,10 +416,11 @@ ggplot(data = prop_npp, aes(x=fao_area_code, y = prop_npp, fill = diet)) +
   theme(text = element_text(size=8),
         legend.text = element_text(size=8),
         legend.title = element_text(size=8),
-        legend.position = c(0.8,0.85),
+        legend.position = c(0.75,0.85),
         legend.key.size = unit(0.3, "cm"),
         panel.grid = element_blank())+
-  scale_fill_manual(values = rev(my_pal[c(4,2)]))
+  scale_fill_manual(values = rev(my_pal[c(4,2)]))+
+  scale_y_continuous(labels = scales::scientific)
   
 
 ggsave(filename = sprintf(here("figures/npp_appropriation_%s.jpg"), this_allocation_method), dpi=600, width = 9.3, height=7, units = "cm")

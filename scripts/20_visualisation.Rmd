@@ -202,25 +202,25 @@ processing_production_prop <-
   mutate(cpi_prop = cpi_cont/cpi_total)
 
 
-#what proportion of CPI does processing represent on average across irrespective of diet?
+#what proportion of CPI does production represent on average across irrespective of diet?
 
 processing_production_prop |> 
   filter(stage == "production") |> 
   pull(cpi_prop) |> 
-  median() # 87%
+  median() # 90%
 
-#what proportion of CPI does processing represent on average for the marine diet?
+#what proportion of CPI does production represent on average for the marine diet?
 processing_production_prop |> 
   filter(stage == "production" & diet == "marine diet") |> 
   pull(cpi_prop) |> 
-  median() # 90%
+  median() # 89%
 
 
-#what proportion of CPI does processing represent on average for the plant diet?
+#what proportion of CPI does production represent on average for the plant diet?
 processing_production_prop |> 
   filter(stage == "production" & diet == "plant diet") |> 
   pull(cpi_prop) |> 
-  median() # 88%
+  median() # 90%
 
 
 #What about per pressure?
@@ -1193,11 +1193,7 @@ fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |>
  
  
 
-   
-```
-
-
-```{r}
+  
 #calculation
 
 
@@ -1243,6 +1239,19 @@ fo_disturbance_df <- bind_rows(marine_fo_dist, plant_fo_dist) |>
                           area == 61 ~ "Northwest Pacific",
                           area == 67 ~ "Northeast Pacific",
                           area == 87 ~ "Southeast Pacific"))
+
+
+
+#what percentage of wheat gliten nutrients comes from processing?
+faba_water_df |> 
+  group_by(area, area_name, diet) |> 
+  nest() |> 
+  mutate(total_wat = map(data, ~(sum(.$sum)))) |> 
+  unnest(cols = c(data, total_wat)) |> 
+  mutate(prop_wat = sum/total_wat)
+
+
+
 
 ```
 
