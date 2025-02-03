@@ -504,7 +504,7 @@ fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |>
 disturbance_max <- fm_disturbance_df$sum |> max()+50
 
 #fishmeal label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1.5)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #anchovy png
 ff_png <- png::readPNG(here("data/tidy_data/png/engraulis-australis-australian-anchovy.png"))
@@ -538,18 +538,18 @@ fm_dist_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.7,0.83),
+        legend.position = c(0.68,0.75),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+        legend.margin = margin(-0,0,-0,-0.2, unit="cm"))+
   coord_cartesian(ylim = c(0,disturbance_max), clip="off") +
   #theme(plot.margin = unit(c(1,1,1,0), "lines"))+
    annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
   labs(fill = "FAO fishing area", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
-  geom_text(data = facet_text, aes(x = area_name+0.75, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold", hjust = 0)+
   annotation_custom2(ff_png, xmin = 0.5, xmax = 2, ymin = disturbance_max-30, ymax = disturbance_max+20, data = fm_disturbance_df |> filter(diet == "Fish-dominant"))
 
 
@@ -604,7 +604,7 @@ plant_SPC_dist <-
   
 
 #facet label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #soy png
 soy_png <- png::readPNG(here("data/tidy_data/png/soybeans.png"))
@@ -641,17 +641,17 @@ soy_dist_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.7,0.83),
+        legend.position = c(0.68,0.75),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+         legend.margin = margin(-0.2,0,-0,-0.2, unit="cm"))+
     coord_cartesian(ylim = c(0,disturbance_max), clip="off") +
   labs(fill = "Country", y = bquote(Disturbance~(km^2~eq.)), x = "", pattern = "Stage")+
    annotate("segment", x = 3, xend = 3, y=-30, yend = -43)+
-  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold", hjust =0)+
   annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = disturbance_max-120, ymax = disturbance_max+10, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
@@ -665,7 +665,7 @@ ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocati
   # FISH MEAL - GHG
 
 #fish meal label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1.5)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #anchovy png
 ff_png <- png::readPNG(here("data/tidy_data/png/engraulis-australis-australian-anchovy.png"))
@@ -744,17 +744,17 @@ fm_ghg_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.7,0.83),
+        legend.position = c(0.68,0.75),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+        legend.margin = margin(-0,0,-0,-0.2, unit="cm"))+
    coord_cartesian(ylim = c(0, 350000), clip="off")+
    annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
   labs(fill = "FAO fishing area", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
-  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Fishmeal (32/15%)", size=2.5, fontface="bold", hjust =0)+
   annotation_custom2(ff_png, xmin = .5, xmax = 2, ymin = 332000, ymax = 362000, data = fm_disturbance_df |> filter(diet == "Fish-dominant"))
 
 ggsave(filename = sprintf(here("explore/fishmeal_GHG_%s.jpeg"), this_allocation_method), device = "jpeg", dpi = 600, width = 8.9, height = 7, units = "cm")
@@ -808,7 +808,7 @@ plant_SPC_GHG <-
 
 
 #facet label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #soy png
 soy_png <- png::readPNG(here("data/tidy_data/png/soybeans.png"))
@@ -847,17 +847,17 @@ soy_ghg_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.75,0.83),
+        legend.position = c(0.68,0.75),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
+         legend.margin = margin(-0.2,0,-0,-0.2, unit="cm"))+
      coord_cartesian(ylim = c(0, 350000), clip="off")+
    annotate("segment", x = 3, xend = 3, y=-25000, yend = -19000)+
   labs(fill = "Country", y = bquote(GHG~emissions~(tonnes~CO[2]~eq.)), x = "", pattern = "Stage")+
-  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold")+
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "SBM/SPC (17/20%)", size=2.5, fontface="bold", hjust=0)+
   annotation_custom2(soy_png, xmin = 0.5, xmax = 1.5, ymin = 290000, ymax = 352000, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
   
  
@@ -909,7 +909,7 @@ plant_WG_nutr <-
 
 
 #wheat gluten label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #wheat png
 wheat_png <- png::readPNG(here("data/tidy_data/png/wheat-sheath.png"))
@@ -954,18 +954,18 @@ wg_nutr_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.75,0.83),
+        legend.position = c(0.68,0.75),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,0, unit="cm"))+
-    coord_cartesian(ylim = c(0, 125), clip="off") +
+         legend.margin = margin(-0.2,0,-0,-0.2, unit="cm"))+
+    coord_cartesian(ylim = c(0, 75), clip="off") +
   labs(fill = "Country", y = bquote(Excess~nutrients~(tonnes~N/P~eq.)), x = "Feed scenario", pattern = "Stage")+
      annotate("segment", x = 3, xend = 3, y=-6, yend = -9)+
-  geom_text(data = facet_text, aes(x = area_name+1.25, y = sum), label = "Wheat gluten (13/10%)", size=2.5, fontface="bold")+
-  annotation_custom2(wheat_png, xmin = -0.2, xmax = 2, ymin = 113, ymax = 125, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Wheat gluten (13/10%)", size=2.5, fontface="bold", hjust =0)+
+  annotation_custom2(wheat_png, xmin = -0.2, xmax = 2, ymin = 63, ymax = 75, data = soy_disturbance_df |> filter(diet == "Fish-dominant"))
   
 ggsave(filename = sprintf(here("explore/wheat_gluten_%s.jpg"), this_allocation_method), dpi = 600, width = 8.9, height=7, unit="cm")
 
@@ -1014,7 +1014,7 @@ plant_faba_water <-
 
 
 #facet label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #soy png
 faba_png <- png::readPNG(here("data/tidy_data/png/faba_beans.png"))
@@ -1054,18 +1054,18 @@ faba_water_plot <-
         axis.line = element_line(),
         panel.spacing = unit(0, 'pt'),
         text=element_text(size=8),
-        legend.position = c(0.75,0.83),
+        legend.position = c(0.68,0.75),
         legend.box = "horizontal",
         legend.title = element_text(size=6),
         legend.text = element_text(size=6),
         legend.key.size = unit(0.3, "cm"),
         legend.background = element_rect(fill = "transparent"),
-        legend.margin = margin(-0.2,0,0,-0, unit="cm"))+
-    coord_cartesian(ylim=c(0,140), clip="off")+
+         legend.margin = margin(-0.2,0,-0,-0.2, unit="cm"))+
+    coord_cartesian(ylim=c(0,120), clip="off")+
   labs(fill = "Country", y = bquote(Water~consumption~("1000s"~m^3)), x = "Feed scenario", pattern = "Stage")+
   annotate("segment", x = 3, xend = 3, y=-7, yend = -10)+
-  geom_text(data = facet_text, aes(x = area_name+1, y = sum), label = "Faba beans (2/3%)", size=2.5, fontface="bold")+
- annotation_custom2(faba_png, xmin = -0.3, xmax = 1.9, ymin = 125, ymax = 140, data = faba_water_df |> filter(diet == "Fish-dominant"))
+  geom_text(data = facet_text, aes(x = area_name, y = sum), label = "Faba beans (2/3%)", size=2.5, fontface="bold", hjust =0)+
+ annotation_custom2(faba_png, xmin = -0.3, xmax = 1.9, ymin = 105, ymax = 120, data = faba_water_df |> filter(diet == "Fish-dominant"))
   
  
 
@@ -1304,7 +1304,7 @@ fm_disturbance_df <- bind_rows(marine_fm_dist, plant_fm_dist) |>
                           area == 87 ~ "Southeast Pacific"))
 
 #fishmeal label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #anchovy png
 ff_png <- png::readPNG(here("data/tidy_data/png/engraulis-australis-australian-anchovy.png"))
@@ -1405,7 +1405,7 @@ plant_SPC_dist <-
   
 
 #facet label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #soy png
 soy_png <- png::readPNG(here("data/tidy_data/png/soybeans.png"))
@@ -1466,7 +1466,7 @@ ggsave(filename = sprintf(here("explore/soy_disturbance_%s.jpeg"), this_allocati
   # FISH MEAL - GHG
 
 #fish meal label
-facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 1.2)
+facet_text <- data.frame(diet= "Fish-dominant", sum = Inf, area_name = 0.5)
 
 #anchovy png
 ff_png <- png::readPNG(here("data/tidy_data/png/engraulis-australis-australian-anchovy.png"))

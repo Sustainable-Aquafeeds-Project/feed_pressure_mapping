@@ -30,10 +30,6 @@ source(here("src/directories.R"))
 select <- dplyr::select
 resample <- terra::resample
 
-# Uncomment for when RDSI is down
-# watson_dir <- watson_backup_dir
-# rdsi_dir
-
 
 #allocation method (un-comment preference)
 source(here("1_choose_allocation_method.R")) #selects from set up script
