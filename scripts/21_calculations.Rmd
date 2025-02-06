@@ -15,9 +15,11 @@ library(terra)
 #ALLOCATION METHOD (un-comment preference)
 source(here("1_choose_allocation_method.R")) #selects from set up script
 #this_allocation_method <- "econ_allocation"
-# this_allocation_method <- "ge_allocation"
+#this_allocation_method <- "ge_allocation"
 #this_allocation_method <- "mass_allocation"
 this_allocation_method
+
+select <- dplyr::select
 
 ```
 
@@ -71,11 +73,10 @@ raw_material_totals <-
   filter(type!="Total") |> 
   group_by(diet, fao_area_code) |>
   summarise(total_biomass = sum(demand)) |> 
-  ungroup() 
-# |> 
-#   group_by(diet) |> 
-#   summarise(mean_biomass = mean(total_biomass, na.rm=TRUE),
-#             sd_biomass = sd(total_biomass, na.rm=TRUE))
+  ungroup() |>
+  group_by(diet) |>
+  summarise(mean_biomass = mean(total_biomass, na.rm=TRUE),
+            sd_biomass = sd(total_biomass, na.rm=TRUE))
 
 
 
@@ -293,6 +294,14 @@ embodied_fish_ghgs |> group_by(fao_area_code, VBDesc) |>
   mutate(total_area_fo_ghgs = map(data, ~(sum(.$ghg_fo)))) |>
   mutate(total_area_ghgs = map(data, ~(sum(.$total_ghg)))) |> 
   unnest(cols = c(data, prop_ghg,total_area_fm_ghgs, total_area_fo_ghgs, total_area_ghgs))
+
+embodied_fish_ghgs |> 
+  group_by(TaxonName, VBDesc, fao_area_code) |> 
+  summarise(ghg_fm = sum(ei_kg_CO2_eq_fm),
+            ghg_fo = sum(ei_kg_CO2_eq_fo)) |> 
+  mutate(total_ghg = ghg_fm+ghg_fo) |> 
+  arrange(fao_area_code, -total_ghg) |> filter(fao_area_code %in% c(61,87))
+
   
 
 ```
@@ -426,21 +435,6 @@ ggplot(data = prop_npp, aes(x=fao_area_code, y = prop_npp, fill = diet)) +
 ggsave(filename = sprintf(here("figures/npp_appropriation_%s.jpg"), this_allocation_method), dpi=600, width = 9.3, height=7, units = "cm")
   
 ```
-
-
-
-```{r}
-
-```
-
-
-
-
-
-
-
-
-
 
 
 
