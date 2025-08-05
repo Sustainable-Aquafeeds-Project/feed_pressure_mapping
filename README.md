@@ -14,7 +14,7 @@ Not yet available
 Please direct any correspondence to Richard Cottrell at [richscottrell\@gmail.com](mailto:richscottrell@gmail.com)
 
 ## Reproducibility
-We strongly advocate for open and reproducible science. The code in this repository enables a user to recreate the results outlined in the above publication. There are a a few important points to know/adhere to for the code to run smoothly:
+The code in this repository enables a user to recreate the results outlined in the above publication. There are a a few important points to know/adhere to for the code to run smoothly:
 
 - The code must be run as an R project - the code within relies on relative file paths from the project home folder.
 - The large data folder must be downloaded and stored inside your local copy of this repository - there are large data inputs needed for this code which cannot be stored on github. Please ensure you follow the instructions for obtaining this data folder in the 'scripts' section below.
