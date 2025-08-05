@@ -1,6 +1,6 @@
 # READ ME!
 
-This is the repository for Cottrell et al <reference>. This paper examines environmental trade-offs from the transition from fish- to plant-dominant feeds for Atlantic salmon (_Salmo salar_) and explores how changes to where ingredients are sourced can compound or mitigate these trade-offs.
+This is the repository for Cottrell et al 'The origins of aquaculture feed ingredients matter more than composition for aquafeed environmental footprint assessments'. This paper examines environmental trade-offs from the transition from fish- to plant-dominant feeds for Atlantic salmon (_Salmo salar_) and explores how changes to where ingredients are sourced can compound or mitigate these trade-offs.
 
 
 Please read this file before trying to reproduce the output from this research project. Below you will find information on the publication associated with this repository, contact information for the lead author, and a description of the repository structure with each section explained.
